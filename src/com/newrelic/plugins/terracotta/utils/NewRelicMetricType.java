@@ -5,7 +5,7 @@ public enum NewRelicMetricType
     Count( "count" ),
     CountSecond( "count/sec" ),
     Bytes( "bytes" ),
-    QueriesSecond( "Queries/sec" ),
+    QueriesSecond( "queries/sec" ),
     Rate( "value/sec" ),
     BytesSecond( "bytes/sec" ),
     Percent( "percent" );

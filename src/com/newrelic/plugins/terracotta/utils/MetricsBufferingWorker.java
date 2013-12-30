@@ -9,13 +9,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import com.newrelic.metrics.publish.binding.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetricsBufferingWorker {
-	private static final Logger log = Context.getLogger();
+	private static Logger log = LoggerFactory.getLogger(MetricsBufferingWorker.class);
+
 	private final MetricsBuffer metricsBuffer = new MetricsBuffer();
 	private final MetricsFetcher metricsFetcher;
 
@@ -117,7 +117,7 @@ public class MetricsBufferingWorker {
 
 			// Wait a while for tasks to respond to being canceled
 			if (!pool.awaitTermination(timeoutInSeconds, TimeUnit.SECONDS))
-				log.log(Level.SEVERE, "Pool did not terminate");
+				log.error("Pool did not terminate");
 		} catch (InterruptedException ie) {
 			// (Re-)Cancel if current thread also interrupted
 			pool.shutdownNow();
@@ -135,7 +135,11 @@ public class MetricsBufferingWorker {
 		}
 
 		public void run() {
-			metricsBuffer.bulkAddMetrics(metricsFetcher.getMetricsFromServer());
+			try{
+				metricsBuffer.bulkAddMetrics(metricsFetcher.getMetricsFromServer());
+			} catch (Exception exc){
+				log.error("Unexpected error...", exc);
+			}
 		}
 	}
 }

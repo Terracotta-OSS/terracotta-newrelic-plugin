@@ -6,7 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MetricsBuffer {
+	private static Logger log = LoggerFactory.getLogger(MetricsBuffer.class);
+
 	//using a simple hashMap because synchronizing all exposed access on it
 	private final Map<String, Metric> metricsBuffer = new HashMap<String, Metric>();
 
@@ -32,7 +37,7 @@ public class MetricsBuffer {
 			if(existingMetric == null){
 				metricsBuffer.put(metricKey, new Metric(newMetric)); //make a copy of the metric object here
 			} else {
-				existingMetric.addDataPoint(newMetric);
+				existingMetric.add(newMetric);
 			}
 		}
 	}

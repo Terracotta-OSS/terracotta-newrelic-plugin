@@ -2,6 +2,8 @@ package com.newrelic.plugins.terracotta;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terracotta.utils.jmxclient.TCL2JMXClient;
 
 import com.newrelic.metrics.publish.Agent;
@@ -11,6 +13,8 @@ import com.newrelic.plugins.terracotta.utils.MetricsBufferingWorker;
 import com.newrelic.plugins.terracotta.utils.MetricsFetcher;
 
 public class TCL2Agent extends Agent {
+	private static Logger log = LoggerFactory.getLogger(TCL2Agent.class);
+
 	private String name = "Default";
 	private final MetricsBufferingWorker metricsWorker;
 
@@ -28,8 +32,8 @@ public class TCL2Agent extends Agent {
 
 	@Override
 	public String getComponentHumanLabel() {
-		if(null != metricsWorker.getMetricsFetcher().getL2RuntimeInfo())
-			return metricsWorker.getMetricsFetcher().getL2RuntimeInfo().getServerInfoSummary();
+		if(null != metricsWorker.getMetricsFetcher().getL2ProcessInfo())
+			return metricsWorker.getMetricsFetcher().getL2ProcessInfo().getServerInfoSummary();
 		else
 			return name;
 	}
@@ -42,6 +46,10 @@ public class TCL2Agent extends Agent {
 		List<Metric> metrics = metricsWorker.getMetricsSnapshot();
 		for(Metric metric : metrics){
 			try {
+				System.out.println("Reporting metric: " + metric.toString());
+				if(log.isDebugEnabled())
+					log.debug("Reporting metric: " + metric.toString());
+				
 				reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
 			} catch (Exception e) {
 				System.err.println(String.format("New Relic Agent[%s] - Error with metrics reporting: %s", metric.getMetricFullName(), e.getMessage()));

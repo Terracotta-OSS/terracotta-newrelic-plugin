@@ -1,7 +1,11 @@
 package com.newrelic.plugins.terracotta.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Metric {
+	private static Logger log = LoggerFactory.getLogger(Metric.class);
+
 	private final String name;
 	private final NewRelicMetricType unit;
 
@@ -16,9 +20,13 @@ public class Metric {
 
 	public Metric(Metric metric) {
 		super();
+
+		if(null == metric)
+			throw new IllegalArgumentException("metric may not be null...");
+
 		this.name = metric.name;
 		this.unit = metric.unit;
-		
+
 		initInternals(metric.dataPointsCount, metric.aggregateValue, metric.aggregateSumOfSquares, metric.min, metric.max);
 	}
 
@@ -26,15 +34,15 @@ public class Metric {
 		super();
 		this.name = name;
 		this.unit = unit;
-		
+
 		initInternals();
 	}
-	
+
 	public Metric(String name, NewRelicMetricType unit, Number startValue){
 		super();
 		this.name = name;
 		this.unit = unit;
-		
+
 		if(null != startValue){
 			float value = startValue.floatValue();
 			initInternals(1, value, value * value, value, value);
@@ -78,20 +86,37 @@ public class Metric {
 		return String.format("%s[%s]", name, unit);
 	}
 
-	public void addDataPoint(Metric another){
+	/**
+	 * Add {@link Metric} to the current.
+	 *
+	 * @param metric
+	 * @return {@link this}
+	 */
+	public Metric add(Metric metric) {
 		//make sure another is the same type of metric
-		if(null != another && name.equals(another.name) && unit.equals(another.unit)){
-			addDataPoint(another.dataPointsCount, another.aggregateValue);
+		if(null != metric && name.equals(metric.name) && unit.equals(metric.unit)){
+			synchronized(padLock){
+				this.dataPointsCount += metric.dataPointsCount;
+				this.aggregateValue += metric.aggregateValue;
+				this.aggregateSumOfSquares += metric.aggregateSumOfSquares;
+
+				if (metric.min < this.min)
+					this.min = metric.min;
+
+				if (metric.max > this.max)
+					this.max = metric.max;
+			}
 		} else {
-			throw new IllegalArgumentException("Cannot add 2 different metrics together. Name and Unit must match.");
+			log.warn("Cannot add 2 different metrics together. Name and Unit must match. Doing nothing.");
 		}
+		return this;
 	}
 
-	public void addDataPoint(Number metricValue){
-		addDataPoint(1, metricValue);
+	public void add(Number metricValue){
+		add(1, metricValue);
 	}
 
-	private void addDataPoint(int dataPoints, Number metricValue){
+	private void add(int dataPoints, Number metricValue){
 		if(null != metricValue){
 			synchronized(padLock){
 				float value = metricValue.floatValue();
@@ -99,7 +124,7 @@ public class Metric {
 				dataPointsCount += dataPoints;
 				aggregateValue += value;
 				aggregateSumOfSquares += (value * value);
-				
+
 				if (value < this.min)
 					this.min = value;
 
@@ -134,5 +159,13 @@ public class Metric {
 			throw new IllegalArgumentException(String.format("Metric %s[%s] - No datapoint is added yet...cannot call average function until at least 1 point is added", name, unit.getName()));
 
 		return aggregateValue / dataPointsCount;
+	}
+
+	@Override
+	public String toString() {
+		return "Metric [name=" + name + ", unit=" + unit + ", aggregateValue="
+				+ aggregateValue + ", aggregateSumOfSquares="
+				+ aggregateSumOfSquares + ", dataPointsCount="
+				+ dataPointsCount + ", min=" + min + ", max=" + max + "]";
 	}
 }
