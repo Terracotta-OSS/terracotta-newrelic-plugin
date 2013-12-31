@@ -23,7 +23,7 @@ public class TCL2Agent extends Agent {
 		this.name = name;
 
 		System.out.println(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUsername));
-		
+
 		TCL2JMXClient jmxTCClient = new TCL2JMXClient(jmxUsername, jmxPassword, jmxHost, jmxPort);
 
 		this.metricsWorker = new MetricsBufferingWorker(5000, new MetricsFetcher(jmxTCClient));
@@ -52,7 +52,7 @@ public class TCL2Agent extends Agent {
 				
 				reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
 			} catch (Exception e) {
-				System.err.println(String.format("New Relic Agent[%s] - Error with metrics reporting: %s", metric.getMetricFullName(), e.getMessage()));
+				System.out.println(String.format("New Relic Agent[%s] - Error with metrics reporting: %s", metric.getMetricFullName(), e.getMessage()));
 			}
 		}
 	}

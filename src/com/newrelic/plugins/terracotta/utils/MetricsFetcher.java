@@ -37,15 +37,11 @@ public class MetricsFetcher {
 	public MetricsFetcher(TCL2JMXClient jmxTCClient) {
 		super();
 
-		if(null == jmxTCClient){
+		if(null == jmxTCClient || !jmxTCClient.initialize()){
 			throw new IllegalArgumentException("JMX connection could not be initialized.");
 		}
 
-		//check that everything worked ok
 		this.l2ProcessInfo = jmxTCClient.getL2ProcessInfo();
-		if(l2ProcessInfo == null || !jmxTCClient.isInitialized()){
-			throw new IllegalArgumentException("JMX connection could not be initialized.");
-		}
 		this.jmxTCClient = jmxTCClient;
 	}
 
@@ -145,6 +141,17 @@ public class MetricsFetcher {
 					}
 				}
 			}
+		} else {
+			metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, "All", "Connected"), NewRelicMetricType.Count, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, "*", "Transactions", "All"), NewRelicMetricType.Rate, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, "*", "Transactions", "Faults"), NewRelicMetricType.Rate, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, "*", "Transactions", "Flushes"), NewRelicMetricType.Rate, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, "*", "Transactions", "Pending"), NewRelicMetricType.Count,0 ));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, "All", METRICS_FAMILY_EHCACHE, "*", "*", "Size"), NewRelicMetricType.Count, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, "All", METRICS_FAMILY_EHCACHE, "*", "*", "HitRatio"), NewRelicMetricType.Percent, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, "All", METRICS_FAMILY_EHCACHE, "*", "*", "HitRate"), NewRelicMetricType.Rate, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, "All", METRICS_FAMILY_EHCACHE, "*", "*", "MissRate"), NewRelicMetricType.Rate, 0));
+			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, "All", METRICS_FAMILY_EHCACHE, "*", "*", "PutRate"), NewRelicMetricType.Rate, 0));
 		}
 
 		//Global Metrics
@@ -163,14 +170,15 @@ public class MetricsFetcher {
 		metrics.add(new Metric(String.format("%s/%s/%s", l2NodesPrefix, "Transactions", "LockRecalls"), NewRelicMetricType.Rate, txStats.getGlobalLockRecallRate()));
 
 		//used space
-		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "Live"), NewRelicMetricType.Count, dataStats.getLiveObjectCount()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "Cached"), NewRelicMetricType.Count, dataStats.getCachedObjectCount()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "Heap", "UsedSize"), NewRelicMetricType.Bytes, statusInfo.getUsedHeap()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "Heap", "MaxSize"), NewRelicMetricType.Bytes, statusInfo.getMaxHeap()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "OffHeap", "KeyMapSize"), NewRelicMetricType.Bytes, dataStats.getOffheapMapAllocatedMemory()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "OffHeap", "MaxSize"), NewRelicMetricType.Bytes, dataStats.getOffheapMaxDataSize()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "OffHeap", "ObjectSize"), NewRelicMetricType.Bytes, dataStats.getOffheapObjectAllocatedMemory()));
-		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "TieredStorage", "OffHeap", "TotalUsedSize"), NewRelicMetricType.Bytes, dataStats.getOffheapTotalAllocatedSize()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "Total"), NewRelicMetricType.Count, dataStats.getLiveObjectCount()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "OffHeap"), NewRelicMetricType.Count, dataStats.getOffheapObjectCachedCount()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "Heap"), NewRelicMetricType.Count, dataStats.getCachedObjectCount()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "Heap", "UsedSize"), NewRelicMetricType.Bytes, statusInfo.getUsedHeap()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "Heap", "MaxSize"), NewRelicMetricType.Bytes, statusInfo.getMaxHeap()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "OffHeap", "KeyMapSize"), NewRelicMetricType.Bytes, dataStats.getOffheapMapAllocatedMemory()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "OffHeap", "MaxSize"), NewRelicMetricType.Bytes, dataStats.getOffheapMaxDataSize()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "OffHeap", "ObjectSize"), NewRelicMetricType.Bytes, dataStats.getOffheapObjectAllocatedMemory()));
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Data", "Tiers", "OffHeap", "TotalUsedSize"), NewRelicMetricType.Bytes, dataStats.getOffheapTotalAllocatedSize()));
 
 		return metrics;
 	}
