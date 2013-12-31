@@ -3,7 +3,7 @@ Terracotta New Relic Plugin
 
 work in progress...
 
-*Depends on terracotta-jmxremote library that is defined at git@github.com:lanimall/terracotta-jmxremote.git*
+*Depends on terracotta-jmxremote library that is defined at [https://github.com/lanimall/terracotta-jmxremote] (git@github.com:lanimall/terracotta-jmxremote.git)*
 
 Prerequisites
 -------------
