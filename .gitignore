@@ -34,11 +34,6 @@ bin/**
 *.iml
 .settings
 
-# Package Files #
-*.jar
-*.war
-*.ear
-
 #log giles
 *.log
 
