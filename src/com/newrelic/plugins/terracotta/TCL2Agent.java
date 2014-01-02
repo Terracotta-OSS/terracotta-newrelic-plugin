@@ -19,10 +19,10 @@ public class TCL2Agent extends Agent {
 	private final MetricsBufferingWorker metricsWorker;
 
 	public TCL2Agent(String name, String jmxHost, int jmxPort, String jmxUsername, String jmxPassword) throws ConfigurationException {
-		super("org.terracotta.Terracotta", "1.0.2");
+		super("org.terracotta.Terracotta", "1.0.0");
 		this.name = name;
 
-		System.out.println(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUsername));
+		log.info(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUsername));
 
 		TCL2JMXClient jmxTCClient = new TCL2JMXClient(jmxUsername, jmxPassword, jmxHost, jmxPort);
 
@@ -40,19 +40,26 @@ public class TCL2Agent extends Agent {
 
 	@Override
 	public void pollCycle() {
-		System.out.println(String.format("New Relic Agent[%s] - Pushing L2 Metrics to NewRelic Cloud", getComponentHumanLabel()));
+		log.info(String.format("New Relic Agent[%s] - Pushing L2 Metrics to NewRelic Cloud", getComponentHumanLabel()));
 
 		//get all metrics and report to new relic
 		List<Metric> metrics = metricsWorker.getMetricsSnapshot();
-		for(Metric metric : metrics){
-			try {
-				System.out.println("Reporting metric: " + metric.toString());
-				if(log.isDebugEnabled())
-					log.debug("Reporting metric: " + metric.toString());
-				
-				reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
-			} catch (Exception e) {
-				System.out.println(String.format("New Relic Agent[%s] - Error with metrics reporting: %s", metric.getMetricFullName(), e.getMessage()));
+		if(null == metrics || metrics.size() == 0){
+			log.warn(String.format("New Relic Agent[%s] - Buffered metrics are null! The background thread might have been terminated and agent shoudl be restarted.", getComponentHumanLabel()));
+			log.warn(String.format("New Relic Agent[%s] - Meanwhile, until agent is restarted, non-buffered metrics will be fetched directly", getComponentHumanLabel()));
+			metrics = metricsWorker.getMetricsFetcher().getMetricsFromServer();
+		}
+
+		if(null != metrics){
+			for(Metric metric : metrics){
+				try {
+					if(log.isDebugEnabled())
+						log.debug("Reporting metric: " + metric.toString());
+
+					reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
+				} catch (Exception e) {
+					log.error(String.format("New Relic Agent[%s] - Error with metrics reporting", metric.getMetricFullName()), e);
+				}
 			}
 		}
 	}

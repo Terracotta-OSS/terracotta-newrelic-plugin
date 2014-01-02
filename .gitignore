@@ -37,4 +37,10 @@ bin/**
 *.jar
 *.war
 *.ear
+
+#log giles
+*.log
+
+#config files
 config/newrelic.properties
+#config/com.newrelic.plugins.terracotta.json

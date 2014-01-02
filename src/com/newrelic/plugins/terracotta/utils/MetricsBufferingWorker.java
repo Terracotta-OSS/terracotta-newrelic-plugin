@@ -78,17 +78,19 @@ public class MetricsBufferingWorker {
 			// getting the future's response will block forever unless an exception is thrown
 			cacheTimerServiceFuture.get();	
 		} catch (InterruptedException e) {
-			System.err.println("SEVERE: An error has occurred");
+			System.out.println(String.format("SEVERE: An error has occurred: %s", e.getMessage()));
 			e.printStackTrace();
 		} catch (CancellationException e) {
-			System.err.println("SEVERE: An error has occurred");
+			System.out.println(String.format("SEVERE: An error has occurred: %s", e.getMessage()));
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			// ExecutionException will wrap any java.lang.Error from the polling thread that we should not catch there (e.g. OutOfMemoryError)
-			System.err.println("SEVERE: An error has occurred");
+			System.out.println(String.format("SEVERE: An error has occurred: %s", e.getMessage()));
 			e.printStackTrace();
 		} finally {
 			// clean up and exit
+			log.info("clean up and exit");
+			
 			cacheTimerServiceFuture.cancel(true);
 			shutdownNow(cacheTimerService);
 		}

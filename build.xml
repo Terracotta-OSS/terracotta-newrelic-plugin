@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="waveform" default="dist" basedir=".">
-
-	<property name="version" value="1.0.2" />
-	<property name="filename" value="terracotta-${version}" />
+<project name="terracotta-newrelic-plugin" default="dist"
+	basedir=".">
+	<property name="version" value="1.0.0" />
+	<property name="filename" value="${ant.project.name}-${version}" />
 	<property name="jarfile" value="${filename}.jar" />
 	<property name="tarfile" value="${filename}.tar.gz" />
 
@@ -17,9 +17,13 @@
 	<property name="conf.dir" value="config" />
 	<property name="dist.dir" location="dist" />
 
-	<property name="sdk.jar" value="${lib.dir}/metrics_publish-1.2.0.jar" />
-	<property name="terracotta-jmxremote.jar" value="${lib.dir}/terracotta-jmxremote-3.6-runtime-1.0.0.jar" />
-	
+	<property name="ant.build.javac.source" value="1.6" />
+	<property name="ant.build.javac.target" value="1.6" />
+
+	<property name="sdk.jar" value="${lib.dir}/metrics_publish-1.2.2.jar" />
+	<property name="terracotta-jmxremote.jar"
+		value="${lib.dir}/terracotta-jmxremote-3.6-runtime-1.0.0.jar" />
+
 	<path id="classpath">
 		<pathelement location="${sdk.jar}" />
 		<pathelement location="${terracotta-jmxremote.jar}" />
@@ -41,8 +45,7 @@
 		<!-- Compile the java code -->
 		<echo>Building project...</echo>
 		<mkdir dir="${build.classes.dir}" />
-		<javac srcdir="${src.dir}" destdir="${build.classes.dir}"
-			target="1.6" source="1.6">
+		<javac srcdir="${src.dir}" destdir="${build.classes.dir}">
 			<classpath refid="classpath" />
 		</javac>
 		<echo>Done.</echo>
@@ -60,7 +63,8 @@
 				<attribute name="Built-Date" value="${TODAY}" />
 				<attribute name="Specification-Version" value="${version}" />
 				<attribute name="Implementation-Version" value="${version} ${TODAY}" />
-				<attribute name="Main-Class" value="com.newrelic.plugins.terracotta.TCL2MonLauncher" />
+				<attribute name="Main-Class"
+					value="com.newrelic.plugins.terracotta.TCL2MonLauncher" />
 			</manifest>
 			<fileset dir="${build.classes.dir}" />
 			<zipfileset src="${sdk.jar}" />

@@ -1,0 +1,30 @@
+[
+	{
+		"name" : "Server1",
+		"jmx_host" : "hostname1",
+		"jmx_port" : "port1",
+		"jmx_user" : "user1 (optional)",
+		"jmx_password" : "password1 (optional)" 
+	},
+	{
+		"name" : "Server2",
+		"jmx_host" : "hostname2",
+		"jmx_port" : "port2",
+		"jmx_user" : "user2 (optional)",
+		"jmx_password" : "password2 (optional)" 
+	},
+	{
+		"name" : "Server3",
+		"jmx_host" : "hostname3",
+		"jmx_port" : "port3",
+		"jmx_user" : "user3 (optional)",
+		"jmx_password" : "password3 (optional)" 
+	},
+	{
+		"name" : "Server4",
+		"jmx_host" : "hostname4",
+		"jmx_port" : "port4",
+		"jmx_user" : "user4 (optional)",
+		"jmx_password" : "password4 (optional)" 
+	}
+]

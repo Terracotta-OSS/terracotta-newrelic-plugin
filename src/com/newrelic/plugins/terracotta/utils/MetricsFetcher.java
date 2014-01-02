@@ -54,7 +54,7 @@ public class MetricsFetcher {
 	}
 
 	public List<Metric> getMetricsFromServer() {
-		System.out.println(String.format("Getting L2 Metrics From Server %s", l2ProcessInfo.getServerInfoSummary()));
+		log.info(String.format("Getting L2 Metrics From Server %s", l2ProcessInfo.getServerInfoSummary()));
 		List<Metric> metrics = new ArrayList<Metric>();
 
 		L2TransactionsStats txStats = jmxTCClient.getL2TransactionsStats();

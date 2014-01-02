@@ -2,11 +2,15 @@ package com.newrelic.plugins.terracotta;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.newrelic.metrics.publish.Agent;
 import com.newrelic.metrics.publish.AgentFactory;
 import com.newrelic.metrics.publish.configuration.ConfigurationException;
 
 public class TCL2AgentFactory extends AgentFactory {
+	private static Logger log = LoggerFactory.getLogger(TCL2AgentFactory.class);
 
 	public TCL2AgentFactory() {
 		super("com.newrelic.plugins.terracotta.json");
@@ -26,7 +30,7 @@ public class TCL2AgentFactory extends AgentFactory {
 		try {
 			jmx_port = Integer.parseInt((String)properties.get("jmx_port"));
 		} catch (NumberFormatException e) {
-			e.printStackTrace();
+			log.error("Could not parse jmx_port", e);
 		}
 
 		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd);
