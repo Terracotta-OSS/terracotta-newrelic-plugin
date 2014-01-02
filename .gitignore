@@ -41,6 +41,7 @@ bin/**
 #log giles
 *.log
 
-#config files
+#local config files
 config/newrelic.properties
-#config/com.newrelic.plugins.terracotta.json
+config/com.newrelic.plugins.terracotta.json
+config/logging.properties
