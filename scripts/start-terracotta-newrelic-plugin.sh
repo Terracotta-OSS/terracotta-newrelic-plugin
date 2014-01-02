@@ -5,7 +5,7 @@
 #
 
 JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx512m"
-TC_HOME="/Applications/terracotta/terracotta-ee-3.7.6"
+TC_HOME="@terracotta_home@"
 
 # OS specific support.  $var _must_ be set to either true or false.
 cygwin=false

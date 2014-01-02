@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="terracotta-newrelic-plugin" default="dist"
 	basedir=".">
+	<property file="build.properties" />
 	<property name="version" value="1.0.0" />
 	<property name="filename" value="${ant.project.name}-${version}" />
 	<property name="jarfile" value="${filename}.jar" />
@@ -14,6 +15,7 @@
 
 	<property name="src.dir" value="src" />
 	<property name="lib.dir" value="lib" />
+	<property name="scripts.dir" value="scripts" />
 	<property name="conf.dir" value="config" />
 	<property name="dist.dir" location="dist" />
 
@@ -27,7 +29,7 @@
 	<path id="classpath">
 		<pathelement location="${sdk.jar}" />
 		<pathelement location="${terracotta-jmxremote.jar}" />
-		<pathelement location="/Applications/terracotta/terracotta-ee-3.7.6/lib/tc.jar"></pathelement>
+		<pathelement location="${terracotta.home}/lib/tc.jar"></pathelement>
 	</path>
 
 	<target name="clean">
@@ -76,7 +78,20 @@
 		<copy todir="${build.tar.src.dir}/config">
 			<fileset dir="${conf.dir}" />
 		</copy>
-		<copy file="${build.jar.dir}/${jarfile}" todir="${build.tar.src.dir}" />
+		<copy todir="${build.tar.src.dir}/bin">
+			<fileset dir="${scripts.dir}" />
+		</copy>
+		<copy todir="${build.tar.src.dir}/libs">
+			<fileset dir="${lib.dir}" />
+		</copy>
+		<copy file="${build.jar.dir}/${jarfile}" todir="${build.tar.src.dir}/libs" />
+
+		<replace
+			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.sh"
+			propertyFile="build.properties">
+			<replacefilter token="@terracotta_home@" property="terracotta.home" />
+		</replace>
+
 		<tar compression="gzip" destfile="${dist.dir}/${tarfile}">
 			<tarfileset dir="${build.tar.dir}" />
 		</tar>

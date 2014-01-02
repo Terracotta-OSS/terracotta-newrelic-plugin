@@ -12,6 +12,7 @@ bin/
 target/
 out/
 dist/
+build/
 
 ##############
 # eclipse #
@@ -42,6 +43,7 @@ bin/**
 *.log
 
 #local config files
+build.properties
 config/newrelic.properties
 config/com.newrelic.plugins.terracotta.json
 config/logging.properties
