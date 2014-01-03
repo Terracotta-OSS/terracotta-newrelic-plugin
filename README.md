@@ -1,7 +1,7 @@
 Terracotta New Relic Plugin
 ========================================
 
-This plugin is *not* officially supported by Terracotta, and has been so far tested with Terracotta EE 3.7.x version.
+This plugin is _not officially supported by Terracotta_, and has been so far tested with Terracotta EE 3.7.x version.
 
 Prerequisites
 -------------
