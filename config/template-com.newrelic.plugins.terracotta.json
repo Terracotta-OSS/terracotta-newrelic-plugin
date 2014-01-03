@@ -1,6 +1,7 @@
 [
 	{
 		"name" : "Server1",
+		"namediscovery": "false",
 		"jmx_host" : "hostname1",
 		"jmx_port" : "port1",
 		"jmx_user" : "user1 (optional)",
@@ -8,6 +9,7 @@
 	},
 	{
 		"name" : "Server2",
+		"namediscovery": "false",
 		"jmx_host" : "hostname2",
 		"jmx_port" : "port2",
 		"jmx_user" : "user2 (optional)",
@@ -15,6 +17,7 @@
 	},
 	{
 		"name" : "Server3",
+		"namediscovery": "false",
 		"jmx_host" : "hostname3",
 		"jmx_port" : "port3",
 		"jmx_user" : "user3 (optional)",
@@ -22,6 +25,7 @@
 	},
 	{
 		"name" : "Server4",
+		"namediscovery": "false",
 		"jmx_host" : "hostname4",
 		"jmx_port" : "port4",
 		"jmx_user" : "user4 (optional)",

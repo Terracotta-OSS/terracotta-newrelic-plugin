@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terracotta.utils.jmxclient.TCL2JMXClient;
+import org.terracotta.utils.jmxclient.beans.L2ProcessInfo;
 
 import com.newrelic.metrics.publish.Agent;
 import com.newrelic.metrics.publish.configuration.ConfigurationException;
@@ -16,26 +17,30 @@ public class TCL2Agent extends Agent {
 	private static Logger log = LoggerFactory.getLogger(TCL2Agent.class);
 
 	private String name = "Default";
+	private final TCL2JMXClient jmxTCClient;
 	private final MetricsBufferingWorker metricsWorker;
 
-	public TCL2Agent(String name, String jmxHost, int jmxPort, String jmxUsername, String jmxPassword) throws ConfigurationException {
+	public TCL2Agent(String name, String jmxHost, int jmxPort, String jmxUsername, String jmxPassword, boolean nameDiscovery) throws ConfigurationException {
 		super("org.terracotta.Terracotta", "1.0.0");
-		this.name = name;
 
 		log.info(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUsername));
+		this.jmxTCClient = new TCL2JMXClient(jmxUsername, jmxPassword, jmxHost, jmxPort);
 
-		TCL2JMXClient jmxTCClient = new TCL2JMXClient(jmxUsername, jmxPassword, jmxHost, jmxPort);
+		L2ProcessInfo l2ProcessInfo = null;
+		if(nameDiscovery && null != jmxTCClient && null != (l2ProcessInfo = jmxTCClient.getL2ProcessInfo())){
+			this.name = l2ProcessInfo.getServerInfoSummary();
+		} else {
+			this.name = name;
+		}
 
-		this.metricsWorker = new MetricsBufferingWorker(5000, new MetricsFetcher(jmxTCClient));
+		this.metricsWorker = new MetricsBufferingWorker(5000, new MetricsFetcher(this.jmxTCClient));
 		metricsWorker.startAndMoveOn();
 	}
 
 	@Override
+	//this method is called only at agent setup...so if the name changes when agents are started, won't be taken...
 	public String getComponentHumanLabel() {
-		if(null != metricsWorker.getMetricsFetcher().getL2ProcessInfo())
-			return metricsWorker.getMetricsFetcher().getL2ProcessInfo().getServerInfoSummary();
-		else
-			return name;
+		return this.name;
 	}
 
 	@Override
@@ -47,16 +52,32 @@ public class TCL2Agent extends Agent {
 		if(null == metrics || metrics.size() == 0){
 			log.warn(String.format("New Relic Agent[%s] - Buffered metrics are null! The background thread might have been terminated and agent shoudl be restarted.", getComponentHumanLabel()));
 			log.warn(String.format("New Relic Agent[%s] - Meanwhile, until agent is restarted, non-buffered metrics will be fetched directly", getComponentHumanLabel()));
-			metrics = metricsWorker.getMetricsFetcher().getMetricsFromServer();
+
+			try{
+				metrics = metricsWorker.getMetricsFetcher().getMetricsFromServer();
+			} catch (ConfigurationException cex){
+				log.error("The JMX connection could not be established...moving on...", cex);
+			} catch (Exception exc){
+				log.error("Unexpected error while getting metrics from the server...moving on...", exc);
+			}
 		}
 
 		if(null != metrics){
 			for(Metric metric : metrics){
 				try {
-					if(log.isDebugEnabled())
-						log.debug("Reporting metric: " + metric.toString());
+					if(null != metric){
+						if(log.isDebugEnabled())
+							log.debug("Reporting metric: " + metric.toString());
 
-					reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
+						if(metric.getName().equals(MetricsFetcher.SERVER_STATE)){ //special case for SERVER_STATE
+							//returning max...that way if there was something happening in between the polling cycle, we would catch it
+							reportMetric(metric.getName(), metric.getUnit().getName(), metric.getMax());
+						} else {
+							reportMetric(metric.getName(), metric.getUnit().getName(), metric.getDataPointsCount(), metric.getAggregateValue(), metric.getMin(), metric.getMax(), metric.getAggregateSumOfSquares());
+						}
+					} else {
+						log.warn("Current metric is null");
+					}
 				} catch (Exception e) {
 					log.error(String.format("New Relic Agent[%s] - Error with metrics reporting", metric.getMetricFullName()), e);
 				}

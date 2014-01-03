@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.newrelic.metrics.publish.configuration.ConfigurationException;
+
 public class MetricsBufferingWorker {
 	private static Logger log = LoggerFactory.getLogger(MetricsBufferingWorker.class);
 
@@ -139,6 +141,8 @@ public class MetricsBufferingWorker {
 		public void run() {
 			try{
 				metricsBuffer.bulkAddMetrics(metricsFetcher.getMetricsFromServer());
+			} catch (ConfigurationException cex){
+				log.error("The JMX connection could not be established...moving on...", cex);
 			} catch (Exception exc){
 				log.error("Unexpected error...", exc);
 			}

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="terracotta-newrelic-plugin" default="dist"
-	basedir=".">
+<project name="terracotta-newrelic-plugin" default="dist" basedir=".">
 	<property file="build.properties" />
 	<property name="version" value="1.0.0" />
 	<property name="filename" value="${ant.project.name}-${version}" />
@@ -95,5 +94,16 @@
 		<tar compression="gzip" destfile="${dist.dir}/${tarfile}">
 			<tarfileset dir="${build.tar.dir}" />
 		</tar>
+	</target>
+
+	<target name="deploy" depends="dist"
+		description="push package to a specific location">
+		
+		<delete includeemptydirs="true">
+			<fileset dir="${plugin.deploy}" includes="**/*" />
+		</delete>
+		
+		<untar src="${dist.dir}/${tarfile}" dest="${plugin.deploy}"
+			compression="gzip" />
 	</target>
 </project>

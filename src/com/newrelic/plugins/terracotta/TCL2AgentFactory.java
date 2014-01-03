@@ -26,6 +26,8 @@ public class TCL2AgentFactory extends AgentFactory {
 			jmx_user = null;
 		}
 		
+		boolean nameDiscovery = Boolean.parseBoolean((String) properties.get("namediscovery"));
+		
 		int jmx_port = 0;
 		try {
 			jmx_port = Integer.parseInt((String)properties.get("jmx_port"));
@@ -33,6 +35,10 @@ public class TCL2AgentFactory extends AgentFactory {
 			log.error("Could not parse jmx_port", e);
 		}
 
-		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd);
+		if(null == jmx_host || jmx_port == 0){
+			throw new ConfigurationException(String.format("No Host/Port specified. This agent [%s] will not be started", name));
+		}
+		
+		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd, nameDiscovery);
 	}
 }
