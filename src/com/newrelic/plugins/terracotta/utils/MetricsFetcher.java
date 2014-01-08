@@ -129,6 +129,8 @@ public class MetricsFetcher {
 
 			//Adding client metrics
 			if(jmxTCClient.isNodeActive()){
+				log.debug(String.format("Node %s is in active state...fetching registered client metrics", l2ProcessInfo.getServerInfoSummary()));
+				
 				//list that contains the clientIDs that have ehcache Mbeans tunnelled and registered
 				List<L2ClientID> clientsWithTunneledBeansRegistered = null;
 
@@ -159,6 +161,8 @@ public class MetricsFetcher {
 						}
 					}
 				} else {
+					log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
+
 					metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, 0));
 					metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Transactions", "All"), NewRelicMetricType.Rate, 0));
 					metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Transactions", "Faults"), NewRelicMetricType.Rate, 0));
@@ -168,6 +172,8 @@ public class MetricsFetcher {
 
 				//if it's not null, means that there are indeed some tunnelled ehcache mbeans here...let's jump into ehcache stats then!!
 				if(null != clientsWithTunneledBeansRegistered){
+					log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
+					
 					// Loop over CacheManagers
 					Map<String, CacheManagerInfo> cacheManagerInfo = jmxTCClient.getCacheManagerInfo();
 					Iterator<Entry<String, CacheManagerInfo>> iter = cacheManagerInfo.entrySet().iterator();
@@ -196,6 +202,8 @@ public class MetricsFetcher {
 						}
 					}
 				} else {
+					log.debug(String.format("Node %s does not have any ehcache mbeans...sending null ehcache client metrics", l2ProcessInfo.getServerInfoSummary()));
+
 					//this node has not ehcache mbeans...so send null values...
 					metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "Size"), NewRelicMetricType.Count, 0));
 					metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "HitRatio"), NewRelicMetricType.Percent, 0));
@@ -204,6 +212,8 @@ public class MetricsFetcher {
 					metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "PutRate"), NewRelicMetricType.Rate, 0));
 				}
 			} else {
+				log.debug(String.format("Node %s is not in active state...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
+				
 				//this node is not active...it does not have any client stats...so send null values...
 				metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, 0));
 				metrics.add(new Metric(String.format("%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Transactions", "All"), NewRelicMetricType.Rate, 0));
