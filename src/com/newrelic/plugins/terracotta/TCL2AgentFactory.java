@@ -27,7 +27,8 @@ public class TCL2AgentFactory extends AgentFactory {
 		}
 		
 		boolean nameDiscovery = Boolean.parseBoolean((String) properties.get("namediscovery"));
-		
+		boolean trackUniqueClients = Boolean.parseBoolean((String) properties.get("trackUniqueClients"));
+
 		int jmx_port = 0;
 		try {
 			jmx_port = Integer.parseInt((String)properties.get("jmx_port"));
@@ -39,6 +40,6 @@ public class TCL2AgentFactory extends AgentFactory {
 			throw new ConfigurationException(String.format("No Host/Port specified. This agent [%s] will not be started", name));
 		}
 		
-		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd, nameDiscovery);
+		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd, nameDiscovery, trackUniqueClients);
 	}
 }
