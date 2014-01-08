@@ -60,12 +60,12 @@ public class Metric {
 	}
 
 	private void initInternals(int dataPointsCount, float aggregateValue, float aggregateSumOfSquares) {
-		initInternals(dataPointsCount, aggregateValue, aggregateSumOfSquares, Float.MAX_VALUE, Float.MIN_VALUE);
+		initInternals(dataPointsCount, aggregateValue, aggregateSumOfSquares, Float.MAX_VALUE, -Float.MAX_VALUE);
 	}
 
 	private void initInternals() {
 		//using float's min/max values so that the first value added will be the min and max automatically...
-		initInternals(0, 0.0F, 0.0F, Float.MAX_VALUE, Float.MIN_VALUE);
+		initInternals(0, 0.0F, 0.0F, Float.MAX_VALUE, -Float.MAX_VALUE);
 	}
 
 	public void reset(){
