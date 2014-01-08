@@ -20,7 +20,7 @@ fi
 
 PLUGIN_DIR=`dirname "$0"`/..
 
-CLASSPATH="${PLUGIN_DIR}/libs/terracotta-newrelic-plugin-1.0.0.jar:${PLUGIN_DIR}/libs/metrics_publish-1.2.2.jar:${PLUGIN_DIR}/libs/terracotta-jmxremote-3.6-runtime-1.0.0.jar:${TC_HOME}/ehcache/lib/ehcache-core-ee-2.6.7.jar:${TC_HOME}/lib/tc.jar:${TC_HOME}/lib/slf4j-api-1.6.1.jar:${TC_HOME}/lib/slf4j-log4j12-1.6.1.jar"
+CLASSPATH="${PLUGIN_DIR}/libs/@plugin_jar_file@:${PLUGIN_DIR}/libs/@newrelic_plugin_sdk_jar@:${PLUGIN_DIR}/libs/@terracotta_jmxremot_jar@:${TC_HOME}/ehcache/lib/ehcache-core-ee-2.6.7.jar:${TC_HOME}/lib/tc.jar:${TC_HOME}/lib/slf4j-api-1.6.1.jar:${TC_HOME}/lib/slf4j-log4j12-1.6.1.jar"
 
 # For Cygwin, convert paths to Windows before invoking java
 if $cygwin; then

@@ -21,13 +21,12 @@
 	<property name="ant.build.javac.source" value="1.6" />
 	<property name="ant.build.javac.target" value="1.6" />
 
-	<property name="sdk.jar" value="${lib.dir}/metrics_publish-1.2.2.jar" />
-	<property name="terracotta-jmxremote.jar"
-		value="${lib.dir}/terracotta-jmxremote-3.6-runtime-1.0.0.jar" />
+	<property name="newrelic_plugin_sdk.jar" value="metrics_publish-1.2.2.jar" />
+	<property name="terracotta-jmxremote.jar" value="terracotta-jmxremote-3.6-runtime-1.0.0.jar" />
 
 	<path id="classpath">
-		<pathelement location="${sdk.jar}" />
-		<pathelement location="${terracotta-jmxremote.jar}" />
+		<pathelement location="${lib.dir}/${newrelic_plugin_sdk.jar}" />
+		<pathelement location="${lib.dir}/${terracotta-jmxremote.jar}" />
 		<pathelement location="${terracotta.home}/lib/tc.jar"></pathelement>
 	</path>
 
@@ -68,7 +67,6 @@
 					value="com.newrelic.plugins.terracotta.TCL2MonLauncher" />
 			</manifest>
 			<fileset dir="${build.classes.dir}" />
-			<zipfileset src="${sdk.jar}" />
 		</jar>
 	</target>
 
@@ -89,6 +87,9 @@
 			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.sh"
 			propertyFile="build.properties">
 			<replacefilter token="@terracotta_home@" property="terracotta.home" />
+			<replacefilter token="@plugin_jar_file@" value="${jarfile}" />
+			<replacefilter token="@newrelic_plugin_sdk_jar@" value="${newrelic_plugin_sdk.jar}" />
+			<replacefilter token="@terracotta_jmxremot_jar@" value="${terracotta-jmxremote.jar}" />
 		</replace>
 
 		<tar compression="gzip" destfile="${dist.dir}/${tarfile}">
