@@ -56,9 +56,9 @@ public class TCL2Agent extends Agent {
 			try{
 				metrics = metricsWorker.getMetricsFetcher().getMetricsFromServer();
 			} catch (ConfigurationException cex){
-				log.error("The JMX connection could not be established...moving on...", cex);
+				log.error(String.format("New Relic Agent[%s] - The JMX connection could not be established...moving on...", getComponentHumanLabel()), cex);
 			} catch (Exception exc){
-				log.error("Unexpected error while getting metrics from the server...moving on...", exc);
+				log.error(String.format("New Relic Agent[%s] - Unexpected error while getting metrics from the server...moving on...", getComponentHumanLabel()), exc);
 			}
 		}
 
@@ -67,7 +67,7 @@ public class TCL2Agent extends Agent {
 				try {
 					if(null != metric){
 						if(log.isDebugEnabled())
-							log.debug("Reporting metric: " + metric.toString());
+							log.debug(String.format("New Relic Agent[%s] - Reporting metric: %s", getComponentHumanLabel(), metric.toString()));
 
 						
 						if(metric.getName().equals(MetricsFetcher.SERVER_STATE)){ //special case for SERVER_STATE
