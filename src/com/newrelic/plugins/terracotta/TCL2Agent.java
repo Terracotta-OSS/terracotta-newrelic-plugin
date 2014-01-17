@@ -20,8 +20,8 @@ public class TCL2Agent extends Agent {
 	private final TCL2JMXClient jmxTCClient;
 	private final MetricsBufferingWorker metricsWorker;
 
-	public TCL2Agent(String name, String jmxHost, int jmxPort, String jmxUsername, String jmxPassword, boolean nameDiscovery, boolean trackUniqueClients) throws ConfigurationException {
-		super("org.terracotta.Terracotta", "1.0.1");
+	public TCL2Agent(String name, String jmxHost, int jmxPort, String jmxUsername, String jmxPassword, boolean nameDiscovery, boolean trackUniqueClients, long intervalInMillis) throws ConfigurationException {
+		super("org.terracotta.Terracotta", "1.0.2");
 
 		log.info(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUsername));
 		this.jmxTCClient = new TCL2JMXClient(jmxUsername, jmxPassword, jmxHost, jmxPort);
@@ -33,7 +33,7 @@ public class TCL2Agent extends Agent {
 			this.name = name;
 		}
 
-		this.metricsWorker = new MetricsBufferingWorker(5000, new MetricsFetcher(this.jmxTCClient, trackUniqueClients));
+		this.metricsWorker = new MetricsBufferingWorker(intervalInMillis, new MetricsFetcher(this.jmxTCClient, trackUniqueClients));
 		metricsWorker.startAndMoveOn();
 	}
 

@@ -6,7 +6,8 @@
 		"jmx_user" : "user1 (optional - default:'')",
 		"jmx_password" : "password1 (optional - default:'')",
 		"namediscovery": "false (optional - default: 'false')",
-		"trackUniqueClients": "false (optional - default: 'false')"
+		"trackUniqueClients": "false (optional - default: 'false')",
+		"intervalInMillis": "10000 (optional - default: '5000')"
 	},
 	{
 		"name" : "Server2",
@@ -16,7 +17,8 @@
 		"jmx_user" : "user2 (optional - default:'')",
 		"jmx_password" : "password2 (optional - default:'')",
 		"namediscovery": "false (optional - default: 'false')",
-		"trackUniqueClients": "false (optional - default: 'false')"
+		"trackUniqueClients": "false (optional - default: 'false')",
+		"intervalInMillis": "10000 (optional - default: '5000')"
 	},
 	{
 		"name" : "Server3",
@@ -26,7 +28,8 @@
 		"jmx_user" : "user3 (optional - default:'')",
 		"jmx_password" : "password3 (optional - default:'')",
 		"namediscovery": "false (optional - default: 'false')",
-		"trackUniqueClients": "false (optional - default: 'false')"
+		"trackUniqueClients": "false (optional - default: 'false')",
+		"intervalInMillis": "10000 (optional - default: '5000')"
 	},
 	{
 		"name" : "Server4",
@@ -36,6 +39,7 @@
 		"jmx_user" : "user4 (optional - default:'')",
 		"jmx_password" : "password4 (optional - default:'')",
 		"namediscovery": "false (optional - default: 'false')",
-		"trackUniqueClients": "false (optional - default: 'false')"
+		"trackUniqueClients": "false (optional - default: 'false')",
+		"intervalInMillis": "10000 (optional - default: '5000')"
 	}
 ]
