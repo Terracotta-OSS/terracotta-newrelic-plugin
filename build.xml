@@ -22,7 +22,7 @@
 	<property name="ant.build.javac.target" value="1.6" />
 
 	<property name="newrelic_plugin_sdk.jar" value="metrics_publish-1.2.2.jar" />
-	<property name="terracotta-jmxremote.jar" value="terracotta-jmxremote-3.6-runtime-1.0.0.jar" />
+	<property name="terracotta-jmxremote.jar" value="terracotta-3.7-jmx-sdk-1.0.0.jar" />
 
 	<path id="classpath">
 		<pathelement location="${lib.dir}/${newrelic_plugin_sdk.jar}" />
