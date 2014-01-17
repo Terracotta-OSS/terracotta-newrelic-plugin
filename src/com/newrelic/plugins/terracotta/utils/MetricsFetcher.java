@@ -42,6 +42,7 @@ public class MetricsFetcher {
 
 	private final TCL2JMXClient jmxTCClient;
 	public final boolean trackUniqueClients;
+	public final boolean learningMode = Boolean.parseBoolean(System.getProperty("com.newrelic.plugins.terracotta.learningmode"));
 
 	public MetricsFetcher(TCL2JMXClient jmxTCClient, boolean trackUniqueClients) {
 		super();
@@ -71,12 +72,13 @@ public class MetricsFetcher {
 			//send null values for used space
 			addL2DataMetrics(metrics, null);
 
-			//send null values for clients
-			metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, 0));
-			addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
-
-			metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "StatsEnabled"), NewRelicMetricType.Count, 0));
-			addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+			if(learningMode){
+				//send null values for clients
+				addClientCountConnected(metrics, null);
+				addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
+				addEhcacheClientCountStatsEnabled(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+				addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+			}
 		} else {
 			L2ProcessInfo l2ProcessInfo = jmxTCClient.getL2ProcessInfo();
 			L2TransactionsStats txStats = jmxTCClient.getL2TransactionsStats();
@@ -93,7 +95,7 @@ public class MetricsFetcher {
 
 			//Adding Server used memory/disk space
 			addL2DataMetrics(metrics, dataStats);
-			
+
 			//Adding client metrics
 			if(jmxTCClient.isNodeActive()){
 				log.debug(String.format("Node %s is in active state...fetching registered client metrics", l2ProcessInfo.getServerInfoSummary()));
@@ -104,7 +106,7 @@ public class MetricsFetcher {
 				//get client Details now
 				L2ClientRuntimeInfo[] runtimeStatsClientsArray = jmxTCClient.getClients();
 				if(null != runtimeStatsClientsArray && runtimeStatsClientsArray.length > 0){
-					metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, runtimeStatsClientsArray.length));
+					addClientCountConnected(metrics, runtimeStatsClientsArray.length);
 					for(L2ClientRuntimeInfo clientRuntimeInfo : runtimeStatsClientsArray){
 						addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, clientRuntimeInfo);
 
@@ -123,7 +125,7 @@ public class MetricsFetcher {
 				} else {
 					log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
 
-					metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, 0));
+					addClientCountConnected(metrics, null);
 					addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
 				}
 
@@ -139,41 +141,60 @@ public class MetricsFetcher {
 						CacheManagerInfo cmInfo = cmInfoElem.getValue();
 
 						for(String cacheName : cmInfo.getCaches()){
-							int cacheStatsEnabledCount = 0;
+							int cacheStatsClientEnabledCount = 0;
 							for(String clientId : cmInfo.getClientMbeansIDs()){
 								final CacheStats cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
-								if(cacheStats.isEnabled() && cacheStats.isStatsEnabled()){
-									cacheStatsEnabledCount++;
+								if(null != cacheStats){
+									if(cacheStats.isEnabled() && cacheStats.isStatsEnabled()){
+										cacheStatsClientEnabledCount++;
 
-									addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, cmInfo.getCmName(), cacheName, cacheStats);
-									
-									if(trackUniqueClients){
-										addEhcacheMetricsForClient(metrics, clientId, cmInfo.getCmName(), cacheName, cacheStats);
+										addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, cmInfo.getCmName(), cacheName, cacheStats);
+
+										if(trackUniqueClients){
+											addEhcacheMetricsForClient(metrics, clientId, cmInfo.getCmName(), cacheName, cacheStats);
+										}
 									}
+								} else {
+									log.error(String.format("Coulnd not get cache stats for %s/%s/%s", cmInfo.getCmName(), cacheName, clientId));
 								}
-								metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, cmInfo.getCmName(), cacheName, "StatsEnabled"), NewRelicMetricType.Count, cacheStatsEnabledCount));
 							}
+							addEhcacheClientCountStatsEnabled(metrics, METRICS_CLIENTS_ALL, cmInfo.getCmName(), cacheName, cacheStatsClientEnabledCount);
 						}
 					}
 				} else {
-					log.debug(String.format("Node %s does not have any ehcache mbeans...sending null ehcache client metrics", l2ProcessInfo.getServerInfoSummary()));
+					log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
 
-					//this node has not ehcache mbeans...so send null values...
-					addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
-					metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "StatsEnabled"), NewRelicMetricType.Count, 0));
+					if(learningMode){
+						log.debug(String.format("Sending null ehcache client metrics"));
+
+						//this node has not ehcache mbeans...so send null values...
+						addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+						addEhcacheClientCountStatsEnabled(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+					}
 				}
 			} else {
-				log.debug(String.format("Node %s is not in active state...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
+				log.debug(String.format("Node %s is not in active state...", l2ProcessInfo.getServerInfoSummary()));
+				if(learningMode){
+					log.debug(String.format("Sending null client metrics"));
 
-				//this node is not active...it does not have any client stats...so send null values...
-				metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, 0));
-				addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
-				
-				addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
-				metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, METRICS_FAMILY_EHCACHE, "*", "*", "StatsEnabled"), NewRelicMetricType.Count, 0));
+					//this node is not active...it does not have any client stats...so send null values...
+					addClientCountConnected(metrics, null);
+					addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
+
+					addEhcacheMetricsForClient(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+					addEhcacheClientCountStatsEnabled(metrics, METRICS_CLIENTS_ALL, "*", "*", null);
+				}
 			}
 		}
 		return metrics;
+	}
+
+	private void addClientCountConnected(List<Metric> metrics, Integer connectedCount){
+		metrics.add(new Metric(String.format("%s/%s/%s", clientsPrefix, METRICS_CLIENTS_ALL, "Connected"), NewRelicMetricType.Count, (connectedCount == null)?0:connectedCount));
+	}
+
+	private void addEhcacheClientCountStatsEnabled(List<Metric> metrics, String clientID, String cacheManagerName, String cacheName, Integer statsEnabledClientCount){
+		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, clientID, METRICS_FAMILY_EHCACHE, cacheManagerName, cacheName, "StatsEnabled"), NewRelicMetricType.Count, (statsEnabledClientCount == null)?0:statsEnabledClientCount));
 	}
 
 	private void addRuntimeMetricsForClient(List<Metric> metrics, String clientID, L2ClientRuntimeInfo clientRuntimeInfo){
@@ -204,7 +225,7 @@ public class MetricsFetcher {
 		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, clientID, METRICS_FAMILY_EHCACHE, cacheManagerName, cacheName, "Evictions"), NewRelicMetricType.Rate, (null == cacheStats)?0:cacheStats.getEvictionRate()));
 		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s/%s", clientsPrefix, clientID, METRICS_FAMILY_EHCACHE, cacheManagerName, cacheName, "Expirations"), NewRelicMetricType.Rate, (null == cacheStats)?0:cacheStats.getExpirationRate()));
 	}
-	
+
 	private void addL2RuntimeMetrics(List<Metric> metrics, L2TransactionsStats txStats){
 		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Transactions", "Tiers", "Heap", "Faults"), NewRelicMetricType.Rate, (null == txStats)?0:txStats.getOnHeapFaultRate()));
 		metrics.add(new Metric(String.format("%s/%s/%s/%s/%s", l2NodesPrefix, "Transactions", "Tiers", "Heap", "Flushes"), NewRelicMetricType.Rate, (null == txStats)?0:txStats.getOnHeapFlushRate()));
@@ -214,7 +235,7 @@ public class MetricsFetcher {
 		metrics.add(new Metric(String.format("%s/%s/%s", l2NodesPrefix, "Transactions", "All"), NewRelicMetricType.Rate, (null == txStats)?0:txStats.getTransactionRate()));
 		metrics.add(new Metric(String.format("%s/%s/%s", l2NodesPrefix, "Transactions", "LockRecalls"), NewRelicMetricType.Rate, (null == txStats)?0:txStats.getGlobalLockRecallRate()));
 	}
-	
+
 	private void addL2DataMetrics(List<Metric> metrics, L2DataStats dataStats){
 		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "Total"), NewRelicMetricType.Count, (null == dataStats)?0:dataStats.getLiveObjectCount()));
 		metrics.add(new Metric(String.format("%s/%s/%s/%s", l2NodesPrefix, "Data", "Objects", "OffHeap"), NewRelicMetricType.Count, (null == dataStats)?0:dataStats.getOffheapObjectCachedCount()));
