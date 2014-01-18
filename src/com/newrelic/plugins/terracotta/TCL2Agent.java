@@ -1,7 +1,5 @@
 package com.newrelic.plugins.terracotta;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terracotta.utils.jmxclient.TCL2JMXClient;
@@ -48,8 +46,8 @@ public class TCL2Agent extends Agent {
 		log.info(String.format("New Relic Agent[%s] - Pushing L2 Metrics to NewRelic Cloud", getComponentHumanLabel()));
 
 		//get all metrics and report to new relic
-		List<Metric> metrics = metricsWorker.getMetricsSnapshot();
-		if(null == metrics || metrics.size() == 0){
+		Metric[] metrics = metricsWorker.getMetricsSnapshot();
+		if(null == metrics || metrics.length == 0){
 			log.warn(String.format("New Relic Agent[%s] - Buffered metrics are null! The background thread might have been terminated and agent shoudl be restarted.", getComponentHumanLabel()));
 			log.warn(String.format("New Relic Agent[%s] - Meanwhile, until agent is restarted, non-buffered metrics will be fetched directly", getComponentHumanLabel()));
 
@@ -69,6 +67,8 @@ public class TCL2Agent extends Agent {
 						if(log.isDebugEnabled())
 							log.debug(String.format("New Relic Agent[%s] - Reporting metric: %s", getComponentHumanLabel(), metric.toString()));
 
+						if(metric.getDataPointsCount() == 0)
+							log.warn("A metric with 0 data points should not be available here...");
 						
 						if(metric.getName().equals(MetricsFetcher.SERVER_STATE)){ //special case for SERVER_STATE
 							//returning max...that way if there was something happening in between the polling cycle, we would catch it

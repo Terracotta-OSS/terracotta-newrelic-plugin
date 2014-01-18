@@ -14,10 +14,6 @@ public class Metric {
 	private volatile int dataPointsCount = 0;
 	private volatile float min, max;
 
-	//an object to synchronize on so 1 thread can't add a point 
-	//while another one is trying to get average and reset, and vice versa
-	private final Object padLock = new Object();
-
 	public Metric(Metric metric) {
 		super();
 
@@ -68,12 +64,6 @@ public class Metric {
 		initInternals(0, 0.0F, 0.0F, Float.MAX_VALUE, -Float.MAX_VALUE);
 	}
 
-	public void reset(){
-		synchronized(padLock){
-			initInternals();
-		}
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -95,17 +85,15 @@ public class Metric {
 	public Metric add(Metric metric) {
 		//make sure another is the same type of metric
 		if(null != metric && name.equals(metric.name) && unit.equals(metric.unit)){
-			synchronized(padLock){
-				this.dataPointsCount += metric.dataPointsCount;
-				this.aggregateValue += metric.aggregateValue;
-				this.aggregateSumOfSquares += metric.aggregateSumOfSquares;
+			this.dataPointsCount += metric.dataPointsCount;
+			this.aggregateValue += metric.aggregateValue;
+			this.aggregateSumOfSquares += metric.aggregateSumOfSquares;
 
-				if (metric.min < this.min)
-					this.min = metric.min;
+			if (metric.min < this.min)
+				this.min = metric.min;
 
-				if (metric.max > this.max)
-					this.max = metric.max;
-			}
+			if (metric.max > this.max)
+				this.max = metric.max;
 		} else {
 			log.warn("Cannot add 2 different metrics together. Name and Unit must match. Doing nothing.");
 		}
@@ -118,19 +106,17 @@ public class Metric {
 
 	private void add(int dataPoints, Number metricValue){
 		if(null != metricValue){
-			synchronized(padLock){
-				float value = metricValue.floatValue();
+			float value = metricValue.floatValue();
 
-				dataPointsCount += dataPoints;
-				aggregateValue += value;
-				aggregateSumOfSquares += (value * value);
+			dataPointsCount += dataPoints;
+			aggregateValue += value;
+			aggregateSumOfSquares += (value * value);
 
-				if (value < this.min)
-					this.min = value;
+			if (value < this.min)
+				this.min = value;
 
-				if (value > this.max)
-					this.max = value;
-			}
+			if (value > this.max)
+				this.max = value;
 		}
 	}
 

@@ -56,7 +56,7 @@ public class MetricsFetcher {
 
 	//method called by internal scheduled thread
 	//should always return something...if JMX is not accessible, should return empty metrics
-	public List<Metric> getMetricsFromServer() throws ConfigurationException {
+	public Metric[] getMetricsFromServer() throws ConfigurationException {
 		List<Metric> metrics = new ArrayList<Metric>();
 
 		//check in that method if JMX is alive and well...
@@ -186,7 +186,8 @@ public class MetricsFetcher {
 				}
 			}
 		}
-		return metrics;
+		
+		return (null != metrics)?metrics.toArray(new Metric[metrics.size()]):null;
 	}
 
 	private void addClientCountConnected(List<Metric> metrics, Integer connectedCount){

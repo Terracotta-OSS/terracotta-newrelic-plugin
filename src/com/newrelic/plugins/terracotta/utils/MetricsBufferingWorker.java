@@ -1,6 +1,5 @@
 package com.newrelic.plugins.terracotta.utils;
 
-import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -51,7 +50,7 @@ public class MetricsBufferingWorker {
 		});
 	}
 
-	public List<Metric> getMetricsSnapshot() {
+	public Metric[] getMetricsSnapshot() {
 		return metricsBuffer.getAllMetricsAndReset();
 	}
 
