@@ -1,6 +1,7 @@
 package com.newrelic.plugins.terracotta.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,12 +43,33 @@ public class MetricsFetcher {
 
 	private final TCL2JMXClient jmxTCClient;
 	public final boolean trackUniqueClients;
-	public final boolean learningMode = Boolean.parseBoolean(System.getProperty("com.newrelic.plugins.terracotta.learningmode"));
+
+	public final boolean learningMode = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.learningmode", false);
+	public final boolean disableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.disable", false);
+	public final boolean enableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.enable", false);
+	public final String[] ehcacheStatsFilterCaches;
+	public final String[] ehcacheStatsFilterClients;
 
 	public MetricsFetcher(TCL2JMXClient jmxTCClient, boolean trackUniqueClients) {
 		super();
 		this.jmxTCClient = jmxTCClient;
 		this.trackUniqueClients = trackUniqueClients;
+
+		String filterCache = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_caches");
+		if(null != filterCache && !"".equals(filterCache.trim())){
+			this.ehcacheStatsFilterCaches = filterCache.trim().toLowerCase().split(",");
+			Arrays.sort(this.ehcacheStatsFilterCaches);
+		} else {
+			this.ehcacheStatsFilterCaches = null;
+		}
+
+		String filterClients = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_clients");
+		if(null != filterClients && !"".equals(filterClients.trim())){
+			this.ehcacheStatsFilterClients = filterClients.trim().toLowerCase().split(",");
+			Arrays.sort(this.ehcacheStatsFilterClients);
+		} else {
+			this.ehcacheStatsFilterClients = null;
+		}
 	}
 
 	public TCL2JMXClient getJmxTCClient() {
@@ -129,7 +151,7 @@ public class MetricsFetcher {
 					addRuntimeMetricsForClient(metrics, METRICS_CLIENTS_ALL, null);
 				}
 
-				//if it's not null, means that there are indeed some tunnelled ehcache mbeans here...let's jump into ehcache stats then!!
+				//if it's not null, means that there are indeed some tunneled ehcache mbeans here...let's jump into ehcache stats then!!
 				if(null != clientsWithTunneledBeansRegistered){
 					log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
 
@@ -141,9 +163,35 @@ public class MetricsFetcher {
 						CacheManagerInfo cmInfo = cmInfoElem.getValue();
 
 						for(String cacheName : cmInfo.getCaches()){
+							if(log.isDebugEnabled())
+								log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
+
 							int cacheStatsClientEnabledCount = 0;
 							for(String clientId : cmInfo.getClientMbeansIDs()){
-								final CacheStats cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
+								if(log.isDebugEnabled())
+									log.debug(String.format("Node %s - Getting stats for cache=[%s] and client=[%s]", l2ProcessInfo.getServerInfoSummary(), cacheName, clientId));
+
+								//enable statistics if specified
+								CacheStats cacheStats = null;
+								if(enableEhcacheStats || disableEhcacheStats){
+									// if arrays are null, stats should be modified for all
+									//strings that are in the arrays are lowercase, so let's make sure the searched string are also lower case
+									if((ehcacheStatsFilterCaches == null || (ehcacheStatsFilterCaches != null && Arrays.binarySearch(ehcacheStatsFilterCaches, cacheName.toLowerCase()) >=0)) &&
+										(ehcacheStatsFilterClients == null || (ehcacheStatsFilterClients != null && Arrays.binarySearch(ehcacheStatsFilterClients, clientId.toLowerCase()) >=0)))
+									{
+										//let's have disableStats win in case both are true
+										if(disableEhcacheStats){
+											cacheStats = jmxTCClient.getCacheStatsAndDisableStatistics(cmInfo.getCmName(), cacheName, clientId);
+										} else if(enableEhcacheStats){
+											cacheStats = jmxTCClient.enableStatisticsAndGetCacheStats(cmInfo.getCmName(), cacheName, clientId);
+										}
+									} else {
+										cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
+									}
+								} else {
+									cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
+								}
+
 								if(null != cacheStats){
 									if(cacheStats.isEnabled() && cacheStats.isStatsEnabled()){
 										cacheStatsClientEnabledCount++;
@@ -155,14 +203,15 @@ public class MetricsFetcher {
 										}
 									}
 								} else {
-									log.error(String.format("Coulnd not get cache stats for %s/%s/%s", cmInfo.getCmName(), cacheName, clientId));
+									log.error(String.format("Could not get cache stats for %s-%s-%s", cmInfo.getCmName(), cacheName, clientId));
 								}
 							}
 							addEhcacheClientCountStatsEnabled(metrics, METRICS_CLIENTS_ALL, cmInfo.getCmName(), cacheName, cacheStatsClientEnabledCount);
 						}
 					}
 				} else {
-					log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
+					if(log.isDebugEnabled())
+						log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
 
 					if(learningMode){
 						log.debug(String.format("Sending null ehcache client metrics"));
@@ -186,7 +235,7 @@ public class MetricsFetcher {
 				}
 			}
 		}
-		
+
 		return (null != metrics)?metrics.toArray(new Metric[metrics.size()]):null;
 	}
 
