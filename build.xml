@@ -23,11 +23,13 @@
 
 	<property name="newrelic_plugin_sdk.jar" value="metrics_publish-1.2.2.jar" />
 	<property name="terracotta-jmxremote.jar" value="terracotta-3.7-jmx-sdk-1.0.0.jar" />
+	<property name="logging.jar" value="slf4j-api-1.6.6.jar" />
+	
 
 	<path id="classpath">
 		<pathelement location="${lib.dir}/${newrelic_plugin_sdk.jar}" />
 		<pathelement location="${lib.dir}/${terracotta-jmxremote.jar}" />
-		<pathelement location="${terracotta.home}/lib/tc.jar"></pathelement>
+		<pathelement location="${lib.dir}/${logging.jar}" />
 	</path>
 
 	<target name="clean">
