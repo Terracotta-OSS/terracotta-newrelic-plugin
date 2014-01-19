@@ -30,6 +30,6 @@ fi
 echo ${CLASSPATH}
 
 exec "${JAVA_HOME}/bin/java" \
-${JAVA_OPTS} -Dlog4j.configuration="file:${PLUGIN_DIR}/config/log4j.properties" -Dnewrelic.platform.config.dir="${PLUGIN_DIR}/config" \
+${JAVA_OPTS} -Dlog4j.configuration="file:${PLUGIN_DIR}/config/log4j.properties" -Dplugin.config.path="file:${PLUGIN_DIR}/config/plugin.properties" -Dnewrelic.platform.config.dir="${PLUGIN_DIR}/config" \
 -cp ${CLASSPATH} \
 com.newrelic.plugins.terracotta.TCL2MonLauncher "$@"
