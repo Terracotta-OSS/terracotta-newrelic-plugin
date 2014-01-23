@@ -1,8 +1,9 @@
 package com.newrelic.plugins.terracotta.utils;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,10 @@ public class MetricsBuffer {
 			if(null != metrics && metrics.length > 0){
 				for(Metric newMetric : metrics){
 					if(null != newMetric){
-						String metricKey = newMetric.getName();
-						Metric existingMetric = metricsBuffer.get(metricKey);
+						String newMetricKey = newMetric.getName();
+						Metric existingMetric = metricsBuffer.get(newMetricKey);
 						if(existingMetric == null){
-							metricsBuffer.put(metricKey, new Metric(newMetric)); //make a copy of the metric object here
+							metricsBuffer.put(newMetricKey, new Metric(newMetric)); //make a copy of the metric object here
 						} else {
 							existingMetric.add(newMetric);
 						}
@@ -43,15 +44,24 @@ public class MetricsBuffer {
 		}
 	}
 
-	//this use synchronization to make sure that getAll + Reset is done atomically, and no new metrics can be added before this operationb is finished.
+	//this use synchronization to make sure that getAll + Reset is done atomically, and no new metrics can be added before this operation is finished.
 	public Metric[] getAllMetricsAndReset() {
 		synchronized (metricsBuffer) {
+			Metric[] metrics = null;
 			try{
-				Collection<Metric> metricsInMap = metricsBuffer.values();
-				return metricsInMap.toArray(new Metric[metricsInMap.size()]);
+				Set<String> keys = metricsBuffer.keySet();
+				metrics = new Metric[keys.size()];
+				
+				//perform a deep copy of all the metrics objects
+				int counter = 0;
+				for (Iterator<String> iterator = keys.iterator(); iterator.hasNext();counter++) {
+					String metricKey = iterator.next();
+					metrics[counter] = new Metric(metricsBuffer.get(metricKey));
+				}
 			} finally {
 				metricsBuffer.clear();
 			}
+			return metrics;
 		}
 	}
 }
