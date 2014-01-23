@@ -8,6 +8,7 @@ import org.terracotta.utils.jmxclient.beans.L2ProcessInfo;
 import com.newrelic.metrics.publish.Agent;
 import com.newrelic.metrics.publish.configuration.ConfigurationException;
 import com.newrelic.plugins.terracotta.utils.Metric;
+import com.newrelic.plugins.terracotta.utils.MetricsBuffer;
 import com.newrelic.plugins.terracotta.utils.MetricsBufferingWorker;
 import com.newrelic.plugins.terracotta.utils.MetricsFetcher;
 
@@ -48,15 +49,19 @@ public class TCL2Agent extends Agent {
 		//get all metrics and report to new relic
 		Metric[] metrics = metricsWorker.getMetricsSnapshot();
 		if(null == metrics || metrics.length == 0){
-			log.warn(String.format("New Relic Agent[%s] - Buffered metrics are null! The background thread might have been terminated and agent shoudl be restarted.", getComponentHumanLabel()));
-			log.warn(String.format("New Relic Agent[%s] - Meanwhile, until agent is restarted, non-buffered metrics will be fetched directly", getComponentHumanLabel()));
+			log.warn(String.format("New Relic Agent[%s] - Buffered metrics are null! Let's try to do a ad-hoc fetch...(If this error continues, investigate further: maybe the buffering threads are not running?)", getComponentHumanLabel()));
 
+			MetricsBuffer tempBuffer = null;
 			try{
-				metrics = metricsWorker.getMetricsFetcher().getMetricsFromServer();
+				tempBuffer = new MetricsBuffer();
+				tempBuffer.bulkAddMetrics(metricsWorker.getMetricsFetcher().getMetricsFromServer());
+				metrics = tempBuffer.getAllMetricsAndReset();
 			} catch (ConfigurationException cex){
 				log.error(String.format("New Relic Agent[%s] - The JMX connection could not be established...moving on...", getComponentHumanLabel()), cex);
 			} catch (Exception exc){
 				log.error(String.format("New Relic Agent[%s] - Unexpected error while getting metrics from the server...moving on...", getComponentHumanLabel()), exc);
+			} finally{
+				tempBuffer = null;
 			}
 		}
 
