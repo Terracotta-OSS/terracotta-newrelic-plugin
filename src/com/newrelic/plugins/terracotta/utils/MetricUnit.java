@@ -1,6 +1,6 @@
 package com.newrelic.plugins.terracotta.utils;
 
-public enum NewRelicMetricType
+public enum MetricUnit
 {
     Count( "count" ),
     CountSecond( "count/sec" ),
@@ -12,7 +12,7 @@ public enum NewRelicMetricType
     
     final private String m_name;
     
-    private NewRelicMetricType(final String name)
+    private MetricUnit(final String name)
     {
         m_name = name;
     }

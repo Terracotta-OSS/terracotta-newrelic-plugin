@@ -18,6 +18,7 @@ public class TCL2AgentFactory extends AgentFactory {
 	private static final String PARAMNAME_USER = "jmx_user";
 	private static final String PARAMNAME_PWD = "jmx_password";
 	private static final String PARAMNAME_NAMEDISCOVERY = "namediscovery";
+	private static final String PARAMNAME_TRACKUNIQUECACHES = "trackUniqueCaches";
 	private static final String PARAMNAME_TRACKUNIQUECLIENTS = "trackUniqueClients";
 	private static final String PARAMNAME_INTERVALINMILLIS = "intervalInMillis";
 
@@ -38,6 +39,7 @@ public class TCL2AgentFactory extends AgentFactory {
 		}
 		
 		boolean nameDiscovery = Boolean.parseBoolean((String) properties.get(PARAMNAME_NAMEDISCOVERY));
+		boolean trackUniqueCaches = Boolean.parseBoolean((String) properties.get(PARAMNAME_TRACKUNIQUECACHES));
 		boolean trackUniqueClients = Boolean.parseBoolean((String) properties.get(PARAMNAME_TRACKUNIQUECLIENTS));
 
 		int jmx_port = PARAM_NULL_NUMBER;
@@ -58,6 +60,6 @@ public class TCL2AgentFactory extends AgentFactory {
 			throw new ConfigurationException(String.format("No Host/Port specified. This agent [%s] will not be started", name));
 		}
 		
-		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd, nameDiscovery, trackUniqueClients, intervalInMillis);
+		return new TCL2Agent(name, jmx_host, jmx_port, jmx_user, jmx_pwd, nameDiscovery, trackUniqueCaches, trackUniqueClients, intervalInMillis);
 	}
 }
