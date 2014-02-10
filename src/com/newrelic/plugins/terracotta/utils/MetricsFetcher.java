@@ -2,6 +2,7 @@ package com.newrelic.plugins.terracotta.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.terracotta.utils.jmxclient.beans.L2RuntimeStatus;
 import org.terracotta.utils.jmxclient.beans.L2TransactionsStats;
 import org.terracotta.utils.jmxclient.utils.L2RuntimeState;
 
+import com.newrelic.plugins.terracotta.metrics.AbstractMetric;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.AggregationType;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnValueType;
@@ -68,170 +70,20 @@ public class MetricsFetcher {
 		return jmxTCClient;
 	}
 
-	//this method is called when buffer is closed and emptied...useful to perform last cleanup before delivery to agent
-	/*	public NewRelicDeliveryBundle[] packageMetricsForDelivery(AbstractMetric[] globalMetrics) {
-		List<NewRelicDeliveryBundle> packagedMetrics = new ArrayList<NewRelicDeliveryBundle>();
-
-		//these buffers are for the aggregate values
-		MetricsBuffer clientsStatsAggregateBuffer = new MetricsBuffer();
-		MetricsBuffer ehcacheStatsAggregateBuffer = new MetricsBuffer();
-
-		if(null != globalMetrics){
-			for(AbstractMetric metric : globalMetrics){
-				if(log.isDebugEnabled())
-					log.debug(String.format("Packaging metric: %s", metric.toString()));
-
-				if(metric.getMetricData() == null || metric.getMetricData().getValuesCount() == 0){
-					log.warn("A metric with no data or 0 data points should not be available here...doing nothing");
-					continue;
-				}
-
-				if(metric.getNameWithUnit().equals(new ServerMetric("State", MetricUnit.Count).getNameWithUnit())){ //special case for SERVER_STATE
-					//returning max...that way if there was something happening in between the polling cycle, we would catch it
-					packagedMetrics.add(new NewRelicDeliveryBundle(metric.getName(), metric.getUnit(), NewRelicDeliveryType.SIMPLE).addBundleValue(NewRelicValuesType.ABSOLUTE, metric.getMetricData().getMax()));
-				} else if(metric instanceof ClientMetric) {
-					ClientMetric clientMetric = (ClientMetric) metric;
-
-					//aggregate all clients averages by default (and use DetailedMetric to possibly calculate percentiles for the averages)
-					clientsStatsAggregateBuffer.addSummaryMetric(new ClientMetric(clientMetric.getShortName(), clientMetric.getUnit(), null), clientMetric.getMetricData().getAverage());
-
-					if(trackUniqueClients){
-						NewRelicDeliveryBundle bundle = new NewRelicDeliveryBundle(clientMetric.getName(), clientMetric.getUnit(), NewRelicDeliveryType.DETAILED)
-						.addBundleValue(NewRelicValuesType.DATAPPOINTCOUNT, clientMetric.getMetricData().getValuesCount())
-						.addBundleValue(NewRelicValuesType.SUM, clientMetric.getMetricData().getSum())
-						.addBundleValue(NewRelicValuesType.SUMSQ, clientMetric.getMetricData().getSumOfSquares())
-						.addBundleValue(NewRelicValuesType.MIN, clientMetric.getMetricData().getMin())
-						.addBundleValue(NewRelicValuesType.MAX, clientMetric.getMetricData().getMax())
-						.addBundleValue(NewRelicValuesType.MEAN, clientMetric.getMetricData().getAverage());
-
-						if (clientMetric.getMetricData() instanceof ExtentedMetricData) {
-							ExtentedMetricData metricData = (ExtentedMetricData) clientMetric.getMetricData();
-
-							bundle.addBundleValue(NewRelicValuesType.MEDIAN,metricData.getPercentile(50));
-							bundle.addBundleValue(NewRelicValuesType.P95, metricData.getPercentile(95));
-						}
-
-						packagedMetrics.add(bundle);
-					}
-				} else if(metric instanceof EhcacheClientMetric) {
-					EhcacheClientMetric ehcacheMetric = (EhcacheClientMetric) metric;
-
-					//calculate the sum of all these stats
-					if(ehcacheMetric.getMetricData() instanceof DifferentialMetricData){
-						ehcacheStatsAggregateBuffer.addSummaryMetric(new EhcacheClientMetric(ehcacheMetric.getShortName(), ehcacheMetric.getUnit(), null, ehcacheMetric.getCacheManagerName(), ehcacheMetric.getCacheName()), metric.getMetricData().getSum());
-					} else {
-						//aggregate all clients averages by default (and use DetailedMetric to possibly calculate percentiles for the averages)
-						ehcacheStatsAggregateBuffer.addSummaryMetric(new EhcacheClientMetric(ehcacheMetric.getShortName(), ehcacheMetric.getUnit(), null, ehcacheMetric.getCacheManagerName(), ehcacheMetric.getCacheName()), metric.getMetricData().getAverage());
-					}
-
-					if(trackUniqueClients){
-						NewRelicDeliveryBundle bundle = new NewRelicDeliveryBundle(ehcacheMetric.getName(), ehcacheMetric.getUnit(), NewRelicDeliveryType.DETAILED)
-						.addBundleValue(NewRelicValuesType.DATAPPOINTCOUNT, ehcacheMetric.getMetricData().getValuesCount())
-						.addBundleValue(NewRelicValuesType.SUM, ehcacheMetric.getMetricData().getSum())
-						.addBundleValue(NewRelicValuesType.SUMSQ, ehcacheMetric.getMetricData().getSumOfSquares())
-						.addBundleValue(NewRelicValuesType.MIN, ehcacheMetric.getMetricData().getMin())
-						.addBundleValue(NewRelicValuesType.MAX, ehcacheMetric.getMetricData().getMax())
-						.addBundleValue(NewRelicValuesType.MEAN, ehcacheMetric.getMetricData().getAverage());
-
-						if (ehcacheMetric.getMetricData() instanceof ExtentedMetricData) {
-							ExtentedMetricData metricData = (ExtentedMetricData) ehcacheMetric.getMetricData();
-
-							bundle.addBundleValue(NewRelicValuesType.MEDIAN,metricData.getPercentile(50));
-							bundle.addBundleValue(NewRelicValuesType.P95, metricData.getPercentile(95));
-						}
-
-						packagedMetrics.add(bundle);
-					}
-				} else {
-					NewRelicDeliveryBundle bundle = new NewRelicDeliveryBundle(metric.getName(), metric.getUnit(), NewRelicDeliveryType.DETAILED)
-					.addBundleValue(NewRelicValuesType.DATAPPOINTCOUNT, metric.getMetricData().getValuesCount())
-					.addBundleValue(NewRelicValuesType.SUM, metric.getMetricData().getSum())
-					.addBundleValue(NewRelicValuesType.SUMSQ, metric.getMetricData().getSumOfSquares())
-					.addBundleValue(NewRelicValuesType.MIN, metric.getMetricData().getMin())
-					.addBundleValue(NewRelicValuesType.MAX, metric.getMetricData().getMax())
-					.addBundleValue(NewRelicValuesType.MEAN, metric.getMetricData().getAverage());
-
-					if (metric.getMetricData() instanceof ExtentedMetricData) {
-						ExtentedMetricData metricData = (ExtentedMetricData) metric.getMetricData();
-
-						bundle.addBundleValue(NewRelicValuesType.MEDIAN,metricData.getPercentile(50));
-						bundle.addBundleValue(NewRelicValuesType.P95, metricData.getPercentile(95));
-					}
-
-					packagedMetrics.add(bundle);
-				}
-			}
-
-			//after the looping is done...let's package the temp buffers
-			AbstractMetric[] aggregatedMetrics = clientsStatsAggregateBuffer.getAllMetricsAndReset();
-			if(null != aggregatedMetrics){
-				for(AbstractMetric metric : aggregatedMetrics){
-					NewRelicDeliveryBundle bundle = new NewRelicDeliveryBundle(metric.getName(), metric.getUnit(), NewRelicDeliveryType.DETAILED)
-					.addBundleValue(NewRelicValuesType.DATAPPOINTCOUNT, metric.getMetricData().getValuesCount())
-					.addBundleValue(NewRelicValuesType.SUM, metric.getMetricData().getSum())
-					.addBundleValue(NewRelicValuesType.SUMSQ, metric.getMetricData().getSumOfSquares())
-					.addBundleValue(NewRelicValuesType.MIN, metric.getMetricData().getMin())
-					.addBundleValue(NewRelicValuesType.MAX, metric.getMetricData().getMax())
-					.addBundleValue(NewRelicValuesType.MEAN, metric.getMetricData().getAverage());
-
-					if (metric.getMetricData() instanceof ExtentedMetricData) {
-						ExtentedMetricData metricData = (ExtentedMetricData) metric.getMetricData();
-
-						bundle.addBundleValue(NewRelicValuesType.MEDIAN,metricData.getPercentile(50));
-						bundle.addBundleValue(NewRelicValuesType.P95, metricData.getPercentile(95));
-					}
-
-					packagedMetrics.add(bundle);
-				}
-			}
-
-			//find out of these metrics the counts useful for global ratio
-			aggregatedMetrics = ehcacheStatsAggregateBuffer.getAllMetricsAndReset();
-			if(null != aggregatedMetrics){
-				for(AbstractMetric metric : aggregatedMetrics){
-					if(metric.getShortName().equals(String.format("%s/%s", "Hits", "Total"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Hits", "LocalHeap"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Hits", "LocalOffheap"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Hits", "LocalDiskOrRemote"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Misses", "Total"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Misses", "LocalHeap"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Misses", "LocalOffheap"))){
-
-					} else if(metric.getShortName().equals(String.format("%s/%s", "Misses", "LocalDiskOrRemote"))){
-
-					}
-
-
-					NewRelicDeliveryBundle bundle = new NewRelicDeliveryBundle(metric.getName(), metric.getUnit(), NewRelicDeliveryType.DETAILED)
-					.addBundleValue(NewRelicValuesType.DATAPPOINTCOUNT, metric.getMetricData().getValuesCount())
-					.addBundleValue(NewRelicValuesType.SUM, metric.getMetricData().getSum())
-					.addBundleValue(NewRelicValuesType.SUMSQ, metric.getMetricData().getSumOfSquares())
-					.addBundleValue(NewRelicValuesType.MIN, metric.getMetricData().getMin())
-					.addBundleValue(NewRelicValuesType.MAX, metric.getMetricData().getMax())
-					.addBundleValue(NewRelicValuesType.MEAN, metric.getMetricData().getAverage());
-
-					if (metric.getMetricData() instanceof ExtentedMetricData) {
-						ExtentedMetricData metricData = (ExtentedMetricData) metric.getMetricData();
-
-						bundle.addBundleValue(NewRelicValuesType.MEDIAN,metricData.getPercentile(50));
-						bundle.addBundleValue(NewRelicValuesType.P95, metricData.getPercentile(95));
-					}
-
-					packagedMetrics.add(bundle);
-				}
-			}
-		}
-	}
-	 */
 	//method called by internal scheduled thread
-	//should always return something...if JMX is not accessible, should return empty metrics
+
 	public void addMetrics(MetricsBuffer metricsbuf) {
+		addMetrics(metricsbuf, null);
+	}
+
+	public void addMetrics(MetricsBuffer metricsbuf, Long lastTimeInMillis) {
+		Long timeSpentSinceLastCall = null;
+
+		if(null != lastTimeInMillis)
+			timeSpentSinceLastCall = System.currentTimeMillis() - lastTimeInMillis;
+
+		log.info(String.format("begin addMetrics. Time (millis) since last call: %s", (null != timeSpentSinceLastCall)?timeSpentSinceLastCall.toString():"null"));
+
 		if(null == metricsbuf)
 			throw new IllegalArgumentException("The buffer may not be null");
 
@@ -255,8 +107,8 @@ public class MetricsFetcher {
 				addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 				addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-				addEhcacheAllMetrics(metricsbuf, null, null, null, null); //for learning if the "All" format
-				addEhcacheAllMetrics(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
+				addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
+				addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 				addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 				addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
@@ -319,6 +171,9 @@ public class MetricsFetcher {
 				if(null != clientsWithTunneledBeansRegistered){
 					log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
 
+					//the map to aggregate all the cachemanager/cache counts for all clients
+					Map<String, Double> aggregateCounts = new HashMap<String, Double>();
+
 					// Loop over CacheManagers
 					Map<String, CacheManagerInfo> cacheManagerInfo = jmxTCClient.getCacheManagerInfo();
 					Iterator<Entry<String, CacheManagerInfo>> iter = cacheManagerInfo.entrySet().iterator();
@@ -361,18 +216,28 @@ public class MetricsFetcher {
 										cacheStatsClientEnabledCount++;
 
 										//add all the metrics for each cache/client (important: no wildcard here - we will do aggregation later if needed)
-										addEhcacheAllMetrics(metricsbuf, clientId, cmInfo.getCmName(), cacheName, cacheStats);
+										addEhcacheClientRawCountsMetrics(metricsbuf, aggregateCounts, clientId, cmInfo.getCmName(), cacheName, cacheStats);
 
-										//average metrics for all clients
-										addEhcacheAllMetrics(metricsbuf, null, cmInfo.getCmName(), cacheName, cacheStats);
+										if(trackUniqueClients){
+											addEhcacheSizeMetrics(metricsbuf, clientId, cmInfo.getCmName(), cacheName, cacheStats);
+											addEhcacheAggregatesMetrics(metricsbuf, aggregateCounts, clientId, cmInfo.getCmName(), cacheName, timeSpentSinceLastCall);
+										}
+
+										//average size metrics for all clients - TODO: change that and add it to the aggregate
+										addEhcacheSizeMetrics(metricsbuf, null, cmInfo.getCmName(), cacheName, cacheStats);
 									}
 								} else {
 									log.error(String.format("Could not get cache stats for %s-%s-%s", cmInfo.getCmName(), cacheName, clientId));
 								}
 							}
 
+							//submit metrics aggregated over all clients
+							addEhcacheAggregatesMetrics(metricsbuf, aggregateCounts, null, cmInfo.getCmName(), cacheName, timeSpentSinceLastCall);
 							addEhcacheClientCountStatsEnabled(metricsbuf, null, cmInfo.getCmName(), cacheName, cacheStatsClientEnabledCount);
 						}
+
+						//submit metrics aggregated over all clients and all caches in a cache manager
+						//addEhcacheAggregatesMetrics(metricsbuf, aggregateCounts, null, cmInfo.getCmName(), null, timeSpentSinceLastCall);
 					}
 				} else {
 					if(log.isDebugEnabled())
@@ -382,8 +247,8 @@ public class MetricsFetcher {
 						log.debug(String.format("Sending null ehcache client metrics"));
 
 						//this node has not ehcache mbeans...so send null values...
-						addEhcacheAllMetrics(metricsbuf, null, null, null, null); //for learning if the "All" format
-						addEhcacheAllMetrics(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
+						addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
+						addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 						addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 						addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
@@ -400,8 +265,8 @@ public class MetricsFetcher {
 					addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 					addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-					addEhcacheAllMetrics(metricsbuf, null, null, null, null); //for learning if the "All" format
-					addEhcacheAllMetrics(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
+					addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
+					addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 					addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 					addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
@@ -413,7 +278,7 @@ public class MetricsFetcher {
 	private void addServerState(MetricsBuffer metrics, int state){
 		log.info("begin addServerState");
 
-		metrics.addMetric(new ServerMetric("State", MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createCustomMax()), state);
+		metrics.addMetric(new ServerMetric("State", MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleMax()), state);
 	}
 
 	private void addClientCountConnected(MetricsBuffer metrics, Integer connectedCount){
@@ -425,104 +290,233 @@ public class MetricsFetcher {
 	private void addClientRuntimeMetrics(MetricsBuffer metrics, String clientID, L2ClientRuntimeInfo clientRuntimeInfo){
 		log.info("begin addClientRuntimeMetrics");
 
-		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getTransactionRate());
-		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Faults"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getObjectFaultRate());
-		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Flushes"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getObjectFlushRate());
-		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Pending"), MetricUnit.Count, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getPendingTransactionsCount());
+		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, null == clientID || trackUniqueClients), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getTransactionRate());
+		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Faults"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, null == clientID || trackUniqueClients), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getObjectFaultRate());
+		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Flushes"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, null == clientID || trackUniqueClients), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getObjectFlushRate());
+		metrics.addMetric(new ClientMetric(String.format("%s/%s", "Transactions", "Pending"), MetricUnit.Count, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, null == clientID || trackUniqueClients), (null == clientRuntimeInfo)?0:clientRuntimeInfo.getPendingTransactionsCount());
 	}
 
-	private void addEhcacheAllMetrics(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
-		addEhcacheCountsMetrics(metrics, clientID, cacheManagerName, cacheName, cacheStats);
-		addEhcacheSizeMetrics(metrics, clientID, cacheManagerName, cacheName, cacheStats);
-		addEhcacheRatesMetrics(metrics, clientID, cacheManagerName, cacheName, cacheStats);
+	//this is to be called after aggregateCounts has the right values in there
+	private void addEhcacheAggregatesMetrics(MetricsBuffer metrics, Map<String, Double> aggregateCounts, String clientID, String cacheManagerName, String cacheName, Long timeInMillisSinceLastCalled){
+		addEhcacheAggregateCountsMetrics(metrics, aggregateCounts, clientID, cacheManagerName, cacheName);
+		addEhcacheAggregateRatioMetrics(metrics, aggregateCounts, clientID, cacheManagerName, cacheName);
+		addEhcacheAggregateRatesMetrics(metrics, aggregateCounts, clientID, cacheManagerName, cacheName, timeInMillisSinceLastCalled);
 	}
 
 	private void addEhcacheClientCountStatsEnabled(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, Integer statsEnabledClientCount){
 		log.info("begin addEhcacheClientCountStatsEnabled");
 
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "StatsEnabled"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (statsEnabledClientCount == null)?0:statsEnabledClientCount);
-	}
-
-	private void addEhcacheCountsMetrics(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
-		log.info("begin addEhcacheCountsMetrics");
-		if(null == clientID || cacheManagerName == null || cacheName == null){
-			log.info("This method does not support null values for clientID, cacheManagerName, or cacheName. Doing nothing.");
-			return;
-		}
-
-		//add counts
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Puts"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getPutCount());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Removes"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getRemovedCount());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Evictions"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getEvictedCount());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Expirations"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getExpiredCount());
-
-		//here we compute the counter differences between each measure point (i.e. for each client what was added since last check)
-		EhcacheClientMetric hitsTotal = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "Total"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheHitCount());
-		EhcacheClientMetric missTotal = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "Total"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheMissCount());
-		EhcacheClientMetric hitsHeap = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalHeap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getInMemoryHitCount());
-		EhcacheClientMetric missHeap = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalHeap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getInMemoryMissCount());
-		EhcacheClientMetric hitsOffheap = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalOffheap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOffHeapHitCount());
-		EhcacheClientMetric missOffheap =(EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalOffheap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOffHeapMissCount());
-		EhcacheClientMetric hitsDisk = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnDiskHitCount());
-		EhcacheClientMetric missDisk = (EhcacheClientMetric)metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnDiskMissCount());
-
-		//check for aggregation counts for all clients (clientID=null)
-		addEhcacheCalculatedHitRatio(metrics, String.format("%s/%s", "HitRatio", "Total"), cacheManagerName, cacheName, hitsTotal.getMetricDataResults().get(ReturnValueType.SUM), missTotal.getMetricDataResults().get(ReturnValueType.SUM));
-		addEhcacheCalculatedHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalHeap"), cacheManagerName, cacheName, hitsHeap.getMetricDataResults().get(ReturnValueType.SUM), missHeap.getMetricDataResults().get(ReturnValueType.SUM));
-		addEhcacheCalculatedHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalOffheap"), cacheManagerName, cacheName, hitsOffheap.getMetricDataResults().get(ReturnValueType.SUM), missOffheap.getMetricDataResults().get(ReturnValueType.SUM));
-		addEhcacheCalculatedHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalDiskOrRemote"), cacheManagerName, cacheName, hitsDisk.getMetricDataResults().get(ReturnValueType.SUM), missDisk.getMetricDataResults().get(ReturnValueType.SUM));
-	}
-	
-	private void addEhcacheCalculatedHitRatio(MetricsBuffer metrics, String metricName, String cacheManagerName, String cacheName, Number hits, Number miss){
-		if(null != hits && null != miss){
-			double dHits=hits.doubleValue();
-			double dMisses=miss.doubleValue();
-
-			if(dHits != Double.NaN && dMisses != Double.NaN){
-				if(dHits != 0.0D && dMisses != 0.0D){
-					metrics.addMetric(new EhcacheClientMetric(metricName, MetricUnit.Percent, AggregationType.SUMMARY, MetricResultDefinition.createCustomAverage(), null, cacheManagerName, cacheName), hits.doubleValue() / (hits.doubleValue() + miss.doubleValue()));
-				} else {
-					log.info("hits/miss counts are 0...recording that.");
-					metrics.addMetric(new EhcacheClientMetric(metricName, MetricUnit.Percent, AggregationType.SUMMARY, MetricResultDefinition.createCustomAverage(), null, cacheManagerName, cacheName), 0.0D);
-				}
-			} else{
-				log.info("Could not add the ratio metric because the hits/miss were NaN");
-			}
-		} else {
-			log.info("Could not add the ratio metric because the hits/miss were null");
-		}
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "StatsEnabled"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients),  (statsEnabledClientCount == null)?0:statsEnabledClientCount);
 	}
 
 	private void addEhcacheSizeMetrics(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
 		log.info("begin addEhcacheSizeMetrics");
 
 		//add sizes		
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "Total"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheSize());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalHeap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getLocalHeapSize());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalOffheap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getLocalOffHeapSize());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getLocalDiskSize());
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "Total"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getCacheSize());
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalHeap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getLocalHeapSize());
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalOffheap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getLocalOffHeapSize());
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Size", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getLocalDiskSize());
 	}
 
-	private void addEhcacheRatesMetrics(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
-		log.info("begin addEhcacheRatesMetrics");
+	private void addEhcacheClientRawCountsMetrics(MetricsBuffer metrics, Map<String, Double> aggregateCounts, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
+		log.info("begin addEhcacheCountsMetrics");
+		if(!learningMode && (null == clientID || cacheManagerName == null || cacheName == null)){
+			log.info("This method does not support null values for clientID, cacheManagerName, or cacheName. Doing nothing.");
+			return;
+		}
 
-		//add this metric only if client is specified...otherwise does not make sense to average the hitratios
-		if(null != clientID)
-			metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "HitRatio", "Total"), MetricUnit.Percent, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheHitRatio());
+		if(metrics == null){
+			log.info("The metrics object is null. This method must have a non-null metrics object to save the data...Doing nothing.");
+			return;
+		}
 
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheHitRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalHeap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnHeapHitRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalOffheap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOffHeapHitRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalDiskOrRemote"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnDiskHitRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCacheMissRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalHeap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnHeapMissRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalOffheap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOffHeapMissRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalDiskOrRemote"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getOnDiskMissRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Puts"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getCachePutRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Removes"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getRemoveRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Evictions"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getEvictionRate());
-		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Expirations"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName), (null == cacheStats)?0:cacheStats.getExpirationRate());
+		//this just gather the counts...but not useful to publish as a stat...
+		AbstractMetric puts = metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Puts"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getPutCount());
+		AbstractMetric removes = metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Removes"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getRemovedCount());
+		AbstractMetric evictions = metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Evictions"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getEvictedCount());
+		AbstractMetric expirations = metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Expirations"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getExpiredCount());
+		AbstractMetric hitsTotal = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "Total"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getCacheHitCount());
+		AbstractMetric missesTotal = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "Total"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getCacheMissCount());
+		AbstractMetric hitsLocalHeap = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalHeap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getInMemoryHitCount());
+		AbstractMetric missesLocalHeap = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalHeap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getInMemoryMissCount());
+		AbstractMetric hitsLocalOffheap = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalOffheap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getOffHeapHitCount());
+		AbstractMetric missesLocalOffheap = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalOffheap"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getOffHeapMissCount());
+		AbstractMetric hitsLocalDiskOrRemote = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getOnDiskHitCount());
+		AbstractMetric missesLocalDiskOrRemote = metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.DIFFERENTIAL_SUMMARY, MetricResultDefinition.createSingleLastAdded(), clientID, cacheManagerName, cacheName, false), (null == cacheStats)?0:cacheStats.getOnDiskMissCount());
+
+		//perform the aggregations
+		if(null != aggregateCounts){
+			for(int i=0; i<=2; i++){
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Puts"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, puts.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Removes"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, removes.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Evictions"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, evictions.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Expirations"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, expirations.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "Total"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, hitsTotal.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "Total"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesTotal.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalHeap"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, hitsLocalHeap.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalHeap"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesLocalHeap.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalOffheap"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, hitsLocalOffheap.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesLocalOffheap.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, hitsLocalDiskOrRemote.getMetricDataResults().get(ReturnValueType.LASTADDED));
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesLocalDiskOrRemote.getMetricDataResults().get(ReturnValueType.LASTADDED));
+			}
+		}
 	}
+
+	private void addEhcacheAggregateCountsMetrics(MetricsBuffer metrics, Map<String, Double> aggregateCounts, String clientId, String cacheManagerName, String cacheName){
+		log.info("begin addEhcacheAggregateCountsMetrics");
+
+		//adding total of all client counts as metric datapoints
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "Total"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "Total"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalHeap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalHeap"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalOffheap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalOffheap"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "Total"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "Total"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalHeap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalHeap"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalOffheap"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalDiskOrRemote"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Puts"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Puts"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Removes"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Removes"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Evictions"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Evictions"), clientId, cacheManagerName, cacheName));
+		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Expirations"), MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleSum(), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Expirations"), clientId, cacheManagerName, cacheName));
+	}
+
+	private void addEhcacheAggregateRatioMetrics(MetricsBuffer metrics, Map<String, Double> aggregateCounts, String clientId, String cacheManagerName, String cacheName){
+		log.info("begin addEhcacheAggregateRatioMetrics");
+
+		//add the global cache hit ratio based on aggregated client counts
+		addEhcacheAggregateHitRatio(metrics, String.format("%s/%s", "HitRatio", "Total"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "Total"), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "Total"), clientId, cacheManagerName, cacheName));
+		addEhcacheAggregateHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalHeap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalHeap"), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalHeap"), clientId, cacheManagerName, cacheName));
+		addEhcacheAggregateHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalOffheap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalOffheap"), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), clientId, cacheManagerName, cacheName));
+		addEhcacheAggregateHitRatio(metrics, String.format("%s/%s", "HitRatio", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName), getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName));
+	}
+
+	//add the calculated rates as well
+	private void addEhcacheAggregateRatesMetrics(MetricsBuffer metrics, Map<String, Double> aggregateCounts, String clientId, String cacheManagerName, String cacheName, Long timeInMillisSinceLastCalled){
+		log.info("begin addEhcacheAggregateRatesMetrics");
+
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Hits", "Total"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "Total"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Hits", "LocalHeap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalHeap"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Hits", "LocalOffheap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalOffheap"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Misses", "Total"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "Total"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Misses", "LocalHeap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalHeap"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Misses", "LocalOffheap"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s", "Puts"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Puts"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s", "Removes"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Removes"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s", "Evictions"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Evictions"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+		addEhcacheAggregateRate(metrics, String.format("%s", "Expirations"), clientId, cacheManagerName, cacheName, getEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Expirations"), clientId, cacheManagerName, cacheName), timeInMillisSinceLastCalled);
+	}
+
+	private String getEhcacheAggregateCountKey(String metricName, String clientId, String cacheManagerName, String cacheName){
+		return new StringBuilder(metricName).append(cacheManagerName).append(cacheName).toString();
+	}
+
+	private Double getEhcacheAggregateCounts(Map<String, Double> aggregateCounts, String metricName, String clientId, String cacheManagerName, String cacheName){
+		return (null != aggregateCounts)?aggregateCounts.get(getEhcacheAggregateCountKey(metricName, clientId, cacheManagerName, cacheName)):((learningMode)?0.0D:null);
+	}
+
+	private void addEhcacheAggregateCounts(Map<String, Double> aggregateCounts, String metricName, String clientId, String cacheManagerName, String cacheName, Number newValue){
+		log.info("begin addEhcacheAggregateCounts");
+
+		if(null != newValue && newValue.doubleValue() != Double.NaN){
+			String key = getEhcacheAggregateCountKey(metricName, clientId, cacheManagerName, cacheName);
+			double dValue;
+			if(!aggregateCounts.containsKey(key)){
+				dValue = newValue.doubleValue();
+			} else {
+				dValue = aggregateCounts.get(key) + newValue.doubleValue();
+			}
+
+			if(log.isDebugEnabled())
+				log.debug(String.format("Adding value %f to aggregate map - [%s=%f]", newValue.doubleValue(), key, dValue));
+
+			aggregateCounts.put(key, dValue);
+		} else {
+			if(log.isDebugEnabled())
+				log.debug(String.format("newValue is null or NaN. Not adding."));
+		}
+	}
+
+	private void addEhcacheAggregateHitRatio(MetricsBuffer metrics, String metricName, String clientId, String cacheManagerName, String cacheName, Number hits, Number miss){
+		Double ratio = null;
+		if(null != hits && null != miss){
+			double dHits=hits.doubleValue();
+			double dMisses=miss.doubleValue();
+			if(dHits != Double.NaN && dMisses != Double.NaN){
+				if(dHits + dMisses != 0.0D){
+					ratio = dHits * 100 / (dHits + dMisses);
+				} else {
+					log.info("hits/miss counts are 0...recording that.");
+					ratio = 0.0D;
+				}
+			} else{
+				log.info("hits/miss are NaN. Ratio = null");
+				ratio = null;
+			}
+		} else {
+			log.info("hits/miss are null. Ratio = null");
+			ratio = null;
+		}
+
+		if(log.isDebugEnabled())
+			log.debug(String.format("Ratio: %s/%s/%s = %s", cacheManagerName, cacheName, metricName, (null != ratio)?ratio.toString():"null"));
+
+		if(null != ratio)
+			metrics.addMetric(new EhcacheClientMetric(metricName, MetricUnit.Percent, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientId, cacheManagerName, cacheName), ratio);
+	}
+
+	private void addEhcacheAggregateRate(MetricsBuffer metrics, String metricName, String clientId, String cacheManagerName, String cacheName, Number value, Long timeSpentInMillis){
+		Double rate = null;
+		if(null != value && null != timeSpentInMillis && timeSpentInMillis != 0){
+			double dValue=value.doubleValue();
+			if(dValue != Double.NaN){
+				rate = dValue * 1000 / timeSpentInMillis;
+			} else{
+				log.info("value is NaN. Rate=null");
+				rate = null;
+			}
+		} else {
+			log.info("value or timeSpentInMillis is null. Rate=null");
+			rate = null;
+		}
+
+		if(log.isDebugEnabled())
+			log.debug(String.format("Ratio: %s/%s/%s = %s", cacheManagerName, cacheName, metricName, (null != rate)?rate.toString():"null"));
+
+		if(null != rate)
+			metrics.addMetric(new EhcacheClientMetric(metricName, MetricUnit.Rate, AggregationType.SUMMARY, MetricResultDefinition.createDetailed(), clientId, cacheManagerName, cacheName), rate);
+	}
+
+	//	private void addEhcacheRatesMetrics(MetricsBuffer metrics, String clientID, String cacheManagerName, String cacheName, CacheStats cacheStats){
+	//		log.info("begin addEhcacheRatesMetrics");
+	//
+	//		//add this metric only if client is specified...otherwise does not make sense to average the hitratios
+	//		if(!learningMode && (null == clientID || cacheManagerName == null || cacheName == null)){
+	//			log.info("This method does not support null values for clientID, cacheManagerName, or cacheName. Doing nothing.");
+	//			return;
+	//		}
+	//
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "HitRatio", "Total"), MetricUnit.Percent, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getCacheHitRatio());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "HitRatio", "LocalHeap"), MetricUnit.Percent, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), 0);
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "HitRatio", "LocalOffheap"), MetricUnit.Percent, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), 0);
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "HitRatio", "LocalDiskOrRemote"), MetricUnit.Percent, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), 0);
+	//
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getCacheHitRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalHeap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOnHeapHitRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalOffheap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOffHeapHitRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Hits", "LocalDiskOrRemote"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOnDiskHitRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "Total"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getCacheMissRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalHeap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOnHeapMissRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalOffheap"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOffHeapMissRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s/%s", "Misses", "LocalDiskOrRemote"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getOnDiskMissRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Puts"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getCachePutRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Removes"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getRemoveRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Evictions"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getEvictionRate());
+	//		metrics.addMetric(new EhcacheClientMetric(String.format("%s", "Expirations"), MetricUnit.Rate, AggregationType.EXTENDED, MetricResultDefinition.createDetailed(), clientID, cacheManagerName, cacheName, null == clientID || trackUniqueClients), (null == cacheStats)?0:cacheStats.getExpirationRate());
+	//	}
 
 	private void addL2RuntimeMetrics(MetricsBuffer metrics, L2TransactionsStats txStats){
 		log.info("begin addL2RuntimeMetrics");

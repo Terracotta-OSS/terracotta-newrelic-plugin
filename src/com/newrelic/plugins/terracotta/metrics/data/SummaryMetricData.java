@@ -36,8 +36,8 @@ public class SummaryMetricData extends AbstractMetricData implements Cloneable {
 
 		ReturnValueType[] returnValueTypes = null;
 		if(resultDefinition == null || resultDefinition.getReturnBundleType() == ReturnBundleType.UNDEFINED || resultDefinition.getReturnBundleType() == ReturnBundleType.DETAILED) {
-			returnValueTypes = new ReturnValueType[]{ReturnValueType.DATAPPOINTCOUNT, ReturnValueType.SUM, ReturnValueType.SUMSQ, ReturnValueType.MIN, ReturnValueType.MAX, ReturnValueType.MEAN};
-		} else if (resultDefinition.getReturnBundleType() == ReturnBundleType.CUSTOM) {
+			returnValueTypes = new ReturnValueType[]{ReturnValueType.LASTADDED, ReturnValueType.DATAPPOINTCOUNT, ReturnValueType.SUM, ReturnValueType.SUMSQ, ReturnValueType.MIN, ReturnValueType.MAX, ReturnValueType.MEAN};
+		} else if (resultDefinition.getReturnBundleType() == ReturnBundleType.SINGLE) {
 			returnValueTypes = resultDefinition.getReturnValueTypes();
 		}
 
@@ -45,6 +45,9 @@ public class SummaryMetricData extends AbstractMetricData implements Cloneable {
 			Number returnValue = null;
 			for(ReturnValueType type : returnValueTypes){
 				switch(type){
+				case LASTADDED:
+					returnValue = lastAddedValue;
+					break;
 				case DATAPPOINTCOUNT:
 					returnValue = dataset.getN();
 					break;
@@ -69,7 +72,7 @@ public class SummaryMetricData extends AbstractMetricData implements Cloneable {
 				}
 
 				if(log.isDebugEnabled())
-					log.debug(String.format("%s=%f", type.name(), (null != returnValue)?returnValue.doubleValue():0.0D));
+					log.debug(String.format("%s=%s", type.name(), (null != returnValue)?returnValue.toString():"null"));
 
 				returnMap.put(type, returnValue);
 			}
@@ -82,40 +85,20 @@ public class SummaryMetricData extends AbstractMetricData implements Cloneable {
 	public void add(Number... newMetricValues){
 		if(null != newMetricValues){
 			for(Number val : newMetricValues){
-				if(null != val){
+				if(null != val && val.doubleValue() != Double.NaN){
 					this.dataset.addValue(val.doubleValue());
+					lastAddedValue = val;
+				} else {
+					if(log.isDebugEnabled())
+						log.debug("value to add is null...will not count as a valid datapoint.");
 				}
 			}
+		} else {
+			if(log.isDebugEnabled())
+				log.debug("value to add is null...will not count as a valid datapoint.");
 		}
 	}
-
-	public long getValuesCount() {
-		return dataset.getN();
-	}
-
-	public double getMin() {
-		return dataset.getMin();
-	}
-
-	public double getMax() {
-		return dataset.getMax();
-	}
-
-	public double getSumOfSquares() {
-		return dataset.getSumsq();
-	}
-
-	public double getSum() {
-		return dataset.getSum();
-	}
-
-	public double getAverage() {
-		if(getValuesCount() == 0)
-			throw new IllegalArgumentException(String.format("No datapoint is added yet...cannot call average function until at least 1 point is added"));
-
-		return dataset.getMean();
-	}
-
+	
 	@Override
 	public SummaryMetricData clone() throws CloneNotSupportedException {
 		return new SummaryMetricData(this);

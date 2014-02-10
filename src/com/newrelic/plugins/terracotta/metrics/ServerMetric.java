@@ -9,9 +9,13 @@ public class ServerMetric extends AbstractMetric {
 		super(name, unit, aggregationType, resultDefinition);
 	}
 	
+	public ServerMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition, boolean publishEnabled) {
+		super(name, unit, aggregationType, resultDefinition, publishEnabled);
+	}
+	
 	@Override
 	public ServerMetric clone() throws CloneNotSupportedException {
-		ServerMetric clone = new ServerMetric(name, unit, aggregationType, resultDefinition);
+		ServerMetric clone = new ServerMetric(name, unit, aggregationType, resultDefinition, publishEnabled);
 		if(null != getMetricData())
 			clone.setMetricData(getMetricData().clone());
 		

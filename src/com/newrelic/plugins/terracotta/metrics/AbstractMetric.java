@@ -18,6 +18,7 @@ public abstract class AbstractMetric implements Cloneable {
 	public static final String METRICS_ALL = "All";
 	public static final String METRICS_FAMILY_TC = "Terracotta";
 
+	protected boolean publishEnabled = true;
 	protected final String name;
 	protected final MetricUnit unit;
 	protected final AggregationType aggregationType;
@@ -26,11 +27,16 @@ public abstract class AbstractMetric implements Cloneable {
 	protected AbstractMetricData metricData;
 
 	protected AbstractMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition) {
+		this(name, unit, aggregationType, resultDefinition, true);
+	}
+
+	protected AbstractMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition, boolean publishEnabled) {
 		super();
 		this.name = name;
 		this.unit = unit;
 		this.aggregationType = aggregationType;
 		this.resultDefinition = resultDefinition;
+		this.publishEnabled = publishEnabled;
 	}
 
 	public enum AggregationType
@@ -39,10 +45,6 @@ public abstract class AbstractMetric implements Cloneable {
 		EXTENDED,
 		DIFFERENTIAL_SUMMARY,
 		AGGREGATED_RATIO
-	}
-
-	public MetricResultDefinition getResultDefinition() {
-		return resultDefinition;
 	}
 
 	public static class MetricResultDefinition {
@@ -59,29 +61,38 @@ public abstract class AbstractMetric implements Cloneable {
 		public static MetricResultDefinition createDetailed(){
 			return new MetricResultDefinition(ReturnBundleType.DETAILED, null);
 		}
-		
-		public static MetricResultDefinition createCustomMax(){
-			return new MetricResultDefinition(ReturnBundleType.CUSTOM, new ReturnValueType[]{ReturnValueType.MAX});
-		}
-		
-		public static MetricResultDefinition createCustomAbsolute(){
-			return new MetricResultDefinition(ReturnBundleType.CUSTOM, new ReturnValueType[]{ReturnValueType.ABSOLUTE});
+
+		public static MetricResultDefinition createSingleMax(){
+			return new MetricResultDefinition(ReturnBundleType.SINGLE, new ReturnValueType[]{ReturnValueType.MAX});
 		}
 
-		public static MetricResultDefinition createCustomAverage(){
-			return new MetricResultDefinition(ReturnBundleType.CUSTOM, new ReturnValueType[]{ReturnValueType.MEAN});
+		public static MetricResultDefinition createSingleAbsolute(){
+			return new MetricResultDefinition(ReturnBundleType.SINGLE, new ReturnValueType[]{ReturnValueType.ABSOLUTE});
+		}
+
+		public static MetricResultDefinition createSingleSum(){
+			return new MetricResultDefinition(ReturnBundleType.SINGLE, new ReturnValueType[]{ReturnValueType.SUM});
+		}
+
+		public static MetricResultDefinition createSingleAverage(){
+			return new MetricResultDefinition(ReturnBundleType.SINGLE, new ReturnValueType[]{ReturnValueType.MEAN});
+		}
+
+		public static MetricResultDefinition createSingleLastAdded(){
+			return new MetricResultDefinition(ReturnBundleType.SINGLE, new ReturnValueType[]{ReturnValueType.LASTADDED});
 		}
 
 		public enum ReturnBundleType
 		{
 			UNDEFINED,
-			CUSTOM,
+			SINGLE,
 			DETAILED
 		}
 
 		public enum ReturnValueType
 		{
 			ABSOLUTE,
+			LASTADDED,
 			DATAPPOINTCOUNT,
 			SUM,
 			MIN,
@@ -111,30 +122,29 @@ public abstract class AbstractMetric implements Cloneable {
 
 	public long getDataPointsCount(){
 		log.info("begin getDataPointsCount");
-		
+
 		long datapoints = (null != metricData)?metricData.getDataPointsCount():0;
-		
+
 		if(log.isDebugEnabled())
 			log.debug(String.format("%d datapoints for metric[%s]", datapoints, getNameWithUnit()));
-		
+
 		return datapoints;
 	}
-	
+
 	public Map<MetricResultDefinition.ReturnValueType, Number> getMetricDataResults(){
 		log.info("begin getMetricDataResults");
 		return metricData.computeMetricResult();
 	}
 
 	public void addValue(Number... newMetricValues){
-		if(null != newMetricValues){
-			for(Number val : newMetricValues){
-				if(null != val){
-					if(log.isDebugEnabled())
-						log.debug(String.format("Adding value=%f for metric[%s]",(null != val)?val.doubleValue():0.0D, getNameWithUnit()));
+		if(log.isDebugEnabled()){
+			if(null != newMetricValues){
+				for(Number val : newMetricValues){
+					log.debug(String.format("Adding value=%s for metric[%s]",(null != val)?val.toString():"null", getNameWithUnit()));
 				}
 			}
 		}
-		
+
 		if(null == metricData) {
 			createMetricData(newMetricValues);
 		}
@@ -146,7 +156,7 @@ public abstract class AbstractMetric implements Cloneable {
 	private void createMetricData(Number... values){
 		if(log.isDebugEnabled())
 			log.debug(String.format("Creating metricData using type [%s] for metric[%s]", aggregationType.name(), getNameWithUnit()));
-		
+
 		switch (aggregationType) {
 		case EXTENDED:
 			metricData = new ExtentedMetricData();
@@ -163,16 +173,28 @@ public abstract class AbstractMetric implements Cloneable {
 		default:
 			break;
 		}
-		
+
 		metricData.setResultDefinition(resultDefinition);
 		metricData.add(values);
 	}
-	
+
+	public abstract String getPrefix();
+
 	protected String sanitize(String name){
 		return (null != name)?name.toLowerCase().replace("/", ":"):"";
 	}
-	
-	public abstract String getPrefix();
+
+	public MetricResultDefinition getResultDefinition() {
+		return resultDefinition;
+	}
+
+	public void setPublishEnabled(boolean publishEnabled) {
+		this.publishEnabled = publishEnabled;
+	}
+
+	public boolean isPublishEnabled() {
+		return publishEnabled;
+	}
 
 	public String getNameWithUnit(){
 		return new StringBuilder(getName()).append("-[").append(unit.getName()).append("]").toString();
@@ -184,9 +206,9 @@ public abstract class AbstractMetric implements Cloneable {
 
 	public String getName() {
 		StringBuilder outBuffer = new StringBuilder(getPrefix());
-        if(!name.startsWith("/")) outBuffer.append("/");
-        outBuffer.append(name);
-		
+		if(!name.startsWith("/")) outBuffer.append("/");
+		outBuffer.append(name);
+
 		return outBuffer.toString();
 	}
 
@@ -211,7 +233,7 @@ public abstract class AbstractMetric implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "AbstractMetric [name=" + name + ", unit=" + unit
+		return "AbstractMetric [name=" + getName() + ", unit=" + unit
 				+ ", metricData=" + metricData.toString() + "]";
 	}
 }

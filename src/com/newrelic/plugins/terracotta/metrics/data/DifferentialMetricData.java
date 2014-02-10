@@ -12,7 +12,7 @@ public class DifferentialMetricData extends SummaryMetricData implements Cloneab
 	private static Logger log = LoggerFactory.getLogger(DifferentialMetricData.class);
 
 	private volatile boolean firstPass = true;
-	private volatile double lastValue = 0D;
+	private volatile double lastValue = Double.NaN;
 	private volatile long startCaptureTimeInMillis = Long.MIN_VALUE;
 	private volatile long lastCaptureTimeInMillis = Long.MIN_VALUE;
 
@@ -34,11 +34,13 @@ public class DifferentialMetricData extends SummaryMetricData implements Cloneab
 				
 				startCaptureTimeInMillis = timeCapture;
 			} else {
+				double diff = newValue - lastValue;
 				if(log.isDebugEnabled())
-					log.debug(String.format("Adding difference: NewValue[%f]-LastValue[%f]=%f",newValue, lastValue, newValue - lastValue));
+					log.debug(String.format("Adding difference: NewValue[%f]-LastValue[%f]=%f", newValue, lastValue, diff));
 				
 				//add the difference to the dataset
-				dataset.addValue(newValue - lastValue);
+				dataset.addValue(diff);
+				lastAddedValue = diff;
 			}
 			
 			lastValue = newValue; // save the value for next
@@ -49,12 +51,15 @@ public class DifferentialMetricData extends SummaryMetricData implements Cloneab
 			
 			//make sure to set firstPass to false at this point
 			firstPass = false;
+		} else {
+			if(log.isDebugEnabled())
+				log.debug("value to add is null...will not count as a valid datapoint.");
 		}
 	}
 
-	public double getRatePerSecond() {
-		return getSum() * 1000 / (lastCaptureTimeInMillis - startCaptureTimeInMillis);
-	}
+//	public double getRatePerSecond() {
+//		return getSum() * 1000 / (lastCaptureTimeInMillis - startCaptureTimeInMillis);
+//	}
 
 	@Override
 	public DifferentialMetricData clone() throws CloneNotSupportedException {

@@ -7,8 +7,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.newrelic.plugins.terracotta.metrics.AbstractMetric;
-import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnBundleType;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnValueType;
 
@@ -18,8 +16,8 @@ import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefini
 public class ExtentedMetricData extends AbstractMetricData implements Cloneable {
 	private static Logger log = LoggerFactory.getLogger(ExtentedMetricData.class);
 
-	private final DescriptiveStatistics dataset = new DescriptiveStatistics();;
-
+	private final DescriptiveStatistics dataset = new DescriptiveStatistics();
+	
 	public ExtentedMetricData(){
 		super();
 	}
@@ -40,8 +38,8 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 
 		ReturnValueType[] returnValueTypes = null;
 		if(resultDefinition == null || resultDefinition.getReturnBundleType() == ReturnBundleType.UNDEFINED || resultDefinition.getReturnBundleType() == ReturnBundleType.DETAILED) {
-			returnValueTypes = new ReturnValueType[]{ReturnValueType.DATAPPOINTCOUNT, ReturnValueType.SUM, ReturnValueType.SUMSQ, ReturnValueType.MIN, ReturnValueType.MAX, ReturnValueType.MEAN};
-		} else if (resultDefinition.getReturnBundleType() == ReturnBundleType.CUSTOM) {
+			returnValueTypes = new ReturnValueType[]{ReturnValueType.LASTADDED, ReturnValueType.DATAPPOINTCOUNT, ReturnValueType.SUM, ReturnValueType.SUMSQ, ReturnValueType.MIN, ReturnValueType.MAX, ReturnValueType.MEAN};
+		} else if (resultDefinition.getReturnBundleType() == ReturnBundleType.SINGLE) {
 			returnValueTypes = resultDefinition.getReturnValueTypes();
 		}
 
@@ -49,6 +47,9 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 			Number returnValue = null;
 			for(ReturnValueType type : returnValueTypes){
 				switch(type){
+				case LASTADDED:
+					returnValue = lastAddedValue;
+					break;
 				case DATAPPOINTCOUNT:
 					returnValue = dataset.getN();
 					break;
@@ -79,7 +80,7 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 				}
 				
 				if(log.isDebugEnabled())
-					log.debug(String.format("%s=%f", type.name(), (null != returnValue)?returnValue.doubleValue():0.0D));
+					log.debug(String.format("%s=%s", type.name(), (null != returnValue)?returnValue.toString():"null"));
 				
 				returnMap.put(type, returnValue);
 			}
@@ -92,10 +93,17 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 	public void add(Number... newMetricValues){
 		if(null != newMetricValues){
 			for(Number val : newMetricValues){
-				if(null != val){
+				if(null != val && val.doubleValue() != Double.NaN){
 					this.dataset.addValue(val.doubleValue());
+					lastAddedValue = val;
+				} else {
+					if(log.isDebugEnabled())
+						log.debug("value to add is null...will not count as a valid datapoint.");
 				}
 			}
+		} else {
+			if(log.isDebugEnabled())
+				log.debug("value to add is null...will not count as a valid datapoint.");
 		}
 	}
 

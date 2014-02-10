@@ -22,9 +22,11 @@ public class MetricsBufferingWorker {
 	private static Logger log = LoggerFactory.getLogger(MetricsBufferingWorker.class);
 
 	private final MetricsBuffer metricsBuffer = new MetricsBuffer();
+	private final String agentName;
 	private final MetricsFetcher metricsFetcher;
-
 	private final long intervalInMilliSeconds;
+	
+	private volatile Long lastExecutedTimeStamp = null;
 
 	private static final long REFRESHINTERVALDEFAULT = 5000L;
 	private static final TimeUnit refreshIntervalUnit = TimeUnit.MILLISECONDS;
@@ -32,13 +34,15 @@ public class MetricsBufferingWorker {
 	private final ScheduledExecutorService cacheTimerService;
 	private ScheduledFuture<?> cacheTimerServiceFuture;
 
-	public MetricsBufferingWorker(MetricsFetcher metrics) {
-		this(0L, metrics);
+	public MetricsBufferingWorker(String agentName, MetricsFetcher metrics) {
+		this(agentName, metrics, REFRESHINTERVALDEFAULT);
 	}
 
-	public MetricsBufferingWorker(long intervalInMilliSeconds, MetricsFetcher metricsFetcher) {
+	public MetricsBufferingWorker(final String agentName, MetricsFetcher metricsFetcher, long intervalInMilliSeconds) {
 		super();
 
+		this.agentName = agentName;
+		
 		if(intervalInMilliSeconds <= 0)
 			intervalInMilliSeconds = REFRESHINTERVALDEFAULT;
 		this.intervalInMilliSeconds = intervalInMilliSeconds;
@@ -49,7 +53,7 @@ public class MetricsBufferingWorker {
 		cacheTimerService = Executors.newScheduledThreadPool(1, new ThreadFactory() {
 			@Override
 			public Thread newThread(Runnable r) {
-				return new Thread(r, "Sync Timer Cache Pool");
+				return new Thread(r, String.format("Metrics Agent Worker [%s]", agentName));
 			}
 		});
 	}
@@ -162,11 +166,13 @@ public class MetricsBufferingWorker {
 		public void run() {
 			try{
 				synchronized (metricsBuffer) {
-					getMetricsFetcher().addMetrics(metricsBuffer);
+					getMetricsFetcher().addMetrics(metricsBuffer, lastExecutedTimeStamp);
 				}
 			} catch (Exception exc){
 				log.error("Unexpected error...", exc);
 			}
+			
+			lastExecutedTimeStamp = System.currentTimeMillis();
 		}
 	}
 
@@ -181,20 +187,24 @@ public class MetricsBufferingWorker {
 			super();
 		}
 
+		public String getBufferKey(AbstractMetric metric){
+			return (null!=metric)?metric.getNameWithUnit():null;
+		}
+		
 		public AbstractMetric addMetric(AbstractMetric metric, Number... metricValues){
 			AbstractMetric existingMetric;
-			if((existingMetric = buffer.get(metric.getNameWithUnit())) == null){
+			if((existingMetric = buffer.get(getBufferKey(metric))) == null){
 				existingMetric = metric;
 				existingMetric.addValue(metricValues);
-				buffer.put(existingMetric.getNameWithUnit(), existingMetric);
+				buffer.put(getBufferKey(existingMetric), existingMetric);
 			} else {
 				existingMetric.addValue(metricValues);
 			}
 			return existingMetric;
 		}
 		
-		public AbstractMetric getMetric(String fullName, MetricUnit unit){
-			return buffer.get(fullName + unit.getName());
+		public AbstractMetric getBufferedMetric(AbstractMetric metric){
+			return buffer.get(getBufferKey(metric));
 		}
 		
 		/* not needed
