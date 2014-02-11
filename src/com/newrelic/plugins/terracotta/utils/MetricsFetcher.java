@@ -124,9 +124,10 @@ public class MetricsFetcher {
 				addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 				addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
-				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
-
+				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, 1L); //for learning if the "All" format
+				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", 1L); //for learning if the "id/<text>" format
+				addEhcacheSizeMetrics(metricsbuf, null, null, null, null);
+				addEhcacheSizeMetrics(metricsbuf, "*", "*", "*", null);
 				addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 				addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
 			}
@@ -269,9 +270,10 @@ public class MetricsFetcher {
 							log.debug(String.format("Learning mode: Sending null ehcache client metrics"));
 
 						//this node has not ehcache mbeans...so send null values...
-						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
-						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
-
+						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, 1L); //for learning if the "All" format
+						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", 1L); //for learning if the "id/<text>" format
+						addEhcacheSizeMetrics(metricsbuf, null, null, null, null);
+						addEhcacheSizeMetrics(metricsbuf, "*", "*", "*", null);
 						addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 						addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
 					}
@@ -290,9 +292,10 @@ public class MetricsFetcher {
 					addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 					addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
-					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
-
+					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, 1L); //for learning if the "All" format
+					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", 1L); //for learning if the "id/<text>" format
+					addEhcacheSizeMetrics(metricsbuf, null, null, null, null);
+					addEhcacheSizeMetrics(metricsbuf, "*", "*", "*", null);
 					addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 					addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
 				}
