@@ -12,7 +12,7 @@ import com.newrelic.plugins.terracotta.metrics.data.ExtentedMetricData;
 import com.newrelic.plugins.terracotta.metrics.data.SummaryMetricData;
 import com.newrelic.plugins.terracotta.utils.MetricUnit;
 
-public abstract class AbstractMetric implements Cloneable {
+public abstract class AbstractMetric implements Comparable<AbstractMetric>, Cloneable {
 	private static Logger log = LoggerFactory.getLogger(AbstractMetric.class);
 
 	public static final String METRICS_ALL = "All";
@@ -230,6 +230,16 @@ public abstract class AbstractMetric implements Cloneable {
 
 	@Override
 	public abstract AbstractMetric clone() throws CloneNotSupportedException;
+
+	/**
+	  * @param aThat is a non-null Account.
+	  *
+	  * @throws NullPointerException if aThat is null.
+	  */
+	@Override
+	public int compareTo(AbstractMetric obj) {
+		return this.getNameWithUnit().compareTo(obj.getNameWithUnit());
+	}
 
 	@Override
 	public String toString() {

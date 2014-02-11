@@ -1,5 +1,6 @@
 package com.newrelic.plugins.terracotta;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -52,7 +53,12 @@ public class TCL2Agent extends Agent {
 
 		//get all metrics and report to new relic
 		AbstractMetric[] metrics = metricsWorker.getAndCleanMetrics();
+		
 		if(null != metrics){
+			//sort array for ease of debugging
+			if(log.isDebugEnabled())
+				Arrays.sort(metrics);
+			
 			int reportedMetricCount = 0;
 			for(AbstractMetric metric : metrics){
 				try {
@@ -68,7 +74,13 @@ public class TCL2Agent extends Agent {
 
 								if(metric.getResultDefinition().getReturnBundleType() == ReturnBundleType.DETAILED){
 									if(log.isDebugEnabled())
-										log.debug(String.format("New Relic Agent[%s] - Reporting DETAILED metric %s (%d datapoints)", getComponentHumanLabel(), metric.getNameWithUnit(), datapointCount));
+										log.debug(String.format("New Relic Agent[%s] - Reporting DETAILED metric %s (%d datapoints) with [average=%f,min=%f,max=%f]", 
+														getComponentHumanLabel(), 
+														metric.getNameWithUnit(), 
+														datapointCount, 
+														metricResult.get(ReturnValueType.SUM).doubleValue() / datapointCount,
+														metricResult.get(ReturnValueType.MIN).doubleValue(),
+														metricResult.get(ReturnValueType.MAX).doubleValue()));
 
 									reportMetric(metric.getName(), 
 											metric.getUnit().getName(), 

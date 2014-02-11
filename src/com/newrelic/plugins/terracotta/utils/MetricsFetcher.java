@@ -1,12 +1,13 @@
 package com.newrelic.plugins.terracotta.utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +41,10 @@ public class MetricsFetcher {
 	public final boolean learningMode = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.learningmode", false);
 	public final boolean disableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.disable", false);
 	public final boolean enableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.enable", false);
-	public final String[] ehcacheStatsFilterCaches;
-	public final String[] ehcacheStatsFilterClients;
+	public Pattern ehcacheStatsFilterCaches = null;
+	public Pattern ehcacheStatsFilterClients = null;
+
+	public static final String PATTERN_SEPARATOR = "~~";
 
 	public MetricsFetcher(TCL2JMXClient jmxTCClient, boolean trackUniqueCaches, boolean trackUniqueClients) {
 		super();
@@ -49,20 +52,23 @@ public class MetricsFetcher {
 		this.trackUniqueCaches = trackUniqueCaches;
 		this.trackUniqueClients = trackUniqueClients;
 
-		String filterCache = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_caches");
-		if(null != filterCache && !"".equals(filterCache.trim())){
-			this.ehcacheStatsFilterCaches = filterCache.trim().toLowerCase().split(",");
-			Arrays.sort(this.ehcacheStatsFilterCaches);
-		} else {
-			this.ehcacheStatsFilterCaches = null;
+		String filterCache = null;
+		try{
+			filterCache = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_caches");
+			if(null != filterCache && !"".equals(filterCache.trim())){
+				this.ehcacheStatsFilterCaches = Pattern.compile(filterCache.trim(), Pattern.CASE_INSENSITIVE);
+			}
+		} catch (Exception exc){
+			log.error(String.format("An error occurred while compiling the regex pattern %s defined in filter_caches property", filterCache.trim()), exc);
 		}
-
-		String filterClients = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_clients");
-		if(null != filterClients && !"".equals(filterClients.trim())){
-			this.ehcacheStatsFilterClients = filterClients.trim().toLowerCase().split(",");
-			Arrays.sort(this.ehcacheStatsFilterClients);
-		} else {
-			this.ehcacheStatsFilterClients = null;
+		String filterClients = null;
+		try{
+			filterClients = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_clients");
+			if(null != filterClients && !"".equals(filterClients.trim())){
+				this.ehcacheStatsFilterClients = Pattern.compile(filterClients.trim(), Pattern.CASE_INSENSITIVE);
+			}
+		} catch (Exception exc){
+			log.error(String.format("An error occurred while compiling the regex pattern %s defined in filter_clients property", filterClients.trim()), exc);
 		}
 	}
 
@@ -87,6 +93,14 @@ public class MetricsFetcher {
 		if(null == metricsbuf)
 			throw new IllegalArgumentException("The buffer may not be null");
 
+		//this is only useful for the ehcache values in learning mode 
+		Map<String, Double> learningModeAggregateCounts = new HashMap<String, Double>();
+		if(learningMode){
+			if(log.isDebugEnabled())
+				log.debug(String.format("Learning mode: Creating a learningModeAggregateCounts map with 0 values"));
+			simulateAggregateCount(learningModeAggregateCounts);
+		}
+
 		//check in that method if JMX is alive and well...
 		if(null == jmxTCClient || !jmxTCClient.initialize()){
 			log.error("JMX connection could not be initialized...sending null metrics");
@@ -101,14 +115,17 @@ public class MetricsFetcher {
 			addL2DataMetrics(metricsbuf, null);
 
 			if(learningMode){
+				if(log.isDebugEnabled())
+					log.debug(String.format("Learning mode: Sending null ehcache client metrics"));
+
 				//send null values for clients
 				addClientCountConnected(metricsbuf, null);
 
 				addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 				addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-				addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
-				addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
+				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
+				addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 				addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 				addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
@@ -132,7 +149,8 @@ public class MetricsFetcher {
 
 			//Adding client metrics
 			if(jmxTCClient.isNodeActive()){
-				log.debug(String.format("Node %s is Active...fetching registered client metrics", l2ProcessInfo.getServerInfoSummary()));
+				if(log.isDebugEnabled())
+					log.debug(String.format("Node %s is Active...fetching registered client metrics", l2ProcessInfo.getServerInfoSummary()));
 
 				//list that contains the clientIDs that have ehcache Mbeans tunnelled and registered
 				List<L2ClientID> clientsWithTunneledBeansRegistered = null;
@@ -160,7 +178,8 @@ public class MetricsFetcher {
 						}
 					}
 				} else {
-					log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
+					if(log.isDebugEnabled())
+						log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
 
 					addClientCountConnected(metricsbuf, null);
 					addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
@@ -169,7 +188,8 @@ public class MetricsFetcher {
 
 				//if it's not null, means that there are indeed some tunneled ehcache mbeans here...let's jump into ehcache stats then!!
 				if(null != clientsWithTunneledBeansRegistered){
-					log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
+					if(log.isDebugEnabled())
+						log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
 
 					//the map to aggregate all the cachemanager/cache counts for all clients
 					Map<String, Double> aggregateCounts = new HashMap<String, Double>();
@@ -185,6 +205,7 @@ public class MetricsFetcher {
 							if(log.isDebugEnabled())
 								log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
 
+
 							int cacheStatsClientEnabledCount = 0;
 							for(String clientId : cmInfo.getClientMbeansIDs()){
 								if(log.isDebugEnabled())
@@ -193,10 +214,10 @@ public class MetricsFetcher {
 								//enable statistics if specified
 								CacheStats cacheStats = null;
 								if(enableEhcacheStats || disableEhcacheStats){
-									// if arrays are null, stats should be modified for all
-									//strings that are in the arrays are lowercase, so let's make sure the searched string are also lower case
-									if((ehcacheStatsFilterCaches == null || (ehcacheStatsFilterCaches != null && Arrays.binarySearch(ehcacheStatsFilterCaches, cacheName.toLowerCase()) >=0)) &&
-											(ehcacheStatsFilterClients == null || (ehcacheStatsFilterClients != null && Arrays.binarySearch(ehcacheStatsFilterClients, clientId.toLowerCase()) >=0)))
+									// if regex expressions are null, stats should be modified for all
+									//and if not, both patterns must be true to enter
+									if((ehcacheStatsFilterCaches == null || isPatternMatch(ehcacheStatsFilterCaches, cacheName)) &&
+											(ehcacheStatsFilterClients == null || isPatternMatch(ehcacheStatsFilterClients, clientId)))
 									{
 										//let's have disableStats win in case both are true
 										if(disableEhcacheStats){
@@ -244,20 +265,24 @@ public class MetricsFetcher {
 						log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
 
 					if(learningMode){
-						log.debug(String.format("Sending null ehcache client metrics"));
+						if(log.isDebugEnabled())
+							log.debug(String.format("Learning mode: Sending null ehcache client metrics"));
 
 						//this node has not ehcache mbeans...so send null values...
-						addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
-						addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
+						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
+						addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 						addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 						addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
 					}
 				}
 			} else {
-				log.debug(String.format("Node %s is not active...no client info available.", l2ProcessInfo.getServerInfoSummary()));
+				if(log.isDebugEnabled())
+					log.debug(String.format("Node %s is not active...no client info available.", l2ProcessInfo.getServerInfoSummary()));
+
 				if(learningMode){
-					log.debug(String.format("Sending null client metrics"));
+					if(log.isDebugEnabled())
+						log.debug(String.format("Learning mode: Sending null client metrics"));
 
 					//this node is not active...it does not have any client stats...so send null values...
 					addClientCountConnected(metricsbuf, null);
@@ -265,14 +290,23 @@ public class MetricsFetcher {
 					addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
 					addClientRuntimeMetrics(metricsbuf, "*", null); //for learning if the "id/<text>" format
 
-					addEhcacheAggregatesMetrics(metricsbuf, null, null, null, null, null); //for learning if the "All" format
-					addEhcacheAggregatesMetrics(metricsbuf, null, "*", "*", "*", null); //for learning if the "id/<text>" format
+					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, null, null, null, null); //for learning if the "All" format
+					addEhcacheAggregatesMetrics(metricsbuf, learningModeAggregateCounts, "*", "*", "*", null); //for learning if the "id/<text>" format
 
 					addEhcacheClientCountStatsEnabled(metricsbuf, null, null, null, null); //for learning if the "All" format
 					addEhcacheClientCountStatsEnabled(metricsbuf, "*", "*", "*", null); //for learning if the "id/<text>" format
 				}
 			}
 		}
+	}
+
+	private boolean isPatternMatch(Pattern pat, String name){
+		boolean match = false;
+		if(null != pat){
+			Matcher matcher = pat.matcher(name);
+			match = matcher.find();
+		}
+		return match;
 	}
 
 	private void addServerState(MetricsBuffer metrics, int state){
@@ -360,6 +394,27 @@ public class MetricsFetcher {
 				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesLocalOffheap.getMetricDataResults().get(ReturnValueType.LASTADDED));
 				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, hitsLocalDiskOrRemote.getMetricDataResults().get(ReturnValueType.LASTADDED));
 				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), (i>0)?null:clientID, cacheManagerName, (i>1)?null:cacheName, missesLocalDiskOrRemote.getMetricDataResults().get(ReturnValueType.LASTADDED));
+			}
+		}
+	}
+
+	/*This is for the learning mode*/
+	private void simulateAggregateCount(Map<String, Double> aggregateCounts){
+		//perform the aggregations
+		if(null != aggregateCounts){
+			for(int i=0; i<=1; i++){
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Puts"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Removes"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Evictions"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s", "Expirations"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "Total"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "Total"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalHeap"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalHeap"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalOffheap"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalOffheap"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Hits", "LocalDiskOrRemote"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
+				addEhcacheAggregateCounts(aggregateCounts, String.format("%s/%s", "Misses", "LocalDiskOrRemote"), (i>0)?null:"*", (i>0)?null:"*", (i>0)?null:"*", 0.0D);
 			}
 		}
 	}
