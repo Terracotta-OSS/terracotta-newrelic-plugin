@@ -1,6 +1,8 @@
 package com.newrelic.plugins.terracotta;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -49,7 +51,7 @@ public class TCL2Agent extends Agent {
 
 	@Override
 	public void pollCycle() {
-		log.info(String.format("New Relic Agent[%s] - Pushing L2 Metrics to NewRelic Cloud", getComponentHumanLabel()));
+		log.info(String.format("New Relic Agent[%s] - Pushing L2 Metrics to NewRelic Cloud at %s", getComponentHumanLabel(), new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())));
 
 		//get all metrics and report to new relic
 		AbstractMetric[] metrics = metricsWorker.getAndCleanMetrics();
