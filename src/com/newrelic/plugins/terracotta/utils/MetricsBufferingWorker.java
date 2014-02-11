@@ -60,7 +60,7 @@ public class MetricsBufferingWorker {
 
 	public void startAndMoveOn(){
 		//schedule the timer pool to execute a cache search every 5 seconds...which in turn will execute the cache sync operations
-		cacheTimerServiceFuture = cacheTimerService.scheduleAtFixedRate(new MetricFetcherOp(), 10L, intervalInMilliSeconds, refreshIntervalUnit);
+		cacheTimerServiceFuture = cacheTimerService.scheduleAtFixedRate(new MetricFetcherOp(), 5L, intervalInMilliSeconds, refreshIntervalUnit);
 	}
 
 	public void stop(){
