@@ -21,7 +21,8 @@ import com.newrelic.plugins.terracotta.metrics.AbstractMetric;
 public class MetricsBufferingWorker {
 	private static Logger log = LoggerFactory.getLogger(MetricsBufferingWorker.class);
 
-	private final MetricsBuffer metricsBuffer = new MetricsBuffer();
+	private volatile MetricsBuffer metricsBuffer = new MetricsBuffer();
+	
 	private final String agentName;
 	private final MetricsFetcher metricsFetcher;
 	private final long intervalInMilliSeconds;
