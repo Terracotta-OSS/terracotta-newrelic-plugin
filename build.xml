@@ -4,20 +4,21 @@
 	<property name="version" value="1.0.5" />
 	<property name="filename" value="${ant.project.name}-${version}" />
 	<property name="jarfile" value="${filename}.jar" />
-	<property name="tarfile" value="${filename}.tar.gz" />
+	<property name="tarfile" value="${filename}-bin.tar.gz" />
 
 	<property name="build.dir" value="build" />
 	<property name="build.classes.dir" value="${build.dir}/classes" />
 	<property name="build.jar.dir" value="${build.dir}/jar" />
 	<property name="build.tar.dir" value="${build.dir}/tar" />
-	<property name="build.tar.src.dir" value="${build.tar.dir}/${filename}" />
+	<property name="build.tar.src.dir" value="${build.tar.dir}/${filename}-bin" />
+	<property name="build.dist.dir" location="${build.dir}/dist" />
 
 	<property name="src.dir" value="src" />
 	<property name="lib.dir" value="lib" />
 	<property name="scripts.dir" value="scripts" />
 	<property name="conf.dir" value="config" />
-	<property name="dist.dir" location="dist" />
-
+	<property name="dist.dir" location="distributions" />
+	
 	<property name="ant.build.javac.source" value="1.6" />
 	<property name="ant.build.javac.target" value="1.6" />
 
@@ -96,7 +97,7 @@
 			<replacefilter token="@commons_math3_jar@" value="${commons-math3.jar}" />
 		</replace>
 
-		<tar compression="gzip" destfile="${dist.dir}/${tarfile}">
+		<tar compression="gzip" destfile="${build.dist.dir}/${tarfile}">
 			<tarfileset dir="${build.tar.dir}" />
 		</tar>
 	</target>
@@ -108,7 +109,13 @@
 			<fileset dir="${plugin.deploy}" includes="**/*" />
 		</delete>
 		
-		<untar src="${dist.dir}/${tarfile}" dest="${plugin.deploy}"
+		<untar src="${build.dist.dir}/${tarfile}" dest="${plugin.deploy}"
 			compression="gzip" />
+	</target>
+	
+	<target name="archive" depends="dist"
+		description="archive binary package">
+		
+		<copy file="${build.dist.dir}/${tarfile}" todir="${dist.dir}" />
 	</target>
 </project>
