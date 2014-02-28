@@ -18,9 +18,10 @@ public class SummaryMetricData extends AbstractMetricData implements Cloneable {
 	protected final SummaryStatistics dataset = new SummaryStatistics();
 
 	public SummaryMetricData(){
+		super();
 	}
 
-	public SummaryMetricData(SummaryMetricData metric) {
+	protected SummaryMetricData(SummaryMetricData metric) {
 		if(null != metric)
 			SummaryStatistics.copy(metric.dataset, this.dataset);
 	}

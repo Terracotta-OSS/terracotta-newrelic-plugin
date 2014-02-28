@@ -26,6 +26,17 @@ public abstract class AbstractMetric implements Comparable<AbstractMetric>, Clon
 
 	protected AbstractMetricData metricData;
 
+	protected AbstractMetric(AbstractMetric metric) {
+		if(metric == null)
+			throw new IllegalArgumentException("Metric cannot be null");
+		
+		this.name = metric.name;
+		this.unit = metric.unit;
+		this.aggregationType = metric.aggregationType;
+		this.resultDefinition = metric.resultDefinition;
+		this.publishEnabled = metric.publishEnabled;
+	}
+	
 	protected AbstractMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition) {
 		this(name, unit, aggregationType, resultDefinition, true);
 	}

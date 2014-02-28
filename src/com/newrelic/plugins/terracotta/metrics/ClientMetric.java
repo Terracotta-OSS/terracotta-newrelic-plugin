@@ -8,6 +8,11 @@ public class ClientMetric extends AbstractMetric {
 	
 	protected String clientID;
 
+	protected ClientMetric(ClientMetric metric){
+		super(metric);
+		this.clientID = metric.clientID;
+	}
+	
 	public ClientMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition, String clientID) {
 		super(name, unit, aggregationType, resultDefinition);
 		this.clientID = clientID;
@@ -24,11 +29,11 @@ public class ClientMetric extends AbstractMetric {
 
 	@Override
 	public ClientMetric clone() throws CloneNotSupportedException {
-		ClientMetric clone = new ClientMetric(name, unit, aggregationType, resultDefinition, clientID, publishEnabled);
-		if(null != getMetricData())
-			clone.setMetricData(getMetricData().clone());
+		ClientMetric cloned = new ClientMetric(this);
+		if(null != this.getMetricData())
+			cloned.setMetricData(this.getMetricData().clone());
 		
-		return clone;
+		return cloned;
 	}
 
 	@Override

@@ -19,6 +19,14 @@ public class AggregatedRatioData extends AbstractMetricData {
 		super();
 	}
 
+	protected AggregatedRatioData(AggregatedRatioData metric) {
+		if(null != metric){
+			this.aggregateDividendValue = metric.aggregateDividendValue;
+			metric.aggregateDivisorValue = metric.aggregateDivisorValue;
+			metric.dataPointsCount = metric.dataPointsCount;
+		}
+	}
+
 	@Override
 	public long getDataPointsCount() {
 		return dataPointsCount;
@@ -45,11 +53,7 @@ public class AggregatedRatioData extends AbstractMetricData {
 
 	@Override
 	public AbstractMetricData clone() throws CloneNotSupportedException {
-		AggregatedRatioData cloned = new AggregatedRatioData();
-		cloned.aggregateDividendValue = this.aggregateDividendValue;
-		cloned.aggregateDivisorValue = this.aggregateDivisorValue;
-		cloned.dataPointsCount = this.dataPointsCount;
-
+		AggregatedRatioData cloned = new AggregatedRatioData(this);
 		return cloned;
 	}
 

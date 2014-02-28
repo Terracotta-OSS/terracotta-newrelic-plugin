@@ -22,7 +22,7 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 		super();
 	}
 
-	public ExtentedMetricData(ExtentedMetricData metric) {
+	protected ExtentedMetricData(ExtentedMetricData metric) {
 		if(null != metric)
 			DescriptiveStatistics.copy(metric.dataset, this.dataset);
 	}
@@ -109,7 +109,8 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 
 	@Override
 	public ExtentedMetricData clone() throws CloneNotSupportedException {
-		return new ExtentedMetricData(this);
+		ExtentedMetricData cloned = new ExtentedMetricData(this);
+		return cloned;
 	}
 
 	@Override

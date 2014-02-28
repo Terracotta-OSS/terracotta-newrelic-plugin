@@ -9,6 +9,12 @@ public class EhcacheClientMetric extends ClientMetric {
 	protected String cacheManagerName;
 	protected String cacheName;
 	
+	protected EhcacheClientMetric(EhcacheClientMetric metric){
+		super(metric);
+		this.cacheManagerName = metric.cacheManagerName;
+		this.cacheName = metric.cacheName;
+	}
+	
 	public EhcacheClientMetric(String name, MetricUnit unit, AggregationType aggregationType, MetricResultDefinition resultDefinition, String clientID, String cacheManagerName, String cacheName) {
 		super(name, unit, aggregationType, resultDefinition, clientID);
 		this.cacheManagerName = cacheManagerName;
@@ -31,10 +37,11 @@ public class EhcacheClientMetric extends ClientMetric {
 
 	@Override
 	public EhcacheClientMetric clone() throws CloneNotSupportedException {
-		EhcacheClientMetric clone = new EhcacheClientMetric(name, unit, aggregationType, resultDefinition, clientID, cacheManagerName, cacheName, publishEnabled);
-		if(null != getMetricData())
-			clone.setMetricData(getMetricData().clone());
-		return clone;
+		EhcacheClientMetric cloned = new EhcacheClientMetric(this);
+		if(null != this.getMetricData())
+			cloned.setMetricData(this.getMetricData().clone());
+		
+		return cloned;
 	}
 	
 	public String getPrefix(){
