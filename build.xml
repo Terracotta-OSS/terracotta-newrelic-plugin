@@ -79,6 +79,12 @@
 		<copy todir="${build.tar.src.dir}/config">
 			<fileset dir="${conf.dir}" />
 		</copy>
+        <move todir="${build.tar.src.dir}/config" includeemptydirs="false">
+          <fileset dir="${build.tar.src.dir}/config">
+            <include name="template-*"/>
+          </fileset>
+          <mapper type="glob" from="template-*" to="*"/>
+        </move>
 		<copy todir="${build.tar.src.dir}/bin">
 			<fileset dir="${scripts.dir}" />
 		</copy>
@@ -96,6 +102,16 @@
 			<replacefilter token="@terracotta_jmxremot_jar@" value="${terracotta-jmxremote.jar}" />
 			<replacefilter token="@commons_math3_jar@" value="${commons-math3.jar}" />
 		</replace>
+
+        <replace
+            file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.bat"
+            propertyFile="build.properties">
+            <replacefilter token="@terracotta_home@" property="terracotta.home" />
+            <replacefilter token="@plugin_jar_file@" value="${jarfile}" />
+            <replacefilter token="@newrelic_plugin_sdk_jar@" value="${newrelic_plugin_sdk.jar}" />
+            <replacefilter token="@terracotta_jmxremot_jar@" value="${terracotta-jmxremote.jar}" />
+            <replacefilter token="@commons_math3_jar@" value="${commons-math3.jar}" />
+        </replace>
 
 		<tar compression="gzip" destfile="${build.dist.dir}/${tarfile}">
 			<tarfileset dir="${build.tar.dir}" />
