@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="terracotta-newrelic-plugin" default="dist" basedir=".">
 	<property file="build.properties" />
-	<property name="version" value="1.0.5" />
+	<property name="version" value="1.0.6" />
 	<property name="filename" value="${ant.project.name}-${version}" />
 	<property name="jarfile" value="${filename}.jar" />
 	<property name="tarfile" value="${filename}-bin.tar.gz" />
