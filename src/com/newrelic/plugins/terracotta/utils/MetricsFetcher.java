@@ -106,7 +106,7 @@ public class MetricsFetcher {
 			log.error("JMX connection could not be initialized...sending null metrics");
 
 			//send error state
-			addServerState(metricsbuf, L2RuntimeState.ERROR.getStateIntValue());
+			addServerState(metricsbuf, null);
 
 			//send null values for transactions stats
 			addL2RuntimeMetrics(metricsbuf, null);
@@ -137,10 +137,10 @@ public class MetricsFetcher {
 			L2DataStats dataStats = jmxTCClient.getL2DataStats();
 			L2RuntimeStatus statusInfo = jmxTCClient.getL2RuntimeStatus();
 
-			log.info(String.format("Getting L2 Metrics From Server %s", l2ProcessInfo.getServerInfoSummary()));
+			log.info(String.format("Getting L2 Metrics From Server %s", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 			//send state
-			addServerState(metricsbuf, statusInfo.getState().getStateIntValue());
+			addServerState(metricsbuf, statusInfo);
 
 			//Adding Server transactions stats
 			addL2RuntimeMetrics(metricsbuf, txStats);
@@ -151,7 +151,7 @@ public class MetricsFetcher {
 			//Adding client metrics
 			if(jmxTCClient.isNodeActive()){
 				if(log.isDebugEnabled())
-					log.debug(String.format("Node %s is Active...fetching registered client metrics", l2ProcessInfo.getServerInfoSummary()));
+					log.debug(String.format("Node %s is Active...fetching registered client metrics", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 				//list that contains the clientIDs that have ehcache Mbeans tunnelled and registered
 				List<L2ClientID> clientsWithTunneledBeansRegistered = null;
@@ -180,7 +180,7 @@ public class MetricsFetcher {
 					}
 				} else {
 					if(log.isDebugEnabled())
-						log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", l2ProcessInfo.getServerInfoSummary()));
+						log.debug(String.format("Node %s does not have any registered clients...sending null client metrics", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 					addClientCountConnected(metricsbuf, null);
 					addClientRuntimeMetrics(metricsbuf, null, null); //for learning if the "All" format
@@ -190,7 +190,7 @@ public class MetricsFetcher {
 				//if it's not null, means that there are indeed some tunneled ehcache mbeans here...let's jump into ehcache stats then!!
 				if(null != clientsWithTunneledBeansRegistered){
 					if(log.isDebugEnabled())
-						log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", l2ProcessInfo.getServerInfoSummary(), clientsWithTunneledBeansRegistered.size()));
+						log.debug(String.format("Node %s has %d clients registered with ehcache mbeans", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null", clientsWithTunneledBeansRegistered.size()));
 
 					//the map to aggregate all the cachemanager/cache counts for all clients
 					Map<String, Double> aggregateCounts = new HashMap<String, Double>();
@@ -204,13 +204,13 @@ public class MetricsFetcher {
 
 						for(String cacheName : cmInfo.getCaches()){
 							if(log.isDebugEnabled())
-								log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
+								log.debug(String.format("Node %s does not have any ehcache mbeans...", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 
 							int cacheStatsClientEnabledCount = 0;
 							for(String clientId : cmInfo.getClientMbeansIDs()){
 								if(log.isDebugEnabled())
-									log.debug(String.format("Node %s - Getting stats for cache=[%s] and client=[%s]", l2ProcessInfo.getServerInfoSummary(), cacheName, clientId));
+									log.debug(String.format("Node %s - Getting stats for cache=[%s] and client=[%s]", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null", cacheName, clientId));
 
 								//enable statistics if specified
 								CacheStats cacheStats = null;
@@ -263,7 +263,7 @@ public class MetricsFetcher {
 					}
 				} else {
 					if(log.isDebugEnabled())
-						log.debug(String.format("Node %s does not have any ehcache mbeans...", l2ProcessInfo.getServerInfoSummary()));
+						log.debug(String.format("Node %s does not have any ehcache mbeans...", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 					if(learningMode){
 						if(log.isDebugEnabled())
@@ -280,7 +280,7 @@ public class MetricsFetcher {
 				}
 			} else {
 				if(log.isDebugEnabled())
-					log.debug(String.format("Node %s is not active...no client info available.", l2ProcessInfo.getServerInfoSummary()));
+					log.debug(String.format("Node %s is not active...no client info available.", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null"));
 
 				if(learningMode){
 					if(log.isDebugEnabled())
@@ -312,10 +312,10 @@ public class MetricsFetcher {
 		return match;
 	}
 
-	private void addServerState(MetricsBuffer metrics, int state){
+	private void addServerState(MetricsBuffer metrics, L2RuntimeStatus statusInfo){
 		log.info("begin addServerState");
 
-		metrics.addMetric(new ServerMetric("State", MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleMax()), state);
+		metrics.addMetric(new ServerMetric("State", MetricUnit.Count, AggregationType.SUMMARY, MetricResultDefinition.createSingleMax()), (null == statusInfo)?L2RuntimeState.ERROR.getStateIntValue():statusInfo.getState().getStateIntValue());
 	}
 
 	private void addClientCountConnected(MetricsBuffer metrics, Integer connectedCount){
