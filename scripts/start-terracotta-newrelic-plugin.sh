@@ -4,7 +4,6 @@
 # All content copyright Terracotta, Inc., unless otherwise indicated. All rights reserved.
 #
 
-JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx512m"
 TC_HOME="@terracotta_home@"
 
 # OS specific support.  $var _must_ be set to either true or false.
@@ -20,6 +19,7 @@ fi
 
 PLUGIN_DIR=`dirname "$0"`/..
 
+JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
 JAVA_OPTS="${JAVA_OPTS} -Dlog4j.configuration=file:${PLUGIN_DIR}/config/log4j.properties -Dplugin.config.path=file:${PLUGIN_DIR}/config/plugin.properties -Dnewrelic.platform.config.dir=${PLUGIN_DIR}/config"
 #JAVA_OPTS="${JAVA_OPTS} -Dcom.newrelic.plugins.terracotta.learningmode=true"
 

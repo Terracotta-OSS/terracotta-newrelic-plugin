@@ -16,8 +16,8 @@ if not defined JAVA_HOME (
 set JAVA_HOME=%JAVA_HOME:"=%
 set JAVA_COMMAND="%JAVA_HOME%\bin\java"
 
-set JAVA_OPTS=-Dlog4j.configuration=%PLUGIN_DIR%\config\log4j.properties -Dplugin.config.path=%PLUGIN_DIR%\config\plugin.properties -Dnewrelic.platform.config.dir=%PLUGIN_DIR%\config
-rem JAVA_OPTS=%JAVA_OPTS% -Dcom.newrelic.plugins.terracotta.learningmode=true -Xms128m -Xmx512m
+set JAVA_OPTS=-Xms128m -Xmx128m -Dlog4j.configuration=%PLUGIN_DIR%\config\log4j.properties -Dplugin.config.path=%PLUGIN_DIR%\config\plugin.properties -Dnewrelic.platform.config.dir=%PLUGIN_DIR%\config
+rem JAVA_OPTS=%JAVA_OPTS% -Dcom.newrelic.plugins.terracotta.learningmode=true
 echo JAVA_OPTS=
 echo %JAVA_OPTS%
 
