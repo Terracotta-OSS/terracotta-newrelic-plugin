@@ -26,7 +26,7 @@ echo %JAVA_COMMAND%
 
 pause
 
-set CLASSPATH=%PLUGIN_DIR%\libs\@plugin_jar_file@;%PLUGIN_DIR%\libs\@newrelic_plugin_sdk_jar@;%PLUGIN_DIR%\libs\@terracotta_jmxremot_jar@;%PLUGIN_DIR%\libs\@commons_math3_jar@;%TC_HOME%\ehcache\lib\ehcache-core-ee-2.6.7.jar;%TC_HOME%\lib\tc.jar;%TC_HOME%\lib\slf4j-api-1.6.1.jar;%TC_HOME%\lib\slf4j-log4j12-1.6.1.jar
+set CLASSPATH=%PLUGIN_DIR%\libs\*;%TC_HOME%\ehcache\lib\ehcache-core-ee-2.6.8.jar;%TC_HOME%\lib\tc.jar
 
 :START_TCSERVER
 %JAVA_COMMAND% %JAVA_OPTS% -cp %CLASSPATH% com.newrelic.plugins.terracotta.TCL2MonLauncher %*

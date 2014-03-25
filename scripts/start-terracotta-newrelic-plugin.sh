@@ -23,7 +23,7 @@ JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
 JAVA_OPTS="${JAVA_OPTS} -Dlog4j.configuration=file:${PLUGIN_DIR}/config/log4j.properties -Dplugin.config.path=file:${PLUGIN_DIR}/config/plugin.properties -Dnewrelic.platform.config.dir=${PLUGIN_DIR}/config"
 #JAVA_OPTS="${JAVA_OPTS} -Dcom.newrelic.plugins.terracotta.learningmode=true"
 
-CLASSPATH="${PLUGIN_DIR}/libs/@plugin_jar_file@:${PLUGIN_DIR}/libs/@newrelic_plugin_sdk_jar@:${PLUGIN_DIR}/libs/@terracotta_jmxremot_jar@:${PLUGIN_DIR}/libs/@commons_math3_jar@:${TC_HOME}/ehcache/lib/ehcache-core-ee-2.6.7.jar:${TC_HOME}/lib/tc.jar:${TC_HOME}/lib/slf4j-api-1.6.1.jar:${TC_HOME}/lib/slf4j-log4j12-1.6.1.jar"
+CLASSPATH="${PLUGIN_DIR}/libs/*:${TC_HOME}/ehcache/lib/ehcache-core-ee-2.6.8.jar:${TC_HOME}/lib/tc.jar"
 
 # For Cygwin, convert paths to Windows before invoking java
 if $cygwin; then
