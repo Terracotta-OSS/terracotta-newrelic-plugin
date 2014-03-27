@@ -5,8 +5,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnBundleType;
 import com.newrelic.plugins.terracotta.metrics.data.AbstractMetricData;
-import com.newrelic.plugins.terracotta.metrics.data.AggregatedRatioData;
 import com.newrelic.plugins.terracotta.metrics.data.DifferentialMetricData;
 import com.newrelic.plugins.terracotta.metrics.data.ExtentedMetricData;
 import com.newrelic.plugins.terracotta.metrics.data.SummaryMetricData;
@@ -147,7 +147,7 @@ public abstract class AbstractMetric implements Comparable<AbstractMetric>, Clon
 		return metricData.computeMetricResult();
 	}
 
-	public void addValue(Number... newMetricValues){
+	public void addValues(Number... newMetricValues){
 		if(log.isDebugEnabled()){
 			if(null != newMetricValues){
 				for(Number val : newMetricValues){
@@ -170,16 +170,13 @@ public abstract class AbstractMetric implements Comparable<AbstractMetric>, Clon
 
 		switch (aggregationType) {
 		case EXTENDED:
-			metricData = new ExtentedMetricData();
+			metricData = new ExtentedMetricData(this);
 			break;
 		case SUMMARY:
-			metricData = new SummaryMetricData();
+			metricData = new SummaryMetricData(this);
 			break;
 		case DIFFERENTIAL_SUMMARY:
-			metricData = new DifferentialMetricData();
-			break;
-		case AGGREGATED_RATIO:
-			metricData = new AggregatedRatioData();
+			metricData = new DifferentialMetricData(this);
 			break;
 		default:
 			break;
@@ -189,6 +186,12 @@ public abstract class AbstractMetric implements Comparable<AbstractMetric>, Clon
 		metricData.add(values);
 	}
 
+	public void clearMetricData(){
+		if(null != metricData){
+			metricData.clear();
+		}
+	}
+	
 	public abstract String getPrefix();
 
 	protected String sanitize(String name){

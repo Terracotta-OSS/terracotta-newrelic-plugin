@@ -1,10 +1,10 @@
 package com.newrelic.plugins.terracotta.utils;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,14 +21,13 @@ import com.newrelic.plugins.terracotta.metrics.AbstractMetric;
 public class MetricsBufferingWorker {
 	private static Logger log = LoggerFactory.getLogger(MetricsBufferingWorker.class);
 
-	private volatile MetricsBuffer metricsBuffer = new MetricsBuffer();
-	
+	private MetricsBuffer metricsBuffer = new MetricsBuffer();
+	private volatile long lastExecutedTime = Long.MIN_VALUE;
+
 	private final String agentName;
 	private final MetricsFetcher metricsFetcher;
 	private final long intervalInMilliSeconds;
 	
-	private volatile Long lastExecutedTimeStamp = null;
-
 	private static final long REFRESHINTERVALDEFAULT = 5000L;
 	private static final TimeUnit refreshIntervalUnit = TimeUnit.MILLISECONDS;
 
@@ -59,6 +58,12 @@ public class MetricsBufferingWorker {
 		});
 	}
 
+	protected synchronized long getAndUpdateLastExecutedTime(long current){
+		long last = this.lastExecutedTime;
+		this.lastExecutedTime = current;
+		return last;
+	}
+	
 	public void startAndMoveOn(){
 		//schedule the timer pool to execute a cache search every 5 seconds...which in turn will execute the cache sync operations
 		cacheTimerServiceFuture = cacheTimerService.scheduleAtFixedRate(new MetricFetcherOp(), 5L, intervalInMilliSeconds, refreshIntervalUnit);
@@ -135,9 +140,11 @@ public class MetricsBufferingWorker {
 	//this use synchronization to make sure that getAll + Reset is done atomically, and no new metrics can be added before this operation is finished.
 	public AbstractMetric[] getAndCleanMetrics() {
 		AbstractMetric[] metrics = null;
-		synchronized (metricsBuffer) {
-			metrics = metricsBuffer.getAllMetricsAndReset();
-		}
+//		synchronized (metricsBuffer) {
+//			metrics = metricsBuffer.getAllMetricsAndReset();
+//		}
+		
+		metrics = metricsBuffer.getAllMetricsAndReset();
 		
 		if(null == metrics || metrics.length == 0){
 			log.warn(String.format("Buffered metrics are null! Let's try to do a ad-hoc fetch...(If this error continues, investigate further: maybe the buffering threads are not running?)"));
@@ -161,28 +168,48 @@ public class MetricsBufferingWorker {
 	 * Searches elements in delegated cache, and call refreshOp for every returned results
 	 */
 	private class MetricFetcherOp implements Runnable {
+		
 		public MetricFetcherOp() {
 		}
 
 		public void run() {
+			long timeSpentSinceLastCall = Long.MIN_VALUE;
+			long current = System.currentTimeMillis();
+			long last = getAndUpdateLastExecutedTime(current);
+			
+			if(Long.MIN_VALUE != last)
+				timeSpentSinceLastCall = current - last;
+			
+			if (log.isDebugEnabled()) {
+				log.debug("MetricsBufferingWorker:MetricFetcherOp:start - " + current 
+							+ ", thread " + Thread.currentThread().getId() 
+							+ ", priority " + Thread.currentThread().getPriority());
+				
+				log.debug("MetricsBufferingWorker:MetricFetcherOp:LastExecuted - " + last);
+				
+				log.debug(String.format("Time (millis) since last call: CurrentTime[%s]-LastRunTime[%s]=%s", 
+						new Long(current).toString(), 
+						(Long.MIN_VALUE != last)?new Long(last).toString():"null", 
+						(Long.MIN_VALUE != timeSpentSinceLastCall)?new Long(timeSpentSinceLastCall).toString():"null"));
+			}
+			
 			try{
-				synchronized (metricsBuffer) {
-					getMetricsFetcher().addMetrics(metricsBuffer, lastExecutedTimeStamp);
-				}
+				if(Long.MIN_VALUE != timeSpentSinceLastCall)
+					getMetricsFetcher().addMetrics(metricsBuffer, timeSpentSinceLastCall);
+				else 
+					getMetricsFetcher().addMetrics(metricsBuffer);
+				
 			} catch (Exception exc){
 				log.error("Unexpected error...", exc);
 			}
-			
-			lastExecutedTimeStamp = System.currentTimeMillis();
 		}
 	}
 
-	//not thread safe...
 	public static class MetricsBuffer {
 		private static Logger log = LoggerFactory.getLogger(MetricsBuffer.class);
 
 		//using a simple hashMap because synchronizing all exposed access on it
-		private final Map<String, AbstractMetric> buffer = new HashMap<String, AbstractMetric>();
+		private final Map<String, AbstractMetric> buffer = new ConcurrentHashMap<String, AbstractMetric>();
 
 		public MetricsBuffer() {
 			super();
@@ -196,10 +223,10 @@ public class MetricsBufferingWorker {
 			AbstractMetric existingMetric;
 			if((existingMetric = buffer.get(getBufferKey(metric))) == null){
 				existingMetric = metric;
-				existingMetric.addValue(metricValues);
+				existingMetric.addValues(metricValues);
 				buffer.put(getBufferKey(existingMetric), existingMetric);
 			} else {
-				existingMetric.addValue(metricValues);
+				existingMetric.addValues(metricValues);
 			}
 			return existingMetric;
 		}
@@ -207,48 +234,26 @@ public class MetricsBufferingWorker {
 		public AbstractMetric getBufferedMetric(AbstractMetric metric){
 			return buffer.get(getBufferKey(metric));
 		}
-		
-		/* not needed
-		 private void addMetric(Metric metric){
-			if(null != metric){
-				Metric existingMetric;
-				if((existingMetric = buffer.get(metric.getName())) == null){
-					buffer.put(metric.getName(), new Metric(metric)); //make a copy of the metric object here
-				} else {
-					existingMetric.add(metric.);
-				}
-			}
-		}
-
-		private void addMetrics(Metric[] metrics){
-			if(null != metrics && metrics.length > 0){
-				for(Metric newMetric : metrics){
-					addMetric(newMetric);
-				}
-			}
-		}*/
 
 		public AbstractMetric[] getAllMetricsAndReset() {
 			AbstractMetric[] metrics = null;
-			try{
-				Set<String> keys = buffer.keySet();
-				if(keys.size() > 0){
-					metrics = new AbstractMetric[keys.size()];
+			Set<String> keys = buffer.keySet();
+			if(keys.size() > 0){
+				metrics = new AbstractMetric[keys.size()];
 
-					//perform a deep copy of all the metrics objects
-					int counter = 0;
-					for (Iterator<String> iterator = keys.iterator(); iterator.hasNext();counter++) {
-						String metricKey = iterator.next();
-
-						try {
-							metrics[counter] = buffer.get(metricKey).clone(); //deep copy
-						} catch (CloneNotSupportedException e) {
-							log.error("An error occurrred during metric cloning", e);
-						}
+				//perform a deep copy of all the metrics objects
+				int counter = 0;
+				for (Iterator<String> iterator = keys.iterator(); iterator.hasNext();counter++) {
+					String metricKey = iterator.next();
+					AbstractMetric singleMetric = buffer.get(metricKey);
+					try {
+						metrics[counter] = singleMetric.clone(); //deep copy
+					} catch (CloneNotSupportedException e) {
+						log.error("An error occurrred during metric cloning", e);
+					} finally {
+						singleMetric.clearMetricData();
 					}
 				}
-			} finally {
-				buffer.clear();
 			}
 			return metrics;
 		}

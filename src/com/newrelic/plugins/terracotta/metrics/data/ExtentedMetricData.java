@@ -7,6 +7,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.newrelic.plugins.terracotta.metrics.AbstractMetric;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnBundleType;
 import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefinition.ReturnValueType;
 
@@ -16,15 +17,18 @@ import com.newrelic.plugins.terracotta.metrics.AbstractMetric.MetricResultDefini
 public class ExtentedMetricData extends AbstractMetricData implements Cloneable {
 	private static Logger log = LoggerFactory.getLogger(ExtentedMetricData.class);
 
-	private final DescriptiveStatistics dataset = new DescriptiveStatistics();
+	private static final int DEFAULT_WINDOW = 1000;
 	
-	public ExtentedMetricData(){
-		super();
+	private final DescriptiveStatistics dataset = new DescriptiveStatistics(DEFAULT_WINDOW);
+	
+	public ExtentedMetricData(AbstractMetric parentMetric){
+		super(parentMetric);
 	}
 
-	protected ExtentedMetricData(ExtentedMetricData metric) {
-		if(null != metric)
-			DescriptiveStatistics.copy(metric.dataset, this.dataset);
+	protected ExtentedMetricData(ExtentedMetricData metricData) {
+		super(metricData);
+		if(null != metricData)
+			DescriptiveStatistics.copy(metricData.dataset, this.dataset);
 	}
 
 	@Override
@@ -51,7 +55,7 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 					returnValue = lastAddedValue;
 					break;
 				case DATAPPOINTCOUNT:
-					returnValue = dataset.getN();
+					returnValue = getDataPointsCount();
 					break;
 				case SUM:
 					returnValue = dataset.getSum();
@@ -94,17 +98,26 @@ public class ExtentedMetricData extends AbstractMetricData implements Cloneable 
 		if(null != newMetricValues){
 			for(Number val : newMetricValues){
 				if(null != val && val.doubleValue() != Double.NaN){
+					if(log.isDebugEnabled())
+						log.debug(String.format("Metric %s - Adding value=%f", getParentMetricName(), val.doubleValue()));
+					
 					this.dataset.addValue(val.doubleValue());
 					lastAddedValue = val;
 				} else {
 					if(log.isDebugEnabled())
-						log.debug("value to add is null...will not count as a valid datapoint.");
+						log.debug(String.format("Metric %s - value to add is null...will not count as a valid datapoint.", getParentMetricName()));
 				}
 			}
 		} else {
 			if(log.isDebugEnabled())
-				log.debug("value to add is null...will not count as a valid datapoint.");
+				log.debug(String.format("Metric %s - value to add is null...will not count as a valid datapoint.", getParentMetricName()));
 		}
+	}
+
+	@Override
+	protected void clearData() {
+		if(null != dataset)
+			dataset.clear();
 	}
 
 	@Override
