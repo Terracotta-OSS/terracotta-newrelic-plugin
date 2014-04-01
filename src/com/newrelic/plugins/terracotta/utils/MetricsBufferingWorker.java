@@ -140,10 +140,7 @@ public class MetricsBufferingWorker {
 	//this use synchronization to make sure that getAll + Reset is done atomically, and no new metrics can be added before this operation is finished.
 	public AbstractMetric[] getAndCleanMetrics() {
 		AbstractMetric[] metrics = null;
-//		synchronized (metricsBuffer) {
-//			metrics = metricsBuffer.getAllMetricsAndReset();
-//		}
-		
+	
 		metrics = metricsBuffer.getAllMetricsAndReset();
 		
 		if(null == metrics || metrics.length == 0){

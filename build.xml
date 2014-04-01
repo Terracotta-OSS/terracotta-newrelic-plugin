@@ -23,11 +23,6 @@
 	<property name="ant.build.javac.source" value="1.6" />
 	<property name="ant.build.javac.target" value="1.6" />
 
-	<!-- <property name="newrelic_plugin_sdk.jar" value="metrics_publish-1.2.2.1.jar" />
-	<property name="terracotta-jmxremote.jar" value="terracotta-3.7-jmx-sdk-1.0.1.jar" />
-	<property name="logging.jar" value="slf4j-api-1.6.6.jar" />
-	<property name="commons-math3.jar" value="commons-math3-3.2.jar" /> -->
-
 	<path id="classpath">
 		<fileset dir="${lib.dir}">
 			<include name="**/*.jar" />
@@ -74,22 +69,46 @@
 		</jar>
 	</target>
 
-	<target name="dist" depends="jar" description="create a downloadable file">
-		<mkdir dir="${build.tar.src.dir}" />
-		<copy todir="${build.tar.src.dir}/config">
-			<fileset dir="${conf.dir}" />
-		</copy>
-		<!-- <move todir="${build.tar.src.dir}/config" includeemptydirs="false">
+	<target name="dist" description="create a downloadable file">
+		<antcall target="dist_internal">
+			<param name="dev-build" value="false" />
+		</antcall>
+	</target>
+
+	<target name="dist-dev" description="create a downloadable file">
+		<antcall target="dist_internal">
+			<param name="dev-build" value="true" />
+		</antcall>
+	</target>
+
+	<target name="package-config_templates" description="package config template files" unless="${dev-build}">
+		<move todir="${build.tar.src.dir}/config" includeemptydirs="false">
 			<fileset dir="${build.tar.src.dir}/config">
 				<include name="template-*" />
 			</fileset>
 			<mapper type="glob" from="template-*" to="*" />
-		</move> -->
+		</move>
+	</target>
+
+	<target name="package-config-dev" description="package config files"
+		if="${dev-build}">
 		<move todir="${build.tar.src.dir}/config" includeemptydirs="false">
 			<fileset dir="${build.tar.src.dir}/config">
 				<exclude name="template-*" />
 			</fileset>
 		</move>
+	</target>
+
+	<target name="dist_internal" depends="jar" description="create a downloadable file">
+		<mkdir dir="${build.tar.src.dir}" />
+		<copy todir="${build.tar.src.dir}/config">
+			<fileset dir="${conf.dir}">
+				<exclude name="*.bak" />
+			</fileset>
+		</copy>
+
+		<antcall target="package-config_templates" />
+
 		<copy todir="${build.tar.src.dir}/bin">
 			<fileset dir="${scripts.dir}" />
 		</copy>
@@ -102,20 +121,12 @@
 			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.sh"
 			propertyFile="build.properties">
 			<replacefilter token="@terracotta_home@" property="terracotta.home" />
-			<!-- <replacefilter token="@plugin_jar_file@" value="${jarfile}" />
-			<replacefilter token="@newrelic_plugin_sdk_jar@" value="${newrelic_plugin_sdk.jar}" />
-			<replacefilter token="@terracotta_jmxremot_jar@" value="${terracotta-jmxremote.jar}" />
-			<replacefilter token="@commons_math3_jar@" value="${commons-math3.jar}" /> -->
 		</replace>
 
 		<replace
 			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.bat"
 			propertyFile="build.properties">
 			<replacefilter token="@terracotta_home@" property="terracotta.home" />
-			<!-- <replacefilter token="@plugin_jar_file@" value="${jarfile}" />
-			<replacefilter token="@newrelic_plugin_sdk_jar@" value="${newrelic_plugin_sdk.jar}" />
-			<replacefilter token="@terracotta_jmxremot_jar@" value="${terracotta-jmxremote.jar}" />
-			<replacefilter token="@commons_math3_jar@" value="${commons-math3.jar}" /> -->
 		</replace>
 
 		<tar compression="gzip" destfile="${build.dist.dir}/${tarfile}">
@@ -123,8 +134,7 @@
 		</tar>
 	</target>
 
-	<target name="deploy" depends="dist"
-		description="push package to a specific location">
+	<target name="deploy" description="push package to a specific location">
 
 		<delete includeemptydirs="true">
 			<fileset dir="${plugin.deploy}" includes="**/*" />
@@ -134,8 +144,7 @@
 			compression="gzip" />
 	</target>
 
-	<target name="archive" depends="dist" description="archive binary package">
-
+	<target name="archive" description="archive binary package">
 		<copy file="${build.dist.dir}/${tarfile}" todir="${dist.dir}" />
 	</target>
 </project>
