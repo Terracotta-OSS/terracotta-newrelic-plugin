@@ -27,6 +27,9 @@
 		<fileset dir="${lib.dir}">
 			<include name="**/*.jar" />
 		</fileset>
+		<fileset dir="${terracotta.home}/lib">
+		    <include name="**/*.jar" />
+		</fileset>
 	</path>
 
 	<target name="clean">
@@ -118,13 +121,7 @@
 		<copy file="${build.jar.dir}/${jarfile}" todir="${build.tar.src.dir}/libs" />
 
 		<replace
-			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.sh"
-			propertyFile="build.properties">
-			<replacefilter token="@terracotta_home@" property="terracotta.home" />
-		</replace>
-
-		<replace
-			file="${build.tar.src.dir}/bin/start-terracotta-newrelic-plugin.bat"
+			dir="${build.tar.src.dir}/bin/"
 			propertyFile="build.properties">
 			<replacefilter token="@terracotta_home@" property="terracotta.home" />
 		</replace>
