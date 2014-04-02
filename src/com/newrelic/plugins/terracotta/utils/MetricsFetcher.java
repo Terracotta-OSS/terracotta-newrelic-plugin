@@ -6,8 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,37 +37,12 @@ public class MetricsFetcher {
 	public final boolean trackUniqueClients;
 
 	public final boolean learningMode = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.learningmode", false);
-	public final boolean disableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.disable", false);
-	public final boolean enableEhcacheStats = PluginConfig.getInstance().getPropertyAsBoolean("com.newrelic.plugins.terracotta.ehcache.statistics.enable", false);
-	public Pattern ehcacheStatsFilterCaches = null;
-	public Pattern ehcacheStatsFilterClients = null;
-
-	public static final String PATTERN_SEPARATOR = "~~";
-
+	
 	public MetricsFetcher(TCL2JMXClient jmxTCClient, boolean trackUniqueCaches, boolean trackUniqueClients) {
 		super();
 		this.jmxTCClient = jmxTCClient;
 		this.trackUniqueCaches = trackUniqueCaches;
 		this.trackUniqueClients = trackUniqueClients;
-
-		String filterCache = null;
-		try{
-			filterCache = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_caches");
-			if(null != filterCache && !"".equals(filterCache.trim())){
-				this.ehcacheStatsFilterCaches = Pattern.compile(filterCache.trim(), Pattern.CASE_INSENSITIVE);
-			}
-		} catch (Exception exc){
-			log.error(String.format("An error occurred while compiling the regex pattern %s defined in filter_caches property", filterCache.trim()), exc);
-		}
-		String filterClients = null;
-		try{
-			filterClients = PluginConfig.getInstance().getProperty("com.newrelic.plugins.terracotta.ehcache.statistics.enable.filter_clients");
-			if(null != filterClients && !"".equals(filterClients.trim())){
-				this.ehcacheStatsFilterClients = Pattern.compile(filterClients.trim(), Pattern.CASE_INSENSITIVE);
-			}
-		} catch (Exception exc){
-			log.error(String.format("An error occurred while compiling the regex pattern %s defined in filter_clients property", filterClients.trim()), exc);
-		}
 	}
 
 	public TCL2JMXClient getJmxTCClient() {
@@ -207,27 +180,7 @@ public class MetricsFetcher {
 								if(log.isDebugEnabled())
 									log.debug(String.format("Node %s - Getting stats for cache=[%s] and client=[%s]", (null != l2ProcessInfo)?l2ProcessInfo.getServerInfoSummary():"null", cacheName, clientId));
 
-								//enable statistics if specified
-								CacheStats cacheStats = null;
-								if(enableEhcacheStats || disableEhcacheStats){
-									// if regex expressions are null, stats should be modified for all
-									//and if not, both patterns must be true to enter
-									if((ehcacheStatsFilterCaches == null || isPatternMatch(ehcacheStatsFilterCaches, cacheName)) &&
-											(ehcacheStatsFilterClients == null || isPatternMatch(ehcacheStatsFilterClients, clientId)))
-									{
-										//let's have disableStats win in case both are true
-										if(disableEhcacheStats){
-											cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
-										} else if(enableEhcacheStats){
-											cacheStats = jmxTCClient.enableStatisticsAndGetCacheStats(cmInfo.getCmName(), cacheName, clientId);
-										}
-									} else {
-										cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
-									}
-								} else {
-									cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
-								}
-
+								CacheStats cacheStats = jmxTCClient.getCacheStats(cmInfo.getCmName(), cacheName, clientId);
 								if(null != cacheStats){
 									if(cacheStats.isEnabled() && cacheStats.isStatsEnabled()){
 										cacheStatsClientEnabledCount++;
@@ -300,15 +253,6 @@ public class MetricsFetcher {
 		if (log.isDebugEnabled()) {
 			log.debug("addMetrics end - Tiem spent (ms):" + (System.currentTimeMillis() - startTime));
 		}
-	}
-
-	private boolean isPatternMatch(Pattern pat, String name){
-		boolean match = false;
-		if(null != pat){
-			Matcher matcher = pat.matcher(name);
-			match = matcher.find();
-		}
-		return match;
 	}
 
 	private void addServerState(MetricsBuffer metrics, L2RuntimeStatus statusInfo){
