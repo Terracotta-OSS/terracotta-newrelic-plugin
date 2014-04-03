@@ -1,5 +1,6 @@
 package com.newrelic.plugins.terracotta;
 
+import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,6 +72,7 @@ public class TCStatsUtil {
 
 	private void execute(OPERATIONS op, boolean doExecute){
 		TCL2JMXClient jmxTCClient = null;
+		StringWriter swOperationSummary = new StringWriter();
 		
 		try {
 			log.info(String.format("Connecting to JMX Server [%s:%d] with user=%s", jmxHost, jmxPort, jmxUserName));
@@ -78,6 +80,9 @@ public class TCStatsUtil {
 
 			Map<String, CacheManagerInfo> cacheManagerInfo = jmxTCClient.getCacheManagerInfo();
 			Iterator<Entry<String, CacheManagerInfo>> iter = cacheManagerInfo.entrySet().iterator();
+			
+			System.out.println("\n********* Current Stats Status ***********");
+			System.out.println("CacheManager,CacheName,Client,Enabled");
 			while (iter.hasNext()) {
 				Entry<String, CacheManagerInfo> cmInfoElem = iter.next();
 				CacheManagerInfo cmInfo = cmInfoElem.getValue();
@@ -85,10 +90,13 @@ public class TCStatsUtil {
 				for(String cacheName : cmInfo.getCaches()){
 					int cacheStatsClientEnabledCount = 0;
 					for(String clientId : cmInfo.getClientMbeansIDs()){
-						System.out.println(String.format("Cache stats for cache=[%s] and client=[%s] enabled? %s", 
+						boolean enabled = jmxTCClient.isCacheStatsEnabled(cmInfo.getCmName(), cacheName, clientId);
+						
+						System.out.println(String.format("%s,%s,%s,%s", 
+								cmInfo.getCmName(),
 								cacheName, 
 								clientId,
-								jmxTCClient.isCacheStatsEnabled(cmInfo.getCmName(), cacheName, clientId)));
+								new Boolean(enabled).toString()));
 						
 						if(op != OPERATIONS.NOOP){
 							// if regex expressions are null, do nothing.
@@ -99,24 +107,33 @@ public class TCStatsUtil {
 								if(doExecute){
 									//let's have disableStats win in case both are true
 									if(op == OPERATIONS.DISABLESTATS){
-										System.out.println(String.format("Disabling cache stats for cache=[%s] and client=[%s]", cacheName, clientId));
 										jmxTCClient.disableCacheStats(cmInfo.getCmName(), cacheName, clientId);
 									} else if(op == OPERATIONS.ENABLESTATS){
-										System.out.println(String.format("Enabling cache stats for cache=[%s] and client=[%s]", cacheName, clientId));
 										jmxTCClient.enableCacheStats(cmInfo.getCmName(), cacheName, clientId);
 									}
-								} else {
-									if(op == OPERATIONS.DISABLESTATS){
-										System.out.println(String.format("NOOP/TEST ONLY: Disabling cache stats for cache=[%s] and client=[%s]", cacheName, clientId));
-									} else if(op == OPERATIONS.ENABLESTATS){
-										System.out.println(String.format("NOOP/TEST ONLY: Enabling cache stats for cache=[%s] and client=[%s]", cacheName, clientId));
-									}
 								}
+								
+								swOperationSummary.append(String.format("%s,%s,%s", cmInfo.getCmName(), cacheName, clientId));
+								swOperationSummary.append("\n");
 							}
 						}
 					}
 				}
 			}
+			
+			if(!doExecute)
+				System.out.println("\n********** !!!!TEST ONLY!!!!**********\n");
+			
+			if(op == OPERATIONS.DISABLESTATS){
+				System.out.println("Operation Summary - Disabling stats for following [CacheManager,CacheName,Client]:");
+			} else if(op == OPERATIONS.ENABLESTATS){
+				System.out.println("Operation Summary - Enabling stats for following [CacheManager,CacheName,Client]:");
+			}
+			
+			System.out.println(swOperationSummary.toString());
+			
+			if(!doExecute)
+				System.out.println("********** !!!!TEST ONLY!!!!**********");
 		} catch (Exception e) {
 			log.error("An issue happened", e);
 		} finally {

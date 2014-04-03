@@ -19,11 +19,13 @@ fi
 
 PLUGIN_DIR=`dirname "$0"`/..
 
+if [ -f "${PLUGIN_DIR}/bin/setenv.sh" ]; then
+  . "${PLUGIN_DIR}/bin/setenv.sh"
+fi
+
 JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
 JAVA_OPTS="${JAVA_OPTS} -Dlog4j.configuration=file:${PLUGIN_DIR}/config/log4j.properties -Dlogfile=${PLUGIN_DIR}/logs/terracotta-newrelic-plugin -Dplugin.config.path=file:${PLUGIN_DIR}/config/plugin.properties -Dnewrelic.platform.config.dir=${PLUGIN_DIR}/config"
-#JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=some_newlic_cert.jks -Djavax.net.ssl.trustStorePassword=some_password"
-#JAVA_OPTS="${JAVA_OPTS} -Dhttp.proxyHost=some_proxy_ip -Dhttp.proxyPort=some_proxy_port"
-#JAVA_OPTS="${JAVA_OPTS} -Dcom.newrelic.plugins.terracotta.learningmode=true"
+JAVA_OPTS="${JAVA_OPTS} ${PLUGIN_OPTS}"
 
 CLASSPATH="${PLUGIN_DIR}/libs/*:${TC_HOME}/ehcache/lib/ehcache-core-ee-2.6.8.jar:${TC_HOME}/lib/tc.jar"
 
