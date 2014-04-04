@@ -30,7 +30,7 @@ echo %JAVA_COMMAND%
 
 pause
 
-set CLASSPATH=%PLUGIN_DIR%\libs\*;%TC_HOME%\ehcache\lib\ehcache-core-ee-2.6.8.jar;%TC_HOME%\lib\tc.jar
+set CLASSPATH=%PLUGIN_DIR%\libs\*;%EHCACHE_CORE%;%TC_HOME%\lib\tc.jar
 
 :START_TCSERVER
 %JAVA_COMMAND% %JAVA_OPTS% -cp %CLASSPATH% com.newrelic.plugins.terracotta.TCL2MonLauncher %*
