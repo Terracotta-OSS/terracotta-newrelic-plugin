@@ -1,0 +1,66 @@
+[
+    {
+        "version": "4.1.1",
+        "agentId": "embedded",
+        "sourceId": "server1",
+        "statistics": {
+            "WriteOperationRate": 0,
+            "LiveObjectCount": 530,
+            "StorageStats": {
+                "DATA": {
+                    "used": 94478,
+                    "reserved": 94478,
+                    "max": 2147483648
+                },
+                "OFFHEAP": {
+                    "used": 37912944,
+                    "reserved": 37956048,
+                    "max": 1073741824
+                },
+                "DISK": {
+                    "used": 132379,
+                    "reserved": 132379,
+                    "max": 343032153371
+                }
+            },
+            "OffheapUsedSize": 0,
+            "OffheapReservedSize": 37956048,
+            "ReadOperationRate": 0,
+            "EvictionRate": 0,
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 1073741824
+        }
+    },
+    {
+        "version": "4.1.1",
+        "agentId": "embedded",
+        "sourceId": "server2",
+        "statistics": {
+            "WriteOperationRate": 0,
+            "LiveObjectCount": 530,
+            "StorageStats": {
+                "DATA": {
+                    "used": 94462,
+                    "reserved": 94462,
+                    "max": 2147483648
+                },
+                "OFFHEAP": {
+                    "used": 37900880,
+                    "reserved": 37943728,
+                    "max": 1073741824
+                },
+                "DISK": {
+                    "used": 133308,
+                    "reserved": 133308,
+                    "max": 343032154300
+                }
+            },
+            "OffheapUsedSize": 0,
+            "OffheapReservedSize": 37943728,
+            "ReadOperationRate": 0,
+            "EvictionRate": 0,
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 1073741824
+        }
+    }
+]

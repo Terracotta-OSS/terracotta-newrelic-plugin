@@ -1,0 +1,33 @@
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.terracotta.nrplugin">
+		<level value="debug"/>
+	</logger>
+
+	<logger name="org.springframework.web">
+		<level value="info"/>
+	</logger>
+
+	<logger name="org.apache.http">
+		<level value="info"/>
+	</logger>
+
+	<logger name="org.apache.http">
+		<level value="error"/>
+	</logger>
+
+	<logger name="org.apache.http.wire">
+		<level value="error"/>
+	</logger>
+
+	<root level="error">
+		<appender-ref ref="STDOUT"/>
+	</root>
+
+</configuration>

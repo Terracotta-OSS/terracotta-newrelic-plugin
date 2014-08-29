@@ -1,0 +1,28 @@
+[
+    {
+        "agentId": "127.0.0.1_54584",
+        "agencyOf": "Ehcache",
+        "available": true,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": true,
+        "sampleHistorySize": 30,
+        "sampleIntervalSeconds": 1,
+        "enabled": true,
+        "restAPIVersion": "2.8.1"
+    },
+    {
+        "agentId": "embedded",
+        "agencyOf": "TSA",
+        "available": true,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": true,
+        "sampleHistorySize": 0,
+        "sampleIntervalSeconds": 0,
+        "enabled": true,
+        "restAPIVersion": "4.1.1"
+    }
+]

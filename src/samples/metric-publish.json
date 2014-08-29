@@ -1,0 +1,23 @@
+{
+    "agent": {
+        "host": "Jeff-THINK",
+        "pid": 35920,
+        "version": "1.0.0"
+    },
+    "components": [
+        {
+            "name": "CMS_Terracotta",
+            "guid": "com.saggs.terracotta.nrplugin",
+            "duration": 30,
+            "metrics": {
+                "Component/MockTerracotta[Bytes]": {
+                    "total": 450.0,
+                    "min": 50.0,
+                    "max": 300.0,
+                    "count": 3,
+                    "sum_of_squares": 102500.0
+                }
+            }
+        }
+    ]
+}

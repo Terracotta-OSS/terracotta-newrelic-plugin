@@ -1,0 +1,41 @@
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!--<file>tc-nr-plugin.log</file>-->
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>log/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.terracotta.nrplugin">
+		<level value="info"/>
+	</logger>
+
+	<logger name="org.springframework.web">
+		<level value="info"/>
+	</logger>
+
+	<logger name="org.apache.http">
+		<level value="error"/>
+	</logger>
+
+	<logger name="org.apache.http.wire">
+		<level value="error"/>
+	</logger>
+
+	<root level="error">
+		<appender-ref ref="FILE"/>
+		<appender-ref ref="STDOUT"/>
+	</root>
+
+</configuration>
