@@ -8,11 +8,13 @@ import com.terracotta.nrplugin.pojo.nr.Component;
 import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 import com.terracotta.nrplugin.util.MetricUtil;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.hyperic.sigar.Sigar;
@@ -110,17 +112,20 @@ public class MetricReporter {
 			log.error("Could not infer hostname.");
 		}
 
+		RequestConfig defaultRequestConfig = RequestConfig.custom()
+				.setConnectTimeout(10000)
+				.setSocketTimeout(10000)
+				.setConnectionRequestTimeout(5000)
+				.setStaleConnectionCheckEnabled(true)
+				.build();
+		HttpClientBuilder httpClientBuilder = HttpClients.custom()
+				.setDefaultRequestConfig(defaultRequestConfig);
 		if (useProxy) {
 			HttpHost proxy  = new HttpHost(proxyHostname, proxyPort, proxyScheme);
+			httpClientBuilder.setProxy(proxy);
 			log.info("Configuring HttpClient with proxy '" + proxy.toString() + "'");
-			httpClient = HttpClients.custom()
-					.setProxy(proxy)
-					.build();
 		}
-		else {
-			log.info("Configuring default HttpClient.");
-			httpClient = HttpClients.createDefault();
-		}
+		httpClient = httpClientBuilder.build();
 	}
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}", initialDelay = 5000)
@@ -151,6 +156,7 @@ public class MetricReporter {
 			if (log.isDebugEnabled()) {
 				log.debug("Received response: " + EntityUtils.toString(response.getEntity()));
 			}
+			EntityUtils.consumeQuietly(response.getEntity());
 			log.info("Done reporting to NewRelic.");
 		} catch (Exception e) {
 			log.error("Error while attempting to publish stats to NewRelic.", e);
