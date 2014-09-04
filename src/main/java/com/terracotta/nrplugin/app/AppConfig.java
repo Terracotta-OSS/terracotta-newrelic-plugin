@@ -30,18 +30,6 @@ public class AppConfig {
 
     static final Logger log = LoggerFactory.getLogger(AppConfig.class);
 
-//    @Value("${com.saggs.terracotta.nrplugin.executor.threadpool.coreSize}")
-//    int threadPoolCoreSize;
-
-//	@Value("${com.saggs.terracotta.nrplugin.nr.useProxy}")
-//	boolean useProxy;
-
-//	@Value("${http.proxyHost}")
-//	String proxyHost;
-//
-//	@Value("${http.proxyPort}")
-//	int proxyPort;
-
     @Bean
     public ExecutorService executorService() {
         return Executors.newCachedThreadPool();
@@ -56,13 +44,5 @@ public class AppConfig {
         bean.setConfigLocation(resourceLoader.getResource("classpath:ehcache.xml"));
         return bean;
     }
-
-//	@PostConstruct
-//	public void init() {
-//		if (useProxy) {
-//			System.setProperty("http.proxyHost", proxyHost);
-//			System.setProperty("http.proxyPort", proxyPort + "");
-//		}
-//	}
 
 }

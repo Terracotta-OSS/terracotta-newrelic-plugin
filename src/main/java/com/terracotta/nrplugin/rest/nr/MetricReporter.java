@@ -90,7 +90,7 @@ public class MetricReporter {
 	@Value("${com.saggs.terracotta.nrplugin.nr.path}")
 	String nrPath;
 
-	@Value("${com.saggs.terracotta.nrplugin.nr.useProxy}")
+	@Value("${com.saggs.terracotta.nrplugin.nr.proxy.enabled}")
 	boolean useProxy;
 
 	@PostConstruct

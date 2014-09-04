@@ -29,6 +29,9 @@ public class BaseTmcClient {
 
 	private RestTemplate restTemplate = null;
 
+	@Value("${com.saggs.terracotta.nrplugin.tmc.authentication.enabled}")
+	protected boolean tmcAuthenticationEnabled;
+
 	@Value("${com.saggs.terracotta.nrplugin.tmc.url}")
 	protected String tmcUrl;
 
@@ -52,24 +55,24 @@ public class BaseTmcClient {
 					.setHostnameVerifier(new AllowAllHostnameVerifier())
 					.build();
 
-            //enable tmc login only if username is specified
-            if(null != tmcUsername && !"".equals(tmcUsername.trim())) {
-                String loginUrl = tmcUrl + "/login.jsp";
-                HttpUriRequest login = RequestBuilder.post()
-                        .setUri(new URI(loginUrl))
-                        .addParameter("username", tmcUsername)
-                        .addParameter("password", tmcPassword)
-                        .build();
-
-                CloseableHttpResponse loginResponse = httpclient.execute(login);
-                HttpEntity loginResponseEntity = loginResponse.getEntity();
-                EntityUtils.consume(loginResponseEntity);
-                if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
-                    restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-                } else throw new IOException("Could not authenticate to TMC.");
-            } else {
-                restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-            }
+			if (tmcAuthenticationEnabled) {
+				String loginUrl = tmcUrl + "/login.jsp";
+				HttpUriRequest login = RequestBuilder.post()
+						.setUri(new URI(loginUrl))
+						.addParameter("username", tmcUsername)
+						.addParameter("password", tmcPassword)
+						.build();
+				CloseableHttpResponse loginResponse = httpclient.execute(login);
+				HttpEntity loginResponseEntity = loginResponse.getEntity();
+				EntityUtils.consume(loginResponseEntity);
+				if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
+					restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+				}
+				else throw new IOException("Could not authenticate to TMC.");
+			}
+			else {
+				restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+			}
 		}
 		return restTemplate;
 	}
