@@ -51,19 +51,25 @@ public class BaseTmcClient {
 					.setRedirectStrategy(new LaxRedirectStrategy())
 					.setHostnameVerifier(new AllowAllHostnameVerifier())
 					.build();
-			String loginUrl = tmcUrl + "/login.jsp";
-			HttpUriRequest login = RequestBuilder.post()
-					.setUri(new URI(loginUrl))
-					.addParameter("username", tmcUsername)
-					.addParameter("password", tmcPassword)
-					.build();
-			CloseableHttpResponse loginResponse = httpclient.execute(login);
-			HttpEntity loginResponseEntity = loginResponse.getEntity();
-			EntityUtils.consume(loginResponseEntity);
-			if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
-				restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-			}
-			else throw new IOException("Could not authenticate to TMC.");
+
+            //enable tmc login only if username is specified
+            if(null != tmcUsername && !"".equals(tmcUsername.trim())) {
+                String loginUrl = tmcUrl + "/login.jsp";
+                HttpUriRequest login = RequestBuilder.post()
+                        .setUri(new URI(loginUrl))
+                        .addParameter("username", tmcUsername)
+                        .addParameter("password", tmcPassword)
+                        .build();
+
+                CloseableHttpResponse loginResponse = httpclient.execute(login);
+                HttpEntity loginResponseEntity = loginResponse.getEntity();
+                EntityUtils.consume(loginResponseEntity);
+                if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
+                    restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+                } else throw new IOException("Could not authenticate to TMC.");
+            } else {
+                restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+            }
 		}
 		return restTemplate;
 	}
