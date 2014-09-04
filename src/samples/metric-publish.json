@@ -6,8 +6,8 @@
     },
     "components": [
         {
-            "name": "CMS_Terracotta",
-            "guid": "com.saggs.terracotta.nrplugin",
+            "name": "TerracottaClusterApp",
+            "guid": "com.saggs.nrplugin.Terracotta",
             "duration": 30,
             "metrics": {
                 "Component/MockTerracotta[Bytes]": {

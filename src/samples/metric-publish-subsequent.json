@@ -4,8 +4,8 @@
     "version": "2.0.0"
 }, "components": [
     {
-        "name": "CMS_Terracotta",
-        "guid": "com.saggs.terracotta.nrplugin",
+        "name": "TerracottaClusterApp",
+        "guid": "com.saggs.nrplugin.Terracotta",
         "duration": 30,
         "metrics": {
             "Component/Terracotta/Clients/diff/ReadRate[Rate]": {
