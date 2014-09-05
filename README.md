@@ -6,7 +6,7 @@ This plugin is _not officially supported by Terracotta_, and has been so far tes
 Prerequisites
 -------------
 
-1. A New Relic account. Signup for a free account at http://newrelic.com
+1. A New Relic account. Signup for a free [New Relic Standard](http://newrelic.com/partners/standard) account at http://newrelic.com/terracotta
 2. A configured Java Developer Kit (JDK) - version 1.6 or better
 3. Maven 3.x
 4. Git
