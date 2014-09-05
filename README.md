@@ -26,7 +26,6 @@ Starting the Java plugin agent
 1. Configure $PLUGIN_EXECUTION_DIR/conf/application.properties:
   1. com.saggs.terracotta.nrplugin.tmc.url - this can either point at a TC instance or a TMC
   1. com.saggs.terracotta.nrplugin.nr.name - unique name for your project
-  1. com.saggs.terracotta.nrplugin.nr.guid - unique guid for your project
   1. com.saggs.terracotta.nrplugin.nr.licenseKey - your NewRelic license key
 1. Optionally configure logging in $PLUGIN_EXECUTION_DIR/conf/logback.xml
 1. Run start-terracotta-newrelic-plugin.bat or start-terracotta-newrelic-plugin.sh
