@@ -6,7 +6,7 @@ This plugin is _not officially supported by Terracotta_, and has been so far tes
 Prerequisites
 -------------
 
-1. A New Relic account. Signup for a free account at http://newrelic.com
+1. A New Relic account. Signup for a free [New Relic Standard](http://newrelic.com/partners/standard) account at http://newrelic.com/terracotta
 2. A configured Java Developer Kit (JDK) - version 1.6 or better
 3. Maven 3.x
 4. Git
@@ -24,12 +24,11 @@ Starting the Java plugin agent
 --------------------------------------------
 
 1. Configure $PLUGIN_EXECUTION_DIR/conf/application.properties:
-    a. com.saggs.terracotta.nrplugin.tmc.url - this can either point at a TC instance or a TMC
-    b. com.saggs.terracotta.nrplugin.nr.name - unique name for your project
-    c. com.saggs.terracotta.nrplugin.nr.guid - unique guid for your project
-    d. com.saggs.terracotta.nrplugin.nr.licenseKey - your NewRelic license key
-2. Optionally configure logging in $PLUGIN_EXECUTION_DIR/conf/logback.xml
-3. Run start-terracotta-newrelic-plugin.bat or start-terracotta-newrelic-plugin.sh
+  1. com.saggs.terracotta.nrplugin.tmc.url - this can either point at a TC instance or a TMC
+  1. com.saggs.terracotta.nrplugin.nr.name - unique name for your project
+  1. com.saggs.terracotta.nrplugin.nr.licenseKey - your [New Relic license key](https://docs.newrelic.com/docs/accounts-partnerships/accounts/account-setup/license-key)
+1. Optionally configure logging in $PLUGIN_EXECUTION_DIR/conf/logback.xml
+1. Run start-terracotta-newrelic-plugin.bat or start-terracotta-newrelic-plugin.sh
 
 Source Code
 -----------
