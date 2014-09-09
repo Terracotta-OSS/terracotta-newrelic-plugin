@@ -32,8 +32,8 @@ public class MetricUtil {
     public static final String METRIC_READ_OPERATION_RATE = "ReadOperationRate";
     public static final String METRIC_EVICTION_RATE = "EvictionRate";
     public static final String METRIC_EXPIRATION_RATE = "ExpirationRate";
-    public static final String METRIC_MAX = "max";
-    public static final String METRIC_USED = "used";
+		public static final String METRIC_OFFHEAP_USED_SIZE = "OffheapUsedSize";
+		public static final String METRIC_OFFHEAP_MAX_SIZE = "OffheapMaxSize";
 
     // Client metrics
     public static final String METRIC_READ_RATE = "ReadRate";
@@ -115,15 +115,10 @@ public class MetricUtil {
                 toMetricPath(servers, "Data", "Rates", METRIC_EVICTION_RATE), Metric.Source.server, Metric.Unit.Rate));
         metrics.add(new Metric("$.statistics." + METRIC_EXPIRATION_RATE,
                 toMetricPath(servers, "Data", "Rates", METRIC_EXPIRATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$.statistics.StorageStats.DATA." + METRIC_USED,
-                toMetricPath(servers, "OnHeap", "Bytes", METRIC_USED), Metric.Source.server, Metric.Unit.Bytes));
-        metrics.add(new Metric("$.statistics.StorageStats.DATA." + METRIC_MAX,
-                toMetricPath(servers, "OnHeap", "Bytes", METRIC_MAX), Metric.Source.server, Metric.Unit.Bytes));
-        metrics.add(new Metric("$.statistics.StorageStats.OFFHEAP." + METRIC_USED,
-                toMetricPath(servers, "OffHeap", "Bytes", METRIC_USED), Metric.Source.server, Metric.Unit.Bytes));
-        metrics.add(new Metric("$.statistics.StorageStats.OFFHEAP." + METRIC_MAX,
-                toMetricPath(servers, "OffHeap", "Bytes", METRIC_MAX), Metric.Source.server, Metric.Unit.Bytes));
-
+		    metrics.add(new Metric("$.statistics." + METRIC_OFFHEAP_USED_SIZE,
+	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_USED_SIZE), Metric.Source.server, Metric.Unit.Bytes));
+		    metrics.add(new Metric("$.statistics." + METRIC_OFFHEAP_MAX_SIZE,
+	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_MAX_SIZE), Metric.Source.server, Metric.Unit.Bytes));
         // Client metrics
         metrics.add(new Metric("$.statistics." + METRIC_READ_RATE,
                 toMetricPath(clients, METRIC_READ_RATE), Metric.Source.client, Metric.Unit.Rate));
