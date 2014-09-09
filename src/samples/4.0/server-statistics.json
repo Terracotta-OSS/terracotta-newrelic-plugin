@@ -1,0 +1,17 @@
+[
+    {
+        "version": "4.0.6",
+        "agentId": "LocalCluster",
+        "sourceId": "server1",
+        "statistics": {
+            "WriteOperationRate": 0,
+            "LiveObjectCount": 1372,
+            "OffheapUsedSize": 4701376,
+            "OffheapReservedSize": 11218576,
+            "ReadOperationRate": 0,
+            "EvictionRate": 0,
+            "ExpirationRate": 52,
+            "OffheapMaxSize": 524288000
+        }
+    }
+]
