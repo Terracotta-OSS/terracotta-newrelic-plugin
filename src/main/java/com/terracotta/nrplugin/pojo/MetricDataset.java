@@ -17,84 +17,111 @@ import java.util.Map;
  */
 public class MetricDataset implements Serializable {
 
-    private static final long serialVersionUID = 483809302495395084L;
-    public static final int WINDOW_SIZE_DEFAULT = 100;
+	private static final long serialVersionUID = 483809302495395084L;
+	public static final int WINDOW_SIZE_DEFAULT = 100;
+	public static final String SUMMARY_COMPONENT = "Summary";
 
-    Metric metric;
-    SynchronizedDescriptiveStatistics statistics;
-    Type type = Type.absolute;
-    Map<String, String> actualVarReplaceMap = new HashMap<String, String>();
+	Metric metric;
+	SynchronizedDescriptiveStatistics statistics;
+	Type type = Type.absolute;
+//	Map<String, String> actualVarReplaceMap = new HashMap<String, String>();
+	String componentName;
+	String componentGuid;
 
-    public enum Type {absolute, diff}
+	public enum Type {absolute, diff}
 
-    public MetricDataset() {
-        statistics = new SynchronizedDescriptiveStatistics(WINDOW_SIZE_DEFAULT);
-    }
+	public MetricDataset() {
+		statistics = new SynchronizedDescriptiveStatistics(WINDOW_SIZE_DEFAULT);
+	}
 
-    public MetricDataset(Metric metric, int windowSize) {
-        this.metric = metric;
-        statistics = new SynchronizedDescriptiveStatistics(windowSize);
-    }
+	public MetricDataset(Metric metric, String componentName) {
+		this();
+		this.metric = metric;
+		this.componentName = componentName;
+	}
 
-    public MetricDataset(Metric metric, int windowSize, Type type) {
-        this.metric = metric;
-        this.type = type;
-        statistics = new SynchronizedDescriptiveStatistics(windowSize);
-    }
+	public MetricDataset(Metric metric, String componentName, String componentGuid, int windowSize) {
+		this(metric, componentName);
+		this.componentGuid = componentGuid;
+		statistics = new SynchronizedDescriptiveStatistics(windowSize);
+	}
 
-    public MetricDataset(Metric metric, Type type, Map<String, String> actualVarReplaceMap) {
-        this.metric = metric;
-        this.type = type;
-        this.actualVarReplaceMap = actualVarReplaceMap;
-        statistics = new SynchronizedDescriptiveStatistics();
-    }
+	public MetricDataset(Metric metric, String componentName, String componentGuid, Type type) {
+		this(metric, componentName, componentGuid, WINDOW_SIZE_DEFAULT);
+		this.type = type;
+	}
 
-    public void addValue(double value) {
-        statistics.addValue(value);
-    }
+//	public MetricDataset(Metric metric, String componentName, Type type, Map<String, String> actualVarReplaceMap) {
+//		this(metric, componentName, WINDOW_SIZE_DEFAULT, type);
+//		this.actualVarReplaceMap = actualVarReplaceMap;
+//	}
 
-    public void putVarReplace(String key, String value) {
-        actualVarReplaceMap.put(key, value);
-    }
+	public void addValue(double value) {
+		statistics.addValue(value);
+	}
 
-    public String getKey() {
-        String key = metric.getBaseReportedPath() + MetricUtil.NEW_RELIC_PATH_SEPARATOR + type +
-                MetricUtil.NEW_RELIC_PATH_SEPARATOR + metric.getName() + "[" + metric.getUnit() + "]";
-        for (Map.Entry<String, String> entry : actualVarReplaceMap.entrySet()) {
-            key = key.replaceAll(entry.getKey(), entry.getValue());
-        }
-        return key;
-    }
+//	public void putVarReplace(String key, String value) {
+//		actualVarReplaceMap.put(key, value);
+//	}
 
-    public Double getLastValue() {
-        return statistics.getElement((int) statistics.getN() - 1);
-    }
+	public static String getKey(Metric metric, String componentName) {
+		return new MetricDataset(metric, componentName).getKey();
+	}
 
-    public Metric getMetric() {
-        return metric;
-    }
+	public String getKey() {
+		//		for (Map.Entry<String, String> entry : actualVarReplaceMap.entrySet()) {
+//			key = key.replaceAll(entry.getKey(), entry.getValue());
+//		}
+		return metric.getBaseReportedPath() + MetricUtil.NEW_RELIC_PATH_SEPARATOR + componentName +
+				MetricUtil.NEW_RELIC_PATH_SEPARATOR + type + MetricUtil.NEW_RELIC_PATH_SEPARATOR + metric.getName() +
+				"[" + metric.getUnit() + "]";
+	}
 
-    public DescriptiveStatistics getStatistics() {
-        return statistics;
-    }
+	public Double getLastValue() {
+		return statistics.getElement((int) statistics.getN() - 1);
+	}
 
-    public void setMetric(Metric metric) {
-        this.metric = metric;
-    }
+	public Metric getMetric() {
+		return metric;
+	}
 
-    public Type getType() {
-        return type;
-    }
+	public DescriptiveStatistics getStatistics() {
+		return statistics;
+	}
 
-    public void setType(Type type) {
-        this.type = type;
-    }
+	public void setMetric(Metric metric) {
+		this.metric = metric;
+	}
 
-    public Map<String, String> getActualVarReplaceMap() {
-        return actualVarReplaceMap;
-    }
+	public Type getType() {
+		return type;
+	}
 
-    public void setActualVarReplaceMap(Map<String, String> actualVarReplaceMap) {
-        this.actualVarReplaceMap = actualVarReplaceMap;
-    }
+	public void setType(Type type) {
+		this.type = type;
+	}
+
+//	public Map<String, String> getActualVarReplaceMap() {
+//		return actualVarReplaceMap;
+//	}
+//
+//	public void setActualVarReplaceMap(Map<String, String> actualVarReplaceMap) {
+//		this.actualVarReplaceMap = actualVarReplaceMap;
+//	}
+
+	public String getComponentName() {
+		return componentName;
+	}
+
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
+	}
+
+	public String getComponentGuid() {
+		return componentGuid;
+	}
+
+	public void setComponentGuid(String componentGuid) {
+		this.componentGuid = componentGuid;
+	}
 }

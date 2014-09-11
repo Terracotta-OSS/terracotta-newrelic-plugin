@@ -2,14 +2,14 @@ package com.terracotta.nrplugin.cache;
 
 import com.terracotta.nrplugin.pojo.Metric;
 import com.terracotta.nrplugin.pojo.MetricDataset;
+import com.terracotta.nrplugin.pojo.nr.Agent;
+import com.terracotta.nrplugin.pojo.nr.Component;
+import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 import com.terracotta.nrplugin.util.MetricUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,16 +21,18 @@ import java.util.Map;
 @Service
 public class MockMetricProvider implements MetricProvider {
 
-    @Autowired
-    MetricUtil metricUtil;
+	@Autowired
+	MetricUtil metricUtil;
 
-    @Override
-    public Map<String, Object> getAllMetrics() {
-        MetricDataset m1= new MetricDataset(new Metric("fakeDataPath", "Component/MockTerracotta",
-                Metric.Source.cache, Metric.Unit.Bytes), 1000 * 60);
-        m1.addValue(100);
-        m1.addValue(50);
-        m1.addValue(300);
-        return metricUtil.metricsAsJson(Collections.singletonList(m1));
-    }
+	@Override
+	public NewRelicPayload assemblePayload() throws Exception {
+		MetricDataset m1 = new MetricDataset(new Metric("fakeDataPath", "Component/MockTerracotta",
+				Metric.Source.cache, Metric.Unit.Bytes), "componentname");
+		m1.addValue(100);
+		m1.addValue(50);
+		m1.addValue(300);
+//		map.put(m1.getComponentName(), metricUtil.metricsAsJson(Collections.singletonList(m1)));
+		return new NewRelicPayload(new Agent(),
+				Collections.singletonList(new Component(m1.getComponentName(), m1.getComponentGuid(), 30)));
+	}
 }

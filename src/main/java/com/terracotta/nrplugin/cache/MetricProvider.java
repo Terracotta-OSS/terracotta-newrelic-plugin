@@ -1,6 +1,7 @@
 package com.terracotta.nrplugin.cache;
 
 import com.terracotta.nrplugin.pojo.MetricDataset;
+import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 
 import java.util.Collection;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.Map;
  */
 public interface MetricProvider {
 
-    public Map<String, Object> getAllMetrics();
+//    public Map<String, Map<String, Object>> getAllMetrics();
+
+	public NewRelicPayload assemblePayload() throws Exception;
 
 }

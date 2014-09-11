@@ -26,7 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,32 +42,38 @@ public class MetricReporter {
 
 	public static final String X_LICENSE_KEY = "X-License-Key";
 
-	long pid;
+//	long pid;
 
 	CloseableHttpClient httpClient;
 
 	ObjectMapper mapper = new ObjectMapper();
 
-	@Autowired
-	MetricUtil metricUtil;
+//	@Autowired
+//	MetricUtil metricUtil;
 
 	@Autowired
 	MetricProvider metricProvider;
 
-	@Value("${com.saggs.terracotta.nrplugin.nr.agent.name}")
-	String name;
-
-	@Value("${com.saggs.terracotta.nrplugin.nr.agent.guid}")
-	String guid;
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.name}")
+//	String terracottaAgentName;
+//
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
+//	String terracottaAgentGuid;
+//
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.name}")
+//	String ehcacheAgentName;
+//
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
+//	String ehcacheAgentGuid;
 
 //	@Value("${com.saggs.terracotta.nrplugin.nr.agent.hostname}")
-	String hostname = "TC-NR-HOST";
+//	String hostname = "TC-NR-HOST";
 
 	@Value("${com.saggs.terracotta.nrplugin.nr.agent.licenseKey}")
 	String licenseKey;
 
-	@Value("${com.saggs.terracotta.nrplugin.version}")
-	String version;
+//	@Value("${com.saggs.terracotta.nrplugin.version}")
+//	String version;
 
 	@Value("${com.saggs.terracotta.nrplugin.nr.proxy.host}")
 	String proxyHostname;
@@ -93,24 +99,27 @@ public class MetricReporter {
 	@Value("${com.saggs.terracotta.nrplugin.nr.proxy.enabled}")
 	boolean useProxy;
 
+	@Value("${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}")
+	long durationMillis;
+
 	@PostConstruct
 	private void init() {
-		Sigar sigar = new Sigar();
-
-		try {
-			pid = sigar.getPid();
-		} catch (Error e) {
-			log.error("Could not infer PID.");
-			pid = -1;
-		}
-
-		try {
-			hostname = sigar.getNetInfo().getHostName();
-		} catch (Error e) {
-			log.error("Could not infer hostname.");
-		} catch (Exception ex) {
-			log.error("Could not infer hostname.");
-		}
+//		Sigar sigar = new Sigar();
+//
+//		try {
+//			pid = sigar.getPid();
+//		} catch (Error e) {
+//			log.error("Could not infer PID.");
+//			pid = -1;
+//		}
+//
+//		try {
+//			hostname = sigar.getNetInfo().getHostName();
+//		} catch (Error e) {
+//			log.error("Could not infer hostname.");
+//		} catch (Exception ex) {
+//			log.error("Could not infer hostname.");
+//		}
 
 		RequestConfig defaultRequestConfig = RequestConfig.custom()
 				.setConnectTimeout(10000)
@@ -131,10 +140,7 @@ public class MetricReporter {
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}", initialDelay = 5000)
 	public void reportMetrics() {
 		try {
-			NewRelicPayload newRelicPayload = new NewRelicPayload(
-					new Agent(hostname, pid, version),
-					Collections.singletonList(
-							new Component(name, guid, 30, metricProvider.getAllMetrics())));
+			NewRelicPayload newRelicPayload = metricProvider.assemblePayload();
 			log.info("Attempting to report stats to NewRelic...");
 			if (log.isDebugEnabled()) {
 				try {
@@ -162,5 +168,15 @@ public class MetricReporter {
 			log.error("Error while attempting to publish stats to NewRelic.", e);
 		}
 	}
+
+//	public List<Component> buildComponentList() {
+//		List<Component> components = new ArrayList<Component>();
+//		double durationSeconds = durationMillis * 0.001;
+//		Map<String, Map<String, Object>> allMetrics = metricProvider.getAllMetrics();
+//		for (Map.Entry<String, Map<String, Object>> entry : allMetrics.entrySet()) {
+//			components.add(new Component(entry.getKey(), terracottaAgentGuid, (long) durationSeconds, entry.getValue()));
+//		}
+//		return components;
+//	}
 
 }

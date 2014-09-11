@@ -72,10 +72,10 @@ public class MetricUtil {
     public static final String METRIC_IN_MEMORY_MISS_RATIO = "InMemoryMissRatio";
     public static final String METRIC_OFF_HEAP_MISS_RATIO = "OffHeapMissRatio";
 
-    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_KEY = "%cacheName%";
-    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_VALUE = "$.name";
-    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY = "%cacheManagerName%";
-    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE = "$.cacheManagerName";
+//    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_KEY = "%cacheName%";
+//    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_VALUE = "$.name";
+//    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY = "%cacheManagerName%";
+//    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE = "$.cacheManagerName";
 
     // Topologies
     public static final String METRIC_NUM_CONNECTED_CLIENTS = "NumConnectedClients";
@@ -97,33 +97,33 @@ public class MetricUtil {
     final String servers = toMetricPath(tc, "Servers");
     final String clients = toMetricPath(tc, "Clients");
     final String ehcache = toMetricPath(tc, "Ehcache");
-    final Map<String, String> varReplaceMap = ImmutableMap.of(
-            CACHE_STATS_VARIABLE_CACHE_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_NAME_VALUE,
-            CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE
-    );    
+//    final Map<String, String> varReplaceMap = ImmutableMap.of(
+//            CACHE_STATS_VARIABLE_CACHE_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_NAME_VALUE,
+//            CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE
+//    );
 
     @PostConstruct
     private void init() {
         // Server metrics
-        metrics.add(new Metric("$.statistics." + METRIC_LIVE_OBJECT_COUNT,
+        metrics.add(new Metric("$[?].statistics." + METRIC_LIVE_OBJECT_COUNT,
                 toMetricPath(servers, "Data", "Objects", METRIC_LIVE_OBJECT_COUNT), Metric.Source.server, Metric.Unit.Count));
-        metrics.add(new Metric("$.statistics." + METRIC_WRITE_OPERATION_RATE,
+        metrics.add(new Metric("$[?].statistics." + METRIC_WRITE_OPERATION_RATE,
                 toMetricPath(servers, "Data", "Rates", METRIC_WRITE_OPERATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$.statistics." + METRIC_READ_OPERATION_RATE,
+        metrics.add(new Metric("$[?].statistics." + METRIC_READ_OPERATION_RATE,
                 toMetricPath(servers, "Data", "Rates", METRIC_READ_OPERATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$.statistics." + METRIC_EVICTION_RATE,
+        metrics.add(new Metric("$[?].statistics." + METRIC_EVICTION_RATE,
                 toMetricPath(servers, "Data", "Rates", METRIC_EVICTION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$.statistics." + METRIC_EXPIRATION_RATE,
+        metrics.add(new Metric("$[?].statistics." + METRIC_EXPIRATION_RATE,
                 toMetricPath(servers, "Data", "Rates", METRIC_EXPIRATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-		    metrics.add(new Metric("$.statistics." + METRIC_OFFHEAP_USED_SIZE,
+		    metrics.add(new Metric("$[?].statistics." + METRIC_OFFHEAP_USED_SIZE,
 	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_USED_SIZE), Metric.Source.server, Metric.Unit.Bytes));
-		    metrics.add(new Metric("$.statistics." + METRIC_OFFHEAP_MAX_SIZE,
+		    metrics.add(new Metric("$[?].statistics." + METRIC_OFFHEAP_MAX_SIZE,
 	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_MAX_SIZE), Metric.Source.server, Metric.Unit.Bytes));
         // Client metrics
-        metrics.add(new Metric("$.statistics." + METRIC_READ_RATE,
-                toMetricPath(clients, METRIC_READ_RATE), Metric.Source.client, Metric.Unit.Rate));
-        metrics.add(new Metric("$.statistics." + METRIC_WRITE_RATE,
-                toMetricPath(clients, METRIC_WRITE_RATE), Metric.Source.client, Metric.Unit.Rate));
+//        metrics.add(new Metric("$[?].statistics." + METRIC_READ_RATE,
+//                toMetricPath(clients, METRIC_READ_RATE), Metric.Source.client, Metric.Unit.Rate));
+//        metrics.add(new Metric("$[?].statistics." + METRIC_WRITE_RATE,
+//                toMetricPath(clients, METRIC_WRITE_RATE), Metric.Source.client, Metric.Unit.Rate));
 
         // Cache metrics
         metrics.add(constructCacheMetric(METRIC_EVICTED_COUNT, Metric.Unit.Count));
@@ -180,16 +180,14 @@ public class MetricUtil {
     }
 
     private Metric constructCacheMetric(String attribute, Metric.Unit unit, Metric.RatioType ratioType) {
-        return new Metric("$.attributes." + attribute, toMetricPath(ehcache,
-                CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_NAME_KEY, attribute),
-                varReplaceMap, Metric.Source.cache, unit, ratioType);
+        return new Metric("$[?].attributes." + attribute, toMetricPath(ehcache, attribute),
+		        Metric.Source.cache, unit, ratioType);
     }
 
     private RatioMetric constructRatioMetric(String attribute, RatioMetric pair, String numeratorCount,
                                              String denominatorCount) {
-        return new RatioMetric(toMetricPath(ehcache, CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY,
-                        CACHE_STATS_VARIABLE_CACHE_NAME_KEY, attribute), varReplaceMap,
-                Metric.Source.cache, Metric.Unit.CountSecond, pair, numeratorCount, denominatorCount);
+        return new RatioMetric(toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.CountSecond,
+		        pair, numeratorCount, denominatorCount);
     }
 
     public List<Metric> getMetrics() {
