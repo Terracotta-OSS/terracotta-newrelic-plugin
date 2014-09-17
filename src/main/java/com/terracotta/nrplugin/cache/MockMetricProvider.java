@@ -26,7 +26,8 @@ public class MockMetricProvider implements MetricProvider {
 
 	@Override
 	public NewRelicPayload assemblePayload() throws Exception {
-		MetricDataset m1 = new MetricDataset(new Metric("fakeDataPath", "Component/MockTerracotta",
+		String metricName = "FakeMetricName";
+		MetricDataset m1 = new MetricDataset(new Metric(metricName, "fakeDataPath", "Component/MockTerracotta",
 				Metric.Source.cache, Metric.Unit.Bytes), "componentname");
 		m1.addValue(100);
 		m1.addValue(50);

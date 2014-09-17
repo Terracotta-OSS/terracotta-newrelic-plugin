@@ -45,6 +45,9 @@ public class DefaultMetricProvider implements MetricProvider {
 	@Value("${com.saggs.terracotta.nrplugin.version}")
 	String version;
 
+	@Value("${com.saggs.terracotta.nrplugin.nr.environment.prefix}")
+	String componentPrefix;
+
 	String hostname = "TC-NR-HOST";
 
 	long pid;
@@ -121,7 +124,8 @@ public class DefaultMetricProvider implements MetricProvider {
 				Component component = componentMap.get(metricDataset.getComponentName());
 				if (component == null) {
 					double durationSeconds = durationMillis * 0.001;
-					component = new Component(metricDataset.getComponentName(), metricDataset.getComponentGuid(), (long) durationSeconds);
+					component = new Component(componentPrefix + "_" + metricDataset.getComponentName(),
+							metricDataset.getComponentGuid(), (long) durationSeconds);
 				}
 				Map.Entry entry = metricUtil.metricAsJson(metricDataset);
 				component.putMetric((String) entry.getKey(), entry.getValue());

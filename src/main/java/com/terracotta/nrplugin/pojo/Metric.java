@@ -20,6 +20,7 @@ public class Metric implements Serializable {
 
 	private static final long serialVersionUID = -1055398640926238446L;
 
+	String metricName;
 	String reportedPath;
 	String dataPath;
 	Source source;
@@ -31,29 +32,30 @@ public class Metric implements Serializable {
 	public Metric() {
 	}
 
-	public Metric(String dataPath, String reportedPath, Source source, Unit unit) {
+	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit) {
 		this();
 		if (reportedPath == null) throw new IllegalArgumentException("reportedPath cannot be null.");
 		this.dataPath = dataPath;
+		this.metricName = metricName;
 		this.reportedPath = reportedPath;
 		this.source = source;
 		this.unit = unit;
 	}
 
-	public Metric(String dataPath, String reportedPath, Source source, Unit unit, int maxWindowSize) {
-		this(dataPath, reportedPath, source, unit);
+	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, int maxWindowSize) {
+		this(metricName, dataPath, reportedPath, source, unit);
 		this.maxWindowSize = maxWindowSize;
 	}
 
-	public Metric(String dataPath, String reportedPath, Source source,
+	public Metric(String metricName, String dataPath, String reportedPath, Source source,
 	              Unit unit, RatioType ratioType) {
-		this(dataPath, reportedPath, source, unit);
+		this(metricName, dataPath, reportedPath, source, unit);
 		this.ratioType = ratioType;
 	}
 
-	public Metric(String dataPath, String reportedPath, Source source,
+	public Metric(String metricName, String dataPath, String reportedPath, Source source,
 	              Unit unit, RatioType ratioType, int maxWindowSize) {
-		this(dataPath, reportedPath, source, unit, ratioType);
+		this(metricName, dataPath, reportedPath, source, unit, ratioType);
 		this.maxWindowSize = maxWindowSize;
 	}
 

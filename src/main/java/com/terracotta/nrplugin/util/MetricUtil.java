@@ -105,20 +105,14 @@ public class MetricUtil {
     @PostConstruct
     private void init() {
         // Server metrics
-        metrics.add(new Metric("$[?].statistics." + METRIC_LIVE_OBJECT_COUNT,
-                toMetricPath(servers, "Data", "Objects", METRIC_LIVE_OBJECT_COUNT), Metric.Source.server, Metric.Unit.Count));
-        metrics.add(new Metric("$[?].statistics." + METRIC_WRITE_OPERATION_RATE,
-                toMetricPath(servers, "Data", "Rates", METRIC_WRITE_OPERATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$[?].statistics." + METRIC_READ_OPERATION_RATE,
-                toMetricPath(servers, "Data", "Rates", METRIC_READ_OPERATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$[?].statistics." + METRIC_EVICTION_RATE,
-                toMetricPath(servers, "Data", "Rates", METRIC_EVICTION_RATE), Metric.Source.server, Metric.Unit.Rate));
-        metrics.add(new Metric("$[?].statistics." + METRIC_EXPIRATION_RATE,
-                toMetricPath(servers, "Data", "Rates", METRIC_EXPIRATION_RATE), Metric.Source.server, Metric.Unit.Rate));
-		    metrics.add(new Metric("$[?].statistics." + METRIC_OFFHEAP_USED_SIZE,
-	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_USED_SIZE), Metric.Source.server, Metric.Unit.Bytes));
-		    metrics.add(new Metric("$[?].statistics." + METRIC_OFFHEAP_MAX_SIZE,
-	             toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_MAX_SIZE), Metric.Source.server, Metric.Unit.Bytes));
+	    metrics.add(constructServerMetric(METRIC_LIVE_OBJECT_COUNT, toMetricPath(servers, "Data", "Objects", METRIC_LIVE_OBJECT_COUNT),  Metric.Unit.Count));
+	    metrics.add(constructServerMetric(METRIC_WRITE_OPERATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_WRITE_OPERATION_RATE), Metric.Unit.Rate));
+	    metrics.add(constructServerMetric(METRIC_READ_OPERATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_READ_OPERATION_RATE), Metric.Unit.Rate));
+	    metrics.add(constructServerMetric(METRIC_EVICTION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_EVICTION_RATE), Metric.Unit.Rate));
+	    metrics.add(constructServerMetric(METRIC_EXPIRATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_EXPIRATION_RATE), Metric.Unit.Rate));
+	    metrics.add(constructServerMetric(METRIC_OFFHEAP_USED_SIZE, toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_USED_SIZE), Metric.Unit.Bytes));
+	    metrics.add(constructServerMetric(METRIC_OFFHEAP_MAX_SIZE, toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_MAX_SIZE), Metric.Unit.Bytes));
+
         // Client metrics
 //        metrics.add(new Metric("$[?].statistics." + METRIC_READ_RATE,
 //                toMetricPath(clients, METRIC_READ_RATE), Metric.Source.client, Metric.Unit.Rate));
@@ -164,8 +158,8 @@ public class MetricUtil {
                 cacheMissRatio, onDiskMissRatio, inMemoryMissRatio, offHeapMissRatio));
 
         // Topologies metrics
-        metrics.add(new Metric("$.clientEntities", toMetricPath(clients, METRIC_NUM_CONNECTED_CLIENTS),
-                Metric.Source.topologies, Metric.Unit.Count));
+        metrics.add(new Metric(METRIC_NUM_CONNECTED_CLIENTS, "$.clientEntities", toMetricPath(
+		        clients, METRIC_NUM_CONNECTED_CLIENTS), Metric.Source.topologies, Metric.Unit.Count));
 
         // Populate cache stat names list
         for (Metric metric : metrics) {
@@ -174,19 +168,23 @@ public class MetricUtil {
             }
         }
     }
+	
+	private Metric constructServerMetric(String attribute, String reportedPath, Metric.Unit unit) {
+		return new Metric(attribute, "$[?].statistics." + attribute, reportedPath, Metric.Source.server, unit);	
+	}
 
     private Metric constructCacheMetric(String attribute, Metric.Unit unit) {
         return constructCacheMetric(attribute, unit, null);
     }
 
     private Metric constructCacheMetric(String attribute, Metric.Unit unit, Metric.RatioType ratioType) {
-        return new Metric("$[?].attributes." + attribute, toMetricPath(ehcache, attribute),
+        return new Metric(attribute, "$[?].attributes." + attribute, toMetricPath(ehcache, attribute),
 		        Metric.Source.cache, unit, ratioType);
     }
 
     private RatioMetric constructRatioMetric(String attribute, RatioMetric pair, String numeratorCount,
                                              String denominatorCount) {
-        return new RatioMetric(toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.CountSecond,
+        return new RatioMetric(attribute, toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.CountSecond,
 		        pair, numeratorCount, denominatorCount);
     }
 
@@ -241,7 +239,7 @@ public class MetricUtil {
         values.put(NEW_RELIC_TOTAL, metricDataset.getStatistics().getSum());
         values.put(NEW_RELIC_COUNT, metricDataset.getStatistics().getN());
         values.put(NEW_RELIC_SUM_OF_SQUARES, metricDataset.getStatistics().getSumsq());
-        return new AbstractMap.SimpleEntry<String, Map<String, Number>>(metricDataset.getKey(), values);
+        return new AbstractMap.SimpleEntry<String, Map<String, Number>>(metricDataset.getReportingPath(), values);
     }
 
     public String toMetricPath(String... values) {

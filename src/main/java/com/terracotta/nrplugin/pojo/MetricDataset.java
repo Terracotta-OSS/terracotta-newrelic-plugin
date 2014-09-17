@@ -69,12 +69,12 @@ public class MetricDataset implements Serializable {
 	}
 
 	public String getKey() {
-		//		for (Map.Entry<String, String> entry : actualVarReplaceMap.entrySet()) {
-//			key = key.replaceAll(entry.getKey(), entry.getValue());
-//		}
-		return metric.getBaseReportedPath() + MetricUtil.NEW_RELIC_PATH_SEPARATOR + componentName +
-				MetricUtil.NEW_RELIC_PATH_SEPARATOR + type + MetricUtil.NEW_RELIC_PATH_SEPARATOR + metric.getName() +
-				"[" + metric.getUnit() + "]";
+		return metric.getName() + componentName;
+	}
+
+	public String getReportingPath() {
+		return metric.getBaseReportedPath() + MetricUtil.NEW_RELIC_PATH_SEPARATOR + type +
+				MetricUtil.NEW_RELIC_PATH_SEPARATOR + metric.getName() + "[" + metric.getUnit() + "]";
 	}
 
 	public Double getLastValue() {

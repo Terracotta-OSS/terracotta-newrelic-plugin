@@ -23,9 +23,9 @@ public class RatioMetric extends Metric {
         super();
     }
 
-    public RatioMetric(String reportedPath, Source source, Unit unit,
+    public RatioMetric(String metricName, String reportedPath, Source source, Unit unit,
                        RatioMetric pair, String numeratorCount, String denominatorCount) {
-        super(null, reportedPath, source, unit, null);
+        super(metricName, null, reportedPath, source, unit, null);
         this.pair = pair;
         this.numeratorCount = numeratorCount;
         this.denominatorCount = denominatorCount;
