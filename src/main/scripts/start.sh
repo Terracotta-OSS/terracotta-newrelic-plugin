@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-#Starting the Terracotta newrelic plugin
+# Starts Terracotta newrelic plugin
+#
 
 # resolve links - $0 may be a softlink
 PRG="$0"
@@ -100,8 +101,8 @@ if $cygwin; then
 fi
 
 JAVA_OPTS="$JAVA_OPTS -Xms128m -Xmx512m"
-JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.keyStore=conf/geotrust.jks \
--Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStore=conf/geotrust.jks \
+JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.keyStore=$CONFIG/geotrust.jks \
+-Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStore=$CONFIG/geotrust.jks \
 -Djavax.net.ssl.trustStorePassword=password"
 
 echo "Starting Terracotta New Relic Plug-in..."
@@ -111,6 +112,3 @@ exec "$JAVACMD" $JAVA_OPTS \
   -Dbasedir="$BASEDIR" \
   -Dlogs.home="$LOGS" \
   com.terracotta.nrplugin.app.Main
-
-#nohup $JAVA_EXEC > log/tc-nr-plugin.out 2>&1 log/tc-nr-plugin.err &
-echo $! > $BASEDIR/tc-nr-plugin.pid

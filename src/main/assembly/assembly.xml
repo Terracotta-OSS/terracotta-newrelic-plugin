@@ -16,7 +16,7 @@
 				<include>**/*.sh</include>
 			</includes>
 			<outputDirectory>/bin</outputDirectory>
-			<directory>${project.build.directory}</directory>
+			<directory>${basedir}/src/main/scripts</directory>
 			<lineEnding>unix</lineEnding>
 		</fileSet>
 		<fileSet>
@@ -24,7 +24,7 @@
 				<include>**/*.bat</include>
 			</includes>
 			<outputDirectory>/bin</outputDirectory>
-			<directory>${project.build.directory}</directory>
+            <directory>${basedir}/src/main/scripts</directory>
 			<lineEnding>windows</lineEnding>
 		</fileSet>
 		<fileSet>
