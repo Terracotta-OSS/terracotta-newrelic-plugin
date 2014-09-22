@@ -148,8 +148,8 @@ public class MetricCacher {
 							MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
 							double numerator = metricDataset.getStatistics().getSum();
 							double denominator = (metricDataset.getStatistics().getSum() + denominatorDataset.getStatistics().getSum());
-							double ratio = denominator > 0 ? numerator / denominator : 0;
-							MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
+                            double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
+                            MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
 //							ratioDataset.setActualVarReplaceMap(metricDataset.getActualVarReplaceMap());
 							putValue(ratioDataset, ratio);
 							putDiff(lastDataSet.get(ratioDataset.getKey()), ratioDataset);

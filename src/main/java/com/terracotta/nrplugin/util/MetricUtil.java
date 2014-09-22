@@ -55,10 +55,22 @@ public class MetricUtil {
 	public static final String METRIC_CACHE_MISS_COUNT = "CacheMissCount";
 	public static final String METRIC_PUT_COUNT = "PutCount";
 	public static final String METRIC_REMOVED_COUNT = "RemovedCount";
-	public static final String METRIC_ON_DISK_SIZE = "OnDiskSize";
-	public static final String METRIC_IN_MEMORY_SIZE = "InMemorySize";
-	public static final String METRIC_OFF_HEAP_SIZE = "OffHeapSize";
-	public static final String METRIC_SIZE = "Size";
+
+	// these are the actual ehcache settings for local values
+	public static final String METRIC_MAX_LOCAL_HEAP_SIZE_BYTES = "MaxBytesLocalHeap";
+	public static final String METRIC_MAX_LOCAL_HEAP_SIZE_COUNT = "MaxEntriesLocalHeap";
+	public static final String METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES = "MaxBytesLocalOffHeap";
+	public static final String METRIC_MAX_LOCAL_DISK_SIZE_COUNT = "MaxEntriesLocalDisk";
+	public static final String METRIC_MAX_LOCAL_DISK_SIZE_BYTES = "MaxBytesLocalDisk";
+	public static final String METRIC_MAX_TOTAL_SIZE_COUNT = "MaxEntriesInCache";
+
+	//used counts
+	public static final String METRIC_USED_LOCAL_HEAP_SIZE_COUNT = "LocalHeapSize";
+	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT = "LocalOffHeapSize";
+	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES = "LocalOffHeapSizeInBytes";
+	public static final String METRIC_USED_LOCAL_DISK_SIZE_COUNT = "LocalDiskSize";
+	public static final String METRIC_USED_LOCAL_DISK_SIZE_BYTES = "LocalDiskSizeInBytes";
+	public static final String METRIC_USED_TOTAL_SIZE_COUNT = "Size";
 	public static final String METRIC_ENABLED = "Enabled";
 
 	// Cache ratio metrics
@@ -70,11 +82,6 @@ public class MetricUtil {
 	public static final String METRIC_ON_DISK_MISS_RATIO = "OnDiskMissRatio";
 	public static final String METRIC_IN_MEMORY_MISS_RATIO = "InMemoryMissRatio";
 	public static final String METRIC_OFF_HEAP_MISS_RATIO = "OffHeapMissRatio";
-
-//    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_KEY = "%cacheName%";
-//    public static final String CACHE_STATS_VARIABLE_CACHE_NAME_VALUE = "$.name";
-//    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY = "%cacheManagerName%";
-//    public static final String CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE = "$.cacheManagerName";
 
 	// Topologies
 	public static final String METRIC_NUM_CONNECTED_CLIENTS = "NumConnectedClients";
@@ -136,10 +143,19 @@ public class MetricUtil {
 		metrics.add(constructCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.miss));
 		metrics.add(constructCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count));
 		metrics.add(constructCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_ON_DISK_SIZE, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_SIZE, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_SIZE, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_SIZE, Metric.Unit.Count));
+
+		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric(METRIC_MAX_TOTAL_SIZE_COUNT, Metric.Unit.Count));
+
+		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, Metric.Unit.Count));
 
 		// Cache Ratio metrics
 		RatioMetric cacheHitRatio = constructRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
