@@ -103,7 +103,7 @@ fi
 JAVA_OPTS="$JAVA_OPTS -Xms128m -Xmx512m"
 JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.keyStore=$CONFIG/geotrust.jks \
 -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStore=$CONFIG/geotrust.jks \
--Djavax.net.ssl.trustStorePassword=password"
+-Djavax.net.ssl.trustStorePassword=password -Dcom.terracotta.agent.defaultMaxClientsToDisplay=500"
 
 echo "Starting Terracotta New Relic Plug-in..."
 exec "$JAVACMD" $JAVA_OPTS \
