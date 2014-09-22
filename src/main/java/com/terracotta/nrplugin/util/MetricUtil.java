@@ -203,8 +203,8 @@ public class MetricUtil {
 
     private RatioMetric constructRatioMetric(String attribute, RatioMetric pair, String numeratorCount,
                                              String denominatorCount) {
-        return new RatioMetric(attribute, toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.CountSecond,
-		        pair, numeratorCount, denominatorCount);
+        return new RatioMetric(attribute, toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.Percent,
+                pair, numeratorCount, denominatorCount);
     }
 
     public List<Metric> getMetrics() {
