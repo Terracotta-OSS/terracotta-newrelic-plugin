@@ -25,7 +25,7 @@ fi
 
 JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx512m -Djavax.net.ssl.keyStore=conf/geotrust.jks \
 -Djavax.net.ssl.keyStorePassword=password -Djavax.net.ssl.trustStore=conf/geotrust.jks \
- -Djavax.net.ssl.trustStorePassword=password"
+ -Djavax.net.ssl.trustStorePassword=password -Dcom.terracotta.agent.defaultMaxClientsToDisplay=500"
 JAVA_EXEC="${JAVA_HOME}/bin/java ${JAVA_OPTS} -Djava.library.path=bin -cp lib/*:conf com.terracotta.nrplugin.app.Main"
 
 echo "Starting Terracotta New Relic Plug-in..."

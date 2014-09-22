@@ -25,9 +25,9 @@ public class Metric implements Serializable {
 	String dataPath;
 	Source source;
 	Unit unit;
+	Type type;
 	RatioType ratioType;
 	int maxWindowSize = MetricDataset.WINDOW_SIZE_DEFAULT;
-
 
 	public Metric() {
 	}
@@ -40,24 +40,36 @@ public class Metric implements Serializable {
 		this.reportedPath = reportedPath;
 		this.source = source;
 		this.unit = unit;
+		this.type = Type.regular;
 	}
 
-	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, int maxWindowSize) {
+//	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit) {
+//		this(metricName, dataPath, reportedPath, source, unit);
+//	}
+
+	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, Type type, int maxWindowSize) {
 		this(metricName, dataPath, reportedPath, source, unit);
+		if (type == null) this.type = Type.regular;
+		else this.type = type;
 		this.maxWindowSize = maxWindowSize;
 	}
 
+//	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, int maxWindowSize) {
+//		this(metricName, dataPath, reportedPath, source, unit);
+//		this.maxWindowSize = maxWindowSize;
+//	}
+
 	public Metric(String metricName, String dataPath, String reportedPath, Source source,
-	              Unit unit, RatioType ratioType) {
-		this(metricName, dataPath, reportedPath, source, unit);
+	              Unit unit, Type type, RatioType ratioType) {
+		this(metricName, dataPath, reportedPath, source, unit, type, MetricDataset.WINDOW_SIZE_DEFAULT);
 		this.ratioType = ratioType;
 	}
 
-	public Metric(String metricName, String dataPath, String reportedPath, Source source,
-	              Unit unit, RatioType ratioType, int maxWindowSize) {
-		this(metricName, dataPath, reportedPath, source, unit, ratioType);
-		this.maxWindowSize = maxWindowSize;
-	}
+//	public Metric(String metricName, String dataPath, String reportedPath, Source source,
+//	              Unit unit, RatioType ratioType, int maxWindowSize) {
+//		this(metricName, dataPath, reportedPath, source, unit, ratioType);
+//		this.maxWindowSize = maxWindowSize;
+//	}
 
 	public String getName() {
 		String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
@@ -103,6 +115,22 @@ public class Metric implements Serializable {
 		this.unit = unit;
 	}
 
+	public Type getType() {
+		return type;
+	}
+
+	public void setType(Type type) {
+		this.type = type;
+	}
+
+	public int getMaxWindowSize() {
+		return maxWindowSize;
+	}
+
+	public void setMaxWindowSize(int maxWindowSize) {
+		this.maxWindowSize = maxWindowSize;
+	}
+
 	public RatioType getRatioType() {
 		if (ratioType == null) ratioType = RatioType.neither;
 		return ratioType;
@@ -111,6 +139,7 @@ public class Metric implements Serializable {
 	public void setRatioType(RatioType ratioType) {
 		this.ratioType = ratioType;
 	}
+		public static enum Type {regular, special, ratio}
 
 	public static enum RatioType {hit, miss, neither}
 

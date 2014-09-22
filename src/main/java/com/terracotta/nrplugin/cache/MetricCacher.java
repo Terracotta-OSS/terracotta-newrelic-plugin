@@ -6,11 +6,9 @@ import com.jayway.jsonpath.JsonPath;
 import com.terracotta.nrplugin.pojo.Metric;
 import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.RatioMetric;
-import com.terracotta.nrplugin.pojo.nr.Component;
 import com.terracotta.nrplugin.rest.tmc.MetricFetcher;
 import com.terracotta.nrplugin.util.MetricUtil;
 import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.slf4j.Logger;
@@ -64,28 +62,6 @@ public class MetricCacher {
 	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
 	String ehcacheAgentGuid;
 
-//	private void handleSource(Metric metric, Set<String> set, JSONArray objects) {
-//		if (Metric.Source.cache.equals(metric.getSource()) || Metric.Source.server.equals(metric.getSource())) {
-//			// Create MetricDatasets for each cache|server/statistic combination
-//			String setFilter = Metric.Source.cache.equals(metric.getSource()) ? "name" : "sourceId";
-//			for (String cacheName : set) {
-//	//					JSONArray cacheData = JsonPath.read(objects, "$[?]", Filter.filter(Criteria.where("name").is(cacheName)));
-//				// Filter by cache name & metric
-//				JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where(setFilter).is(cacheName)));
-//
-//				MetricDataset metricDataset = getMetricDataset(metric, cacheName);
-//				log.trace("Extracting values for " + metricDataset.getKey());
-//				// Put absolute value into cache
-//				putValues(metricDataset, values);
-//				// Put diff value into cache
-//				putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
-//			}
-//		}
-//		else if (Metric.Source.client.equals(metric.getSource())) {
-//
-//		}
-//	}
-
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
 		log.info("Starting to cache all stats...");
@@ -97,10 +73,9 @@ public class MetricCacher {
 		Set<String> serverNames = getServerNames(jsonObjects.get(Metric.Source.server));
 
 		log.info("Parsed metrics into JSONArrays...");
-		for (Metric metric : metricUtil.getNonRatioMetrics()) {
+		for (Metric metric : metricUtil.getRegularMetrics()) {
 			// Get all JSON data for this source
 			JSONArray objects = jsonObjects.get(metric.getSource());
-//			handleSource(metric, objects);
 
 			if (Metric.Source.cache.equals(metric.getSource())) {
 				for (String cacheName : cacheNames) {
@@ -122,13 +97,34 @@ public class MetricCacher {
 					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
 				}
 			}
-			else {
-				for (Object o : objects) {
-					MetricDataset metricDataset = getMetricDataset(metric, MetricDataset.SUMMARY_COMPONENT);
-					log.trace("Extracting values for " + metricDataset.getKey());
-					Object value = JsonPath.read(o, metricDataset.getMetric().getDataPath());
-					putValue(metricDataset, value);
-					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
+//			else {
+//				for (Object o : objects) {
+//					MetricDataset metricDataset = getMetricDataset(metric, MetricDataset.SUMMARY_COMPONENT);
+//					log.trace("Extracting values for " + metricDataset.getKey());
+//					Object value = JsonPath.read(o, metricDataset.getMetric().getDataPath());
+//					putValue(metricDataset, value);
+//					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
+//				}
+//			}
+		}
+
+		// Handle special metrics
+		for (Metric metric : metricUtil.getSpecialMetrics()) {
+			JSONArray objects = jsonObjects.get(metric.getSource());
+			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
+				JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities");
+				JSONArray array = (JSONArray) clientEntities.get(0);
+				for (String serverName : serverNames) {
+					MetricDataset metricDataset = getMetricDataset(metric, serverName);
+					putValue(metricDataset, array.size());
+				}
+			}
+			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getName())) {
+				for (String serverName : serverNames) {
+					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
+					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
+					MetricDataset metricDataset = getMetricDataset(metric, serverName);
+					putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
 				}
 			}
 		}
@@ -228,7 +224,7 @@ public class MetricCacher {
 	    String componentGuid =
 			    Metric.Source.client.equals(metric.getSource()) || Metric.Source.cache.equals(metric.getSource()) ?
 			    ehcacheAgentGuid : terracottaAgentGuid;
-	    return new MetricDataset(metric, componentName, componentGuid, windowSize);
+	    return new MetricDataset(metric, componentName, componentGuid, metric.getMaxWindowSize());
     }
 	}
 
@@ -236,15 +232,6 @@ public class MetricCacher {
 		log.trace("Putting " + metricDataset.getKey() + " to statsCache.");
 		statsCache.put(new Element(metricDataset.getKey(), metricDataset));
 	}
-
-//	private void expandPathVariables(MetricDataset metricDataset, JSONArray jsonObject) {
-//		log.trace("Attempting to expand key " + metricDataset.getKey());
-//		for (Map.Entry<String, String> entry : metricDataset.getMetric().getDataPathVariables().entrySet()) {
-//			if (metricDataset.getActualVarReplaceMap().get(entry.getKey()) == null) {
-//				metricDataset.putVarReplace(entry.getKey(), (String) JsonPath.read(jsonObject, entry.getValue()));
-//			}
-//		}
-//	}
 
 	public Map<String, Number> getDiff(String key) {
 		Element element = diffsCache.get(key);

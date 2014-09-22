@@ -24,7 +24,6 @@ public class MetricDataset implements Serializable {
 	Metric metric;
 	SynchronizedDescriptiveStatistics statistics;
 	Type type = Type.absolute;
-//	Map<String, String> actualVarReplaceMap = new HashMap<String, String>();
 	String componentName;
 	String componentGuid;
 
@@ -51,18 +50,9 @@ public class MetricDataset implements Serializable {
 		this.type = type;
 	}
 
-//	public MetricDataset(Metric metric, String componentName, Type type, Map<String, String> actualVarReplaceMap) {
-//		this(metric, componentName, WINDOW_SIZE_DEFAULT, type);
-//		this.actualVarReplaceMap = actualVarReplaceMap;
-//	}
-
 	public void addValue(double value) {
 		statistics.addValue(value);
 	}
-
-//	public void putVarReplace(String key, String value) {
-//		actualVarReplaceMap.put(key, value);
-//	}
 
 	public static String getKey(Metric metric, String componentName) {
 		return new MetricDataset(metric, componentName).getKey();
@@ -100,14 +90,6 @@ public class MetricDataset implements Serializable {
 	public void setType(Type type) {
 		this.type = type;
 	}
-
-//	public Map<String, String> getActualVarReplaceMap() {
-//		return actualVarReplaceMap;
-//	}
-//
-//	public void setActualVarReplaceMap(Map<String, String> actualVarReplaceMap) {
-//		this.actualVarReplaceMap = actualVarReplaceMap;
-//	}
 
 	public String getComponentName() {
 		return componentName;

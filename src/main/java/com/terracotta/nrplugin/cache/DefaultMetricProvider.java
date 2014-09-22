@@ -52,71 +52,32 @@ public class DefaultMetricProvider implements MetricProvider {
 
 	long pid;
 
-//	@Override
-//	public Map<String, Map<String, Object>> getAllMetrics() {
-//		log.debug("Gathering stats from cache...");
-//		Map<String, Map<String, Object>> allMetrics = new HashMap<String, Map<String, Object>>();
-//		Map<String, Collection<MetricDataset>> datasetMap = new HashMap<String, Collection<MetricDataset>>();
-//		int numMetrics = 0;
-//
-//		// Get absolute metrics
-//		for (Object key : statsCache.getKeys()) {
-//			Element element = statsCache.get((key));
-//			if (element != null && element.getObjectValue() instanceof MetricDataset) {
-//				MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
-//				Collection<MetricDataset> componentMetrics = datasetMap.get(metricDataset.getComponentName());
-//				if (componentMetrics == null) componentMetrics = new ArrayList<MetricDataset>();
-//				componentMetrics.add(metricDataset);
-//				datasetMap.put(metricDataset.getComponentName(), componentMetrics);
-//				numMetrics++;
-//			}
-//		}
-//
-//		for (Map.Entry<String, Collection<MetricDataset>> entry : datasetMap.entrySet()) {
-//			Map<String, Object> metricsAsJson = metricUtil.metricsAsJson(entry.getValue());
-//			allMetrics.put(entry.getKey(), metricsAsJson);
-////			metricsAsJson.putAll(metricUtil.metricsAsJson(entry.getValue()));
-//		}
-//
-//		// Get diff metrics
-////		for (Object key : diffsCache.getKeys()) {
-////			Element element = diffsCache.get((key));
-////			if (element != null && element.getObjectValue() instanceof Map) {
-////				metrics.put((String) element.getObjectKey(), element.getObjectValue());
-////			}
-////		}
-//
-//
-//		log.info("Returning " + numMetrics + " metric(s) from cache.");
-//		return allMetrics;
-//	}
-
 	@PostConstruct
-		private void init() {
-			Sigar sigar = new Sigar();
+	private void init() {
+		Sigar sigar = new Sigar();
 
-			try {
-				pid = sigar.getPid();
-			} catch (Error e) {
-				log.error("Could not infer PID.");
-				pid = -1;
-			}
-
-			try {
-				hostname = sigar.getNetInfo().getHostName();
-			} catch (Error e) {
-				log.error("Could not infer hostname.");
-			} catch (Exception ex) {
-				log.error("Could not infer hostname.");
-			}
+		try {
+			pid = sigar.getPid();
+		} catch (Error e) {
+			log.error("Could not infer PID.");
+			pid = -1;
 		}
+
+		try {
+			hostname = sigar.getNetInfo().getHostName();
+		} catch (Error e) {
+			log.error("Could not infer hostname.");
+		} catch (Exception ex) {
+			log.error("Could not infer hostname.");
+		}
+	}
 
 	public NewRelicPayload assemblePayload() throws JsonProcessingException {
 		NewRelicPayload payload = new NewRelicPayload();
 		Map<String, Component> componentMap = new HashMap<String, Component>(); // componentName -> component
 		int numMetrics = 0;
 
-				// Get absolute metrics
+		// Get absolute metrics
 		for (Object key : statsCache.getKeys()) {
 			Element element = statsCache.get((key));
 			if (element != null && element.getObjectValue() instanceof MetricDataset) {

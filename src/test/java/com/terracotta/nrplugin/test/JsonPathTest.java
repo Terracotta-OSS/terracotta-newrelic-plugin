@@ -4,6 +4,7 @@ import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
 import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class JsonPathTest {
 	}
 
 
-	@Test
+//	@Test
 	public void testServerStats() throws IOException {
 		String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("4.0/server-statistics.json"));
 		JSONArray jsonArray = JsonPath.read(json, "$[*]");
@@ -65,6 +66,27 @@ public class JsonPathTest {
 			}
 		}
 
+	}
+
+	@Test
+	public void testSpecialMetrics() throws IOException {
+		String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("4.0/topologies.json"));
+		JSONArray clientEntities = JsonPath.read(json, "$[*].clientEntities");
+		JSONArray array = (JSONArray) clientEntities.get(0);
+		log.info("Found " + array.size() + " client(s).");
+
+		String serverName = "server1";
+		JSONArray attributes = JsonPath.read(json, "$[*].serverGroupEntities.servers.attributes");
+		JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
+		String state = (String) stateArray.get(0);
+		log.info("State: " + state + " : " + toStateCode(state));
+	}
+
+	private int toStateCode(String stateString) {
+		if (stateString.startsWith("ACTIVE")) return 0;
+		else if (stateString.startsWith("PASSIVE")) return 2;
+		else if (stateString.startsWith("INITIALIZING")) return 4;
+		else return 8;
 	}
 
 }
