@@ -70,7 +70,7 @@ public class MetricUtil {
     public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES = "LocalOffHeapSizeInBytes";
     public static final String METRIC_USED_LOCAL_DISK_SIZE_COUNT = "LocalDiskSize";
     public static final String METRIC_USED_LOCAL_DISK_SIZE_BYTES = "LocalDiskSizeInBytes";
-    public static final String METRIC_USED_TOTAL_SIZE = "Size";
+    public static final String METRIC_USED_TOTAL_SIZE_COUNT = "Size";
     public static final String METRIC_ENABLED = "Enabled";
 
     // Cache ratio metrics
@@ -158,7 +158,7 @@ public class MetricUtil {
         metrics.add(constructCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
         metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
         metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
-        metrics.add(constructCacheMetric(METRIC_USED_TOTAL_SIZE, Metric.Unit.Count));
+        metrics.add(constructCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, Metric.Unit.Count));
         
         // Cache Ratio metrics
         RatioMetric cacheHitRatio = constructRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
