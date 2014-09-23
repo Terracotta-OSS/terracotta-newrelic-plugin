@@ -133,29 +133,30 @@ public class MetricUtil {
 		metrics.add(constructCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate));
 		metrics.add(constructCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate));
 		metrics.add(constructCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate));
-		metrics.add(constructCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, Metric.Type.ratio, Metric.RatioType.miss));
+		metrics.add(constructCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
+		metrics.add(constructCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
+		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
+		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
+		metrics.add(constructCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
+		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
+		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
+		metrics.add(constructCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
 		metrics.add(constructCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count));
 		metrics.add(constructCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count));
 
-		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric(METRIC_MAX_TOTAL_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalHeapEntries", METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalOffHeapSize", METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric("LocalDiskEntries", METRIC_MAX_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalDiskSize", METRIC_MAX_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric("TotalEntries", METRIC_MAX_TOTAL_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalHeapSize",METRIC_MAX_LOCAL_HEAP_SIZE_BYTES, Metric.Unit.Count));
 
-		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalHeapEntries", METRIC_USED_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalOffHeapSize", METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalDiskEntries", METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric("LocalDiskSize", METRIC_USED_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
+		metrics.add(constructCacheMetric("TotalEntries", METRIC_USED_TOTAL_SIZE_COUNT, Metric.Unit.Count));
+		metrics.add(constructCacheMetric("LocalHeapSize", METRIC_USED_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
 
 		// Cache Ratio metrics
 		RatioMetric cacheHitRatio = constructRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
@@ -199,8 +200,18 @@ public class MetricUtil {
 		return constructCacheMetric(attribute, unit, null, null);
 	}
 
+	private Metric constructCacheMetric(String prefix, String attribute, Metric.Unit unit) {
+		return constructCacheMetric(prefix, attribute, unit, null, null);
+	}
+
 	private Metric constructCacheMetric(String attribute, Metric.Unit unit, Metric.Type type, Metric.RatioType ratioType) {
 		return new Metric(attribute, "$[?].attributes." + attribute, toMetricPath(ehcache, attribute),
+				Metric.Source.cache, unit, type, ratioType);
+	}
+
+	private Metric constructCacheMetric(String prefix, String attribute, Metric.Unit unit, Metric.Type type,
+	                                    Metric.RatioType ratioType) {
+		return new Metric(attribute, "$[?].attributes." + attribute, toMetricPath(ehcache, prefix, attribute),
 				Metric.Source.cache, unit, type, ratioType);
 	}
 

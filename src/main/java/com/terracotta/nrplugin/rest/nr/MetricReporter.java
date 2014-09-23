@@ -6,6 +6,7 @@ import com.terracotta.nrplugin.cache.MetricProvider;
 import com.terracotta.nrplugin.pojo.nr.Agent;
 import com.terracotta.nrplugin.pojo.nr.Component;
 import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
+import com.terracotta.nrplugin.rest.StateManager;
 import com.terracotta.nrplugin.util.MetricUtil;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
@@ -48,6 +49,9 @@ public class MetricReporter {
 
 	@Autowired
 	MetricProvider metricProvider;
+
+	@Autowired
+	StateManager stateManager;
 
 	@Value("${com.saggs.terracotta.nrplugin.nr.agent.licenseKey}")
 	String licenseKey;
@@ -99,33 +103,38 @@ public class MetricReporter {
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}", initialDelay = 5000)
 	public void reportMetrics() {
-		try {
-			NewRelicPayload newRelicPayload = metricProvider.assemblePayload();
-			log.info("Attempting to report stats to NewRelic...");
-			if (log.isDebugEnabled()) {
-				try {
-					log.debug("Payload: " + new ObjectMapper().writeValueAsString(newRelicPayload));
-				} catch (JsonProcessingException e) {
-					log.error("Error serializing payload.", e);
+		if (StateManager.TmcState.available.equals(stateManager.getTmcState())) {
+			try {
+				NewRelicPayload newRelicPayload = metricProvider.assemblePayload();
+				log.info("Attempting to report stats to NewRelic...");
+				if (log.isDebugEnabled()) {
+					try {
+						log.debug("Payload: " + new ObjectMapper().writeValueAsString(newRelicPayload));
+					} catch (JsonProcessingException e) {
+						log.error("Error serializing payload.", e);
+					}
 				}
-			}
 
-			String json = mapper.writeValueAsString(newRelicPayload);
-			HttpHost target = new HttpHost(nrHost, nrPort, nrScheme);
-			HttpPost httpPost = new HttpPost(nrPath);
-			httpPost.setEntity(new StringEntity(json));
-			httpPost.setHeader(X_LICENSE_KEY, licenseKey);
-			httpPost.setHeader(org.apache.http.HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-			httpPost.setHeader(org.apache.http.HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
-			CloseableHttpResponse response = httpClient.execute(target, httpPost);
-			log.info("New Relic Response code: " + response.getStatusLine().getStatusCode());
-			if (log.isDebugEnabled()) {
-				log.debug("Received response: " + EntityUtils.toString(response.getEntity()));
+				String json = mapper.writeValueAsString(newRelicPayload);
+				HttpHost target = new HttpHost(nrHost, nrPort, nrScheme);
+				HttpPost httpPost = new HttpPost(nrPath);
+				httpPost.setEntity(new StringEntity(json));
+				httpPost.setHeader(X_LICENSE_KEY, licenseKey);
+				httpPost.setHeader(org.apache.http.HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+				httpPost.setHeader(org.apache.http.HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+				CloseableHttpResponse response = httpClient.execute(target, httpPost);
+				log.info("New Relic Response code: " + response.getStatusLine().getStatusCode());
+				if (log.isDebugEnabled()) {
+					log.debug("Received response: " + EntityUtils.toString(response.getEntity()));
+				}
+				EntityUtils.consumeQuietly(response.getEntity());
+				log.info("Done reporting to NewRelic.");
+			} catch (Exception e) {
+				log.error("Error while attempting to publish stats to NewRelic.", e);
 			}
-			EntityUtils.consumeQuietly(response.getEntity());
-			log.info("Done reporting to NewRelic.");
-		} catch (Exception e) {
-			log.error("Error while attempting to publish stats to NewRelic.", e);
+		}
+		else {
+			log.info("TMC State is '" + stateManager.getTmcState() + "', so disabling NR publication.");
 		}
 	}
 

@@ -5,6 +5,7 @@ import com.terracotta.nrplugin.pojo.tmc.CacheStatistics;
 import com.terracotta.nrplugin.pojo.tmc.ClientStatistics;
 import com.terracotta.nrplugin.pojo.tmc.ServerStatistics;
 import com.terracotta.nrplugin.pojo.tmc.Topologies;
+import com.terracotta.nrplugin.rest.StateManager;
 import com.terracotta.nrplugin.util.MetricUtil;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -38,6 +39,9 @@ public class MetricFetcher extends BaseTmcClient {
 	@Autowired
 	MetricUtil metricUtil;
 
+	@Autowired
+	StateManager stateManager;
+
 	int numRelogAttempts = 0;
 
 	@Value("${com.saggs.terracotta.nrplugin.tmc.numRelogAttempts}")
@@ -63,11 +67,15 @@ public class MetricFetcher extends BaseTmcClient {
 		String url = tmcUrl + uriPath;
 		if (requestParams != null) {
 			url = buildUrl(url, requestParams);
+			log.debug("Executing HTTP GET to '" + url + "'");
 		}
 		Object payload = null;
 		try {
 			payload = getRestTemplate().getForObject(url, clazz);
+			log.debug("TMC Payload: " + payload);
+			stateManager.setTmcState(StateManager.TmcState.available);
 		} catch (HttpClientErrorException e ) {
+			stateManager.setTmcState(StateManager.TmcState.unavailable);
 			if (org.springframework.http.HttpStatus.FORBIDDEN == e.getStatusCode()) {
 				log.info("Received response code " + e.getStatusCode() + " for url '" + url + "'.");
 				resetRestTemplate();
@@ -121,7 +129,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public String buildUrl(String url, List<NameValuePair> params) throws URISyntaxException {
-		HttpUriRequest request = RequestBuilder.post()
+		HttpUriRequest request = RequestBuilder.get()
 				.setUri(new URI(url))
 				.addParameters(params.toArray(new NameValuePair[params.size()]))
 				.build();
