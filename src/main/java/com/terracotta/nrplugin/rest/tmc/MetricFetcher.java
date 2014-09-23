@@ -45,8 +45,8 @@ public class MetricFetcher extends BaseTmcClient {
 
 	@PostConstruct
 	private void init() throws Exception {
-		for (String cacheName : metricUtil.getCacheStatsNames()) {
-			cacheNames.add(new BasicNameValuePair(MetricUtil.PARAMETER_SHOW, cacheName));
+		for (String statName : metricUtil.getCacheStatsNames()) {
+			cacheNames.add(new BasicNameValuePair(MetricUtil.PARAMETER_SHOW, statName));
 		}
 	}
 
