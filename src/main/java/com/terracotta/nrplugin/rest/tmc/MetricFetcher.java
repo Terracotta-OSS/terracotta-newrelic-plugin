@@ -47,6 +47,12 @@ public class MetricFetcher extends BaseTmcClient {
 	@Value("${com.saggs.terracotta.nrplugin.tmc.numRelogAttempts}")
 	int maxRelogAttempts;
 
+	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.percentage}")
+	protected double agentSamplePercentage;
+
+	@Autowired
+	AgentService agentService;
+
 	@PostConstruct
 	private void init() throws Exception {
 		for (String statName : metricUtil.getCacheStatsNames()) {
@@ -113,11 +119,23 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public String getCacheStatisticsAsString() throws Exception {
-		return (String) doGet("/api/agents/cacheManagers/caches", String.class, cacheNames);
+		return (String) doGet(constructCacheManagersUrl(), String.class, cacheNames);
 	}
 
 	public List<CacheStatistics> getCacheStatistics() throws Exception {
-		return (List<CacheStatistics>) doGet("/api/agents/cacheManagers/caches", List.class, cacheNames);
+		return (List<CacheStatistics>) doGet(constructCacheManagersUrl(), List.class, cacheNames);
+	}
+
+	private String constructCacheManagersUrl() {
+		List<String> agentIds = agentService.findEhcacheAgentSample(agentSamplePercentage);
+		String baseUrl = "/api/agents;ids=";
+		for (int i = 0; i < agentIds.size(); i++) {
+			String agentId =  agentIds.get(i);
+			baseUrl += agentId;
+			if (i + 1 < agentIds.size()) baseUrl += ",";
+		}
+		baseUrl += "/cacheManagers/caches";
+		return baseUrl;
 	}
 
 	public List<Topologies> getTopologies() throws Exception {
@@ -127,6 +145,8 @@ public class MetricFetcher extends BaseTmcClient {
 	public String getTopologiesAsString() throws Exception {
 		return (String) doGet("/api/agents/topologies/", String.class);
 	}
+
+//	public
 
 	public String buildUrl(String url, List<NameValuePair> params) throws URISyntaxException {
 		HttpUriRequest request = RequestBuilder.get()

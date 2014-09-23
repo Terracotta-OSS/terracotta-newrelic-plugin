@@ -1,0 +1,54 @@
+[
+    {
+        "agentId": "LocalCluster",
+        "agencyOf": "TSA",
+        "available": true,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": true,
+        "sampleHistorySize": 0,
+        "sampleIntervalSeconds": 0,
+        "enabled": true,
+        "restAPIVersion": "4.0.6"
+    },
+    {
+        "agentId": "LocalCluster$tcvm_64915",
+        "agencyOf": "Ehcache",
+        "available": true,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": true,
+        "sampleHistorySize": 30,
+        "sampleIntervalSeconds": 1,
+        "enabled": true,
+        "restAPIVersion": "2.7.6"
+    },
+    {
+        "agentId": "LocalConnectionGroup_LocalConnection",
+        "agencyOf": null,
+        "available": false,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": false,
+        "sampleHistorySize": 0,
+        "sampleIntervalSeconds": 0,
+        "enabled": false,
+        "restAPIVersion": null
+    },
+    {
+        "agentId": "LocalCluster$tcvm_63879",
+        "agencyOf": "Ehcache",
+        "available": true,
+        "secured": false,
+        "sslEnabled": false,
+        "needClientAuth": false,
+        "licensed": true,
+        "sampleHistorySize": 30,
+        "sampleIntervalSeconds": 1,
+        "enabled": true,
+        "restAPIVersion": "2.7.6"
+    }
+]

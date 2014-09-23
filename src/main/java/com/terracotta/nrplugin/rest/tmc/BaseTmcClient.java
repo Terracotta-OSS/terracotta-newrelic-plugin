@@ -1,5 +1,7 @@
 package com.terracotta.nrplugin.rest.tmc;
 
+import com.terracotta.nrplugin.rest.interceptors.GzipRequestInterceptor;
+import com.terracotta.nrplugin.rest.interceptors.GzipResponseInterceptor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -53,6 +55,8 @@ public class BaseTmcClient {
 					.setDefaultCookieStore(cookieStore)
 					.setRedirectStrategy(new LaxRedirectStrategy())
 					.setHostnameVerifier(new AllowAllHostnameVerifier())
+					.addInterceptorFirst(new GzipRequestInterceptor())
+					.addInterceptorFirst(new GzipResponseInterceptor())
 					.build();
 
 			if (tmcAuthenticationEnabled) {
