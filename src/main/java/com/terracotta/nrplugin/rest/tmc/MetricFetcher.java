@@ -7,6 +7,7 @@ import com.terracotta.nrplugin.pojo.tmc.ServerStatistics;
 import com.terracotta.nrplugin.pojo.tmc.Topologies;
 import com.terracotta.nrplugin.rest.StateManager;
 import com.terracotta.nrplugin.util.MetricUtil;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -19,10 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -50,8 +48,8 @@ public class MetricFetcher extends BaseTmcClient {
 	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.percentage}")
 	protected double agentSamplePercentage;
 
-	@Autowired
-	AgentService agentService;
+//	@Autowired
+//	AgentService agentService;
 
 	@PostConstruct
 	private void init() throws Exception {
@@ -127,7 +125,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	private String constructCacheManagersUrl() {
-		List<String> agentIds = agentService.findEhcacheAgentSample(agentSamplePercentage);
+		List<String> agentIds = findEhcacheAgentSample(agentSamplePercentage);
 		String baseUrl = "/api/agents;ids=";
 		for (int i = 0; i < agentIds.size(); i++) {
 			String agentId =  agentIds.get(i);
@@ -146,7 +144,36 @@ public class MetricFetcher extends BaseTmcClient {
 		return (String) doGet("/api/agents/topologies/", String.class);
 	}
 
-//	public
+	public List<String> findEhcacheAgentSample(double percentage) {
+		if (percentage < 0 || percentage > 1) throw new IllegalArgumentException("percentage must be between 0 and 1");
+		Set<String> agentsSample = new HashSet<String>();
+		List<String> allAgents = findAllEhcacheAgents();
+		int sampleSize = (int) (allAgents.size() * percentage);
+		for (int i = 0; i < sampleSize; i++) {
+			String sample;
+			do {
+				sample = allAgents.get(RandomUtils.nextInt(allAgents.size() - 1));
+			}
+			while (agentsSample.contains(sample));
+			agentsSample.add(sample);
+		}
+		return new ArrayList<String>(agentsSample);
+	}
+
+	public List<String> findAllEhcacheAgents() {
+		List<String> agents = new ArrayList<String>();
+		try {
+			List<Map<String, Object>> payload = getRestTemplate().getForObject(tmcUrl + "/api/agents/info", List.class);
+			for (Map<String, Object> map : payload) {
+				if ("Ehcache".equals(map.get("agencyOf"))) {
+					agents.add((String) map.get("agentId"));
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error: ", e);
+		}
+		return agents;
+	}
 
 	public String buildUrl(String url, List<NameValuePair> params) throws URISyntaxException {
 		HttpUriRequest request = RequestBuilder.get()

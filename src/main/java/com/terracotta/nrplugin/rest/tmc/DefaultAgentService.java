@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Created by Jeff on 9/23/2014.
  */
-@Service
+//@Service
 public class DefaultAgentService extends BaseAgentService {
 
 	final Logger log = LoggerFactory.getLogger(this.getClass());
