@@ -23,14 +23,6 @@ public class RatioMetric extends Metric {
         super();
     }
 
-    public RatioMetric(String metricName, String reportedPath, Source source, Unit unit,
-                       RatioMetric pair, String numeratorCount, String denominatorCount) {
-        super(metricName, null, reportedPath, source, unit, Type.ratio, null);
-        this.pair = pair;
-        this.numeratorCount = numeratorCount;
-        this.denominatorCount = denominatorCount;
-    }
-
     public boolean isHitRatio() {
         return StringUtils.containsIgnoreCase(numeratorCount, "hit");
     }

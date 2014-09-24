@@ -2,6 +2,7 @@ package com.terracotta.nrplugin.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.terracotta.nrplugin.pojo.Metric;
+import com.terracotta.nrplugin.pojo.MetricBuilder;
 import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.RatioMetric;
 import org.slf4j.Logger;
@@ -66,13 +67,13 @@ public class MetricUtil {
 
 	//used counts
 	public static final String METRIC_USED_LOCAL_HEAP_SIZE_COUNT = "LocalHeapSize";
+	public static final String METRIC_USED_LOCAL_HEAP_SIZE_BYTES = "LocalHeapSizeInBytes";
 	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT = "LocalOffHeapSize";
 	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES = "LocalOffHeapSizeInBytes";
 	public static final String METRIC_USED_LOCAL_DISK_SIZE_COUNT = "LocalDiskSize";
 	public static final String METRIC_USED_LOCAL_DISK_SIZE_BYTES = "LocalDiskSizeInBytes";
 	public static final String METRIC_USED_TOTAL_SIZE_COUNT = "Size";
 	public static final String METRIC_ENABLED = "Enabled";
-
 	// Cache ratio metrics
 	public static final String METRIC_CACHE_HIT_RATIO = "CacheHitRatio";
 	public static final String METRIC_ON_DISK_HIT_RATIO = "OnDiskHitRatio";
@@ -89,7 +90,6 @@ public class MetricUtil {
 
 	// NewRelic constants
 
-	public static final String NEW_RELIC_PATH_SEPARATOR = "/";
 	public static final String NEW_RELIC_MIN = "min";
 	public static final String NEW_RELIC_MAX = "max";
 	public static final String NEW_RELIC_TOTAL = "total";
@@ -100,10 +100,17 @@ public class MetricUtil {
 	final List<Metric> metrics = new ArrayList<Metric>();
 
 	// Base paths
-	String tc = toMetricPath("Component", "Terracotta");
-	final String servers = toMetricPath(tc, "Servers");
-	final String clients = toMetricPath(tc, "Clients");
-	final String ehcache = toMetricPath(tc, "Ehcache");
+	final String cm = "Component";
+	final String tc = "Terracotta";
+	final String srv = "Servers";
+	final String clnt = "Clients";
+	final String eh = "Ehcache";
+	final String data = "Data";
+	final String off = "OffHeap";
+	final String obj = "Objects";
+	final String rates = "Rates";
+	final String bytes = "Bytes";
+
 //    final Map<String, String> varReplaceMap = ImmutableMap.of(
 //            CACHE_STATS_VARIABLE_CACHE_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_NAME_VALUE,
 //            CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_KEY, CACHE_STATS_VARIABLE_CACHE_MANAGER_NAME_VALUE
@@ -112,13 +119,13 @@ public class MetricUtil {
 	@PostConstruct
 	private void init() {
 		// Server metrics
-		metrics.add(constructServerMetric(METRIC_LIVE_OBJECT_COUNT, toMetricPath(servers, "Data", "Objects", METRIC_LIVE_OBJECT_COUNT), Metric.Unit.Count));
-		metrics.add(constructServerMetric(METRIC_WRITE_OPERATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_WRITE_OPERATION_RATE), Metric.Unit.Rate));
-		metrics.add(constructServerMetric(METRIC_READ_OPERATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_READ_OPERATION_RATE), Metric.Unit.Rate));
-		metrics.add(constructServerMetric(METRIC_EVICTION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_EVICTION_RATE), Metric.Unit.Rate));
-		metrics.add(constructServerMetric(METRIC_EXPIRATION_RATE, toMetricPath(servers, "Data", "Rates", METRIC_EXPIRATION_RATE), Metric.Unit.Rate));
-		metrics.add(constructServerMetric(METRIC_OFFHEAP_USED_SIZE, toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_USED_SIZE), Metric.Unit.Bytes));
-		metrics.add(constructServerMetric(METRIC_OFFHEAP_MAX_SIZE, toMetricPath(servers, "OffHeap", "Bytes", METRIC_OFFHEAP_MAX_SIZE), Metric.Unit.Bytes));
+		addServerMetric(METRIC_LIVE_OBJECT_COUNT, Metric.Unit.Count, data, obj);
+		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Count,data, rates);
+		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Count, off, bytes);
+		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Count, off, bytes);
 
 		// Client metrics
 //        metrics.add(new Metric("$[?].statistics." + METRIC_READ_RATE,
@@ -127,98 +134,120 @@ public class MetricUtil {
 //                toMetricPath(clients, METRIC_WRITE_RATE), Metric.Source.client, Metric.Unit.Rate));
 
 		// Cache metrics
-		metrics.add(constructCacheMetric(METRIC_EVICTED_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_EXPIRED_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_CACHE_ON_DISK_HIT_RATE, Metric.Unit.Rate));
-		metrics.add(constructCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate));
-		metrics.add(constructCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate));
-		metrics.add(constructCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate));
-		metrics.add(constructCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.hit));
-		metrics.add(constructCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, Metric.Type.regular, Metric.RatioType.miss));
-		metrics.add(constructCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count));
+		addCacheMetric(METRIC_LIVE_OBJECT_COUNT, Metric.Unit.Count);
+		addCacheMetric(METRIC_EXPIRED_COUNT, Metric.Unit.Count);
+		addCacheMetric(METRIC_CACHE_ON_DISK_HIT_RATE, Metric.Unit.Rate);
+		addCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate);
+		addCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate);
+		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate);
+		addCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, Metric.RatioType.hit);
+		addCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, Metric.RatioType.hit);
+		addCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, Metric.RatioType.hit);
+		addCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, Metric.RatioType.hit);
+		addCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, Metric.RatioType.miss);
+		addCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, Metric.RatioType.miss);
+		addCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, Metric.RatioType.miss);
+		addCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, Metric.RatioType.miss);
+		addCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count);
+		addCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count);
 
-		metrics.add(constructCacheMetric("LocalHeapEntries", METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalOffHeapSize", METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric("LocalDiskEntries", METRIC_MAX_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalDiskSize", METRIC_MAX_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric("TotalEntries", METRIC_MAX_TOTAL_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalHeapSize",METRIC_MAX_LOCAL_HEAP_SIZE_BYTES, Metric.Unit.Count));
+		addCacheMetric(METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalHeapEntries"));
+		addCacheMetric(METRIC_USED_LOCAL_HEAP_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("LocalHeapEntries"));
+		addCacheMetric(METRIC_MAX_LOCAL_HEAP_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalHeapSize"));
+		addCacheMetric(METRIC_USED_LOCAL_HEAP_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalHeapSize"));
 
-		metrics.add(constructCacheMetric("LocalHeapEntries", METRIC_USED_LOCAL_HEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalOffHeapSize", METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalDiskEntries", METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric("LocalDiskSize", METRIC_USED_LOCAL_DISK_SIZE_BYTES, Metric.Unit.Bytes));
-		metrics.add(constructCacheMetric("TotalEntries", METRIC_USED_TOTAL_SIZE_COUNT, Metric.Unit.Count));
-		metrics.add(constructCacheMetric("LocalHeapSize", METRIC_USED_LOCAL_DISK_SIZE_COUNT, Metric.Unit.Count));
+		addCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalOffHeapEntries"));
+		addCacheMetric(METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalOffHeapSize"));
+		addCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("LocalOffHeapSize"));
+
+		addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalDiskEntries"));
+		addCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalDiskEntries"));
+		addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
+		addCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
+
+		addCacheMetric(METRIC_MAX_TOTAL_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("TotalEntries"));
+		addCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("TotalEntries"));
 
 		// Cache Ratio metrics
-		RatioMetric cacheHitRatio = constructRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
-		RatioMetric onDiskHitRatio = constructRatioMetric(METRIC_ON_DISK_HIT_RATIO, null, METRIC_ON_DISK_HIT_COUNT, METRIC_ON_DISK_MISS_COUNT);
-		RatioMetric inMemoryHitRatio = constructRatioMetric(METRIC_IN_MEMORY_HIT_RATIO, null, METRIC_IN_MEMORY_HIT_COUNT, METRIC_IN_MEMORY_MISS_COUNT);
-		RatioMetric offHeapHitRatio = constructRatioMetric(METRIC_OFF_HEAP_HIT_RATIO, null, METRIC_OFF_HEAP_HIT_COUNT, METRIC_OFF_HEAP_MISS_COUNT);
-		RatioMetric cacheMissRatio = constructRatioMetric(METRIC_CACHE_MISS_RATIO, cacheHitRatio, METRIC_CACHE_MISS_COUNT, METRIC_CACHE_HIT_COUNT);
-		RatioMetric onDiskMissRatio = constructRatioMetric(METRIC_ON_DISK_MISS_RATIO, onDiskHitRatio, METRIC_ON_DISK_MISS_COUNT, METRIC_ON_DISK_HIT_COUNT);
-		RatioMetric inMemoryMissRatio = constructRatioMetric(METRIC_IN_MEMORY_MISS_RATIO, inMemoryHitRatio, METRIC_IN_MEMORY_MISS_COUNT, METRIC_IN_MEMORY_HIT_COUNT);
-		RatioMetric offHeapMissRatio = constructRatioMetric(METRIC_OFF_HEAP_MISS_RATIO, offHeapHitRatio, METRIC_OFF_HEAP_MISS_COUNT, METRIC_OFF_HEAP_HIT_COUNT);
+		RatioMetric cacheHitRatio = addRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
+		RatioMetric onDiskHitRatio = addRatioMetric(METRIC_ON_DISK_HIT_RATIO, null, METRIC_ON_DISK_HIT_COUNT, METRIC_ON_DISK_MISS_COUNT);
+		RatioMetric inMemoryHitRatio = addRatioMetric(METRIC_IN_MEMORY_HIT_RATIO, null, METRIC_IN_MEMORY_HIT_COUNT, METRIC_IN_MEMORY_MISS_COUNT);
+		RatioMetric offHeapHitRatio = addRatioMetric(METRIC_OFF_HEAP_HIT_RATIO, null, METRIC_OFF_HEAP_HIT_COUNT, METRIC_OFF_HEAP_MISS_COUNT);
+		RatioMetric cacheMissRatio = addRatioMetric(METRIC_CACHE_MISS_RATIO, cacheHitRatio, METRIC_CACHE_MISS_COUNT, METRIC_CACHE_HIT_COUNT);
+		RatioMetric onDiskMissRatio = addRatioMetric(METRIC_ON_DISK_MISS_RATIO, onDiskHitRatio, METRIC_ON_DISK_MISS_COUNT, METRIC_ON_DISK_HIT_COUNT);
+		RatioMetric inMemoryMissRatio = addRatioMetric(METRIC_IN_MEMORY_MISS_RATIO, inMemoryHitRatio, METRIC_IN_MEMORY_MISS_COUNT, METRIC_IN_MEMORY_HIT_COUNT);
+		RatioMetric offHeapMissRatio = addRatioMetric(METRIC_OFF_HEAP_MISS_RATIO, offHeapHitRatio, METRIC_OFF_HEAP_MISS_COUNT, METRIC_OFF_HEAP_HIT_COUNT);
+
 		cacheHitRatio.setPair(cacheMissRatio);
 		onDiskHitRatio.setPair(onDiskMissRatio);
 		inMemoryHitRatio.setPair(inMemoryMissRatio);
 		offHeapHitRatio.setPair(offHeapMissRatio);
-		metrics.addAll(Arrays.asList(cacheHitRatio, onDiskHitRatio, inMemoryHitRatio, offHeapHitRatio,
-				cacheMissRatio, onDiskMissRatio, inMemoryMissRatio, offHeapMissRatio));
-
-		// Topologies metrics
-//        metrics.add(new Metric(METRIC_NUM_CONNECTED_CLIENTS, "$.clientEntities", toMetricPath(
-//		        clients, METRIC_NUM_CONNECTED_CLIENTS), Metric.Source.topologies, Metric.Unit.Count));
 
 		// Special Metrics
-		metrics.add(new Metric(METRIC_NUM_CONNECTED_CLIENTS, null, toMetricPath(servers, METRIC_NUM_CONNECTED_CLIENTS),
-				Metric.Source.topologies, Metric.Unit.Count, Metric.Type.special, 1));
-		metrics.add(new Metric(METRIC_SERVER_STATE, null, toMetricPath(servers, METRIC_SERVER_STATE),
-				Metric.Source.topologies, Metric.Unit.Count, Metric.Type.special, 1));
+		addMetric(METRIC_NUM_CONNECTED_CLIENTS, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+				Arrays.asList(srv), null, 1);
+		addMetric(METRIC_SERVER_STATE, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+				Arrays.asList(srv), null, 1);
 
 		// Populate cache stat names list
 		for (Metric metric : metrics) {
 			if (Metric.Source.cache.equals(metric.getSource())) {
-				cacheStatsNames.add(metric.getName());
+				cacheStatsNames.add(metric.getMetricName());
 			}
 		}
 	}
 
-	private Metric constructServerMetric(String attribute, String reportedPath, Metric.Unit unit) {
-		return new Metric(attribute, "$[?].statistics." + attribute, reportedPath, Metric.Source.server, unit);
+	private void addServerMetric(String name, Metric.Unit unit, String... suffix) {
+		List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, srv));
+		reportingPathComponents.addAll(Arrays.asList(suffix));
+		addMetric(name, null, null, Metric.Source.server, unit, reportingPathComponents, null, null);
 	}
 
-	private Metric constructCacheMetric(String attribute, Metric.Unit unit) {
-		return constructCacheMetric(attribute, unit, null, null);
+	private void addCacheMetric(String name, Metric.Unit unit) {
+		addCacheMetric(name, null, null, unit, null, null);
 	}
 
-	private Metric constructCacheMetric(String prefix, String attribute, Metric.Unit unit) {
-		return constructCacheMetric(prefix, attribute, unit, null, null);
+	private void addCacheMetric(String name, Metric.Unit unit, Metric.RatioType ratioType) {
+		addCacheMetric(name, null, null, unit, null, ratioType);
 	}
 
-	private Metric constructCacheMetric(String attribute, Metric.Unit unit, Metric.Type type, Metric.RatioType ratioType) {
-		return new Metric(attribute, "$[?].attributes." + attribute, toMetricPath(ehcache, attribute),
-				Metric.Source.cache, unit, type, ratioType);
+	private void addCacheMetric(String name, String displayName, Metric.Unit unit, List<String> suffix) {
+		addCacheMetric(name, displayName, null, unit, suffix, null);
 	}
 
-	private Metric constructCacheMetric(String prefix, String attribute, Metric.Unit unit, Metric.Type type,
-	                                    Metric.RatioType ratioType) {
-		return new Metric(attribute, "$[?].attributes." + attribute, toMetricPath(ehcache, prefix, attribute),
-				Metric.Source.cache, unit, type, ratioType);
+	private void addCacheMetric(String name, String displayName, Metric.Type type, Metric.Unit unit, List<String> suffix,
+	                            Metric.RatioType ratioType) {
+		List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, eh));
+		reportingPathComponents.addAll(suffix);
+		addMetric(name, displayName, type, Metric.Source.cache, unit, reportingPathComponents, ratioType, null);
 	}
 
-	private RatioMetric constructRatioMetric(String attribute, RatioMetric pair, String numeratorCount,
-	                                         String denominatorCount) {
-        return new RatioMetric(attribute, toMetricPath(ehcache, attribute), Metric.Source.cache, Metric.Unit.Percent,
-                pair, numeratorCount, denominatorCount);
+	private void addMetric(String name, String displayName, Metric.Type type, Metric.Source source, Metric.Unit unit,
+	                       List<String> reportingPathComponents, Metric.RatioType ratioType, Integer maxWindowSize) {
+		Metric metric = MetricBuilder.create(name).
+				setDisplayName(displayName).
+				setSource(source).
+				setUnit(unit).
+				setType(type).
+				setRatioType(ratioType).
+				setMaxWindowSize(maxWindowSize).
+				addReportingPath(reportingPathComponents).
+				build();
+		metrics.add(metric);
+	}
+
+	private RatioMetric addRatioMetric(String name, RatioMetric pair, String numeratorCount, String denominatorCount) {
+		RatioMetric metric = (RatioMetric) MetricBuilder.create(name).
+				setType(Metric.Type.ratio).
+				setSource(Metric.Source.cache).
+				setUnit(Metric.Unit.Percent).
+				setPair(pair).
+				setNumeratorCount(numeratorCount).
+				setDenominatorCount(denominatorCount).
+				addReportingPath(new ArrayList<String>(Arrays.asList(cm, tc, eh))).
+				build();
+		metrics.add(metric);
+		return metric;
 	}
 
 	public List<Metric> getMetrics() {
@@ -276,15 +305,6 @@ public class MetricUtil {
 		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(metricDataset.getReportingPath(), values);
 	}
 
-	public String toMetricPath(String... values) {
-		String path = "";
-		Iterator<String> i = Arrays.asList(values).iterator();
-		while (i.hasNext()) {
-			path += i.next();
-			if (i.hasNext()) path += NEW_RELIC_PATH_SEPARATOR;
-		}
-		return path;
-	}
 
 	public int toStateCode(String stateString) {
 		if (stateString.startsWith("ACTIVE")) return 0;

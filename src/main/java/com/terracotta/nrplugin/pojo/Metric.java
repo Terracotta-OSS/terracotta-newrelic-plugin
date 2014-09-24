@@ -29,59 +29,22 @@ public class Metric implements Serializable {
 	public Metric() {
 	}
 
-	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit) {
-		this();
-		if (reportedPath == null) throw new IllegalArgumentException("reportedPath cannot be null.");
-		this.dataPath = dataPath;
-		this.metricName = metricName;
-		this.reportedPath = reportedPath;
-		this.source = source;
-		this.unit = unit;
-		this.type = Type.regular;
-	}
 
-//	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit) {
-//		this(metricName, dataPath, reportedPath, source, unit);
-//	}
-
-	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, Type type, int maxWindowSize) {
-		this(metricName, dataPath, reportedPath, source, unit);
-		if (type == null) this.type = Type.regular;
-		else this.type = type;
-		this.maxWindowSize = maxWindowSize;
-	}
-
-//	public Metric(String metricName, String dataPath, String reportedPath, Source source, Unit unit, int maxWindowSize) {
-//		this(metricName, dataPath, reportedPath, source, unit);
-//		this.maxWindowSize = maxWindowSize;
-//	}
-
-	public Metric(String metricName, String dataPath, String reportedPath, Source source,
-	              Unit unit, Type type, RatioType ratioType) {
-		this(metricName, dataPath, reportedPath, source, unit, type, MetricDataset.WINDOW_SIZE_DEFAULT);
-		this.ratioType = ratioType;
-	}
-
-//	public Metric(String metricName, String dataPath, String reportedPath, Source source,
-//	              Unit unit, RatioType ratioType, int maxWindowSize) {
-//		this(metricName, dataPath, reportedPath, source, unit, ratioType);
-//		this.maxWindowSize = maxWindowSize;
-//	}
 
     public String getMetricName() {
         return metricName;
     }
 
-    public String getName() {
-        String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
-		return split.length > 0 ? split[split.length - 1] : null;
-	}
+//    public String getName() {
+//        String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
+//		return split.length > 0 ? split[split.length - 1] : null;
+//	}
 
 	public String getBaseReportedPath() {
 //        List<String> split = Arrays.asList(reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR));
-		String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
+		String[] split = reportedPath.split(MetricBuilder.NEW_RELIC_PATH_SEPARATOR);
 		String[] spliced = Arrays.copyOf(split, split.length - 1);
-		return StringUtils.join(spliced, MetricUtil.NEW_RELIC_PATH_SEPARATOR);
+		return StringUtils.join(spliced, MetricBuilder.NEW_RELIC_PATH_SEPARATOR);
 	}
 
 	public String getDataPath() {
@@ -170,7 +133,7 @@ public class Metric implements Serializable {
     public String toString() {
         return "Metric{" +
                 "metricName='" + metricName + '\'' +
-                ", reportedPath='" + reportedPath + '\'' +
+                ", reportingPath='" + reportedPath + '\'' +
                 ", dataPath='" + dataPath + '\'' +
                 ", source=" + source +
                 ", unit=" + unit +

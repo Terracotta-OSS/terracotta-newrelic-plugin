@@ -111,7 +111,7 @@ public class MetricCacher {
 		// Handle special metrics
 		for (Metric metric : metricUtil.getSpecialMetrics()) {
 			JSONArray objects = jsonObjects.get(metric.getSource());
-			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
+			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getMetricName())) {
 				JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities");
 				JSONArray array = (JSONArray) clientEntities.get(0);
 				for (String serverName : serverNames) {
@@ -119,7 +119,7 @@ public class MetricCacher {
 					putValue(metricDataset, array.size());
 				}
 			}
-			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getName())) {
+			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getMetricName())) {
 				for (String serverName : serverNames) {
 					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
 					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
