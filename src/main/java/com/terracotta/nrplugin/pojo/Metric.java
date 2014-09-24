@@ -5,9 +5,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -71,8 +68,12 @@ public class Metric implements Serializable {
 //		this.maxWindowSize = maxWindowSize;
 //	}
 
-	public String getName() {
-		String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
+    public String getMetricName() {
+        return metricName;
+    }
+
+    public String getName() {
+        String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
 		return split.length > 0 ? split[split.length - 1] : null;
 	}
 
@@ -164,4 +165,18 @@ public class Metric implements Serializable {
 			return m_name;
 		}
 	}
+
+    @Override
+    public String toString() {
+        return "Metric{" +
+                "metricName='" + metricName + '\'' +
+                ", reportedPath='" + reportedPath + '\'' +
+                ", dataPath='" + dataPath + '\'' +
+                ", source=" + source +
+                ", unit=" + unit +
+                ", type=" + type +
+                ", ratioType=" + ratioType +
+                ", maxWindowSize=" + maxWindowSize +
+                '}';
+    }
 }
