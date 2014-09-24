@@ -148,15 +148,18 @@ public class MetricFetcher extends BaseTmcClient {
 		if (percentage < 0 || percentage > 1) throw new IllegalArgumentException("percentage must be between 0 and 1");
 		Set<String> agentsSample = new HashSet<String>();
 		List<String> allAgents = findAllEhcacheAgents();
-		int sampleSize = (int) (allAgents.size() * percentage);
-		for (int i = 0; i < sampleSize; i++) {
-			String sample;
-			do {
-				sample = allAgents.get(RandomUtils.nextInt(allAgents.size() - 1));
-			}
-			while (agentsSample.contains(sample));
-			agentsSample.add(sample);
-		}
+        if (allAgents.size() > 0) {
+            int sampleSize = (int) (allAgents.size() * percentage);
+            for (int i = 0; i < sampleSize; i++) {
+                String sample;
+                do {
+                    sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
+                }
+                while (agentsSample.contains(sample));
+                agentsSample.add(sample);
+            }
+        }
+
 		return new ArrayList<String>(agentsSample);
 	}
 
