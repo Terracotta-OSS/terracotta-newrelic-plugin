@@ -1,6 +1,7 @@
 package com.terracotta.nrplugin.cache;
 
 import com.terracotta.nrplugin.pojo.Metric;
+import com.terracotta.nrplugin.pojo.MetricBuilder;
 import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.nr.Agent;
 import com.terracotta.nrplugin.pojo.nr.Component;
@@ -27,8 +28,12 @@ public class MockMetricProvider implements MetricProvider {
 	@Override
 	public NewRelicPayload assemblePayload() throws Exception {
 		String metricName = "FakeMetricName";
-		MetricDataset m1 = new MetricDataset(new Metric(metricName, "fakeDataPath", "Component/MockTerracotta",
-				Metric.Source.cache, Metric.Unit.Bytes), "componentname");
+		Metric metric = MetricBuilder.create(metricName).
+				addReportingPath(Arrays.asList("", "")).
+				setSource(Metric.Source.cache).
+				setUnit(Metric.Unit.Bytes).
+				build();
+		MetricDataset m1 = new MetricDataset(metric, "componentname");
 		m1.addValue(100);
 		m1.addValue(50);
 		m1.addValue(300);

@@ -1,10 +1,10 @@
 package com.terracotta.nrplugin.pojo;
 
 import com.terracotta.nrplugin.util.MetricUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,34 +17,39 @@ public class Metric implements Serializable {
 
 	private static final long serialVersionUID = -1055398640926238446L;
 
-	String metricName;
-	String reportedPath;
+	String name;
+	String displayName;
+//	String reportingPath;
+	List<String> reportingComponents;
 	String dataPath;
 	Source source;
 	Unit unit;
 	Type type;
 	RatioType ratioType;
-	int maxWindowSize = MetricDataset.WINDOW_SIZE_DEFAULT;
+	Integer maxWindowSize;
+	boolean diff;
+	boolean createDiff;
 
 	public Metric() {
 	}
 
-
-
-    public String getMetricName() {
-        return metricName;
+    public String getName() {
+        return name;
     }
 
 //    public String getName() {
-//        String[] split = reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
+//        String[] split = reportingPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
 //		return split.length > 0 ? split[split.length - 1] : null;
 //	}
 
-	public String getBaseReportedPath() {
-//        List<String> split = Arrays.asList(reportedPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR));
-		String[] split = reportedPath.split(MetricBuilder.NEW_RELIC_PATH_SEPARATOR);
-		String[] spliced = Arrays.copyOf(split, split.length - 1);
-		return StringUtils.join(spliced, MetricBuilder.NEW_RELIC_PATH_SEPARATOR);
+	public String getBaseReportingPath() {
+		String path = "";
+		Iterator<String> i = reportingComponents.iterator();
+		while (i.hasNext()) {
+			path += i.next();
+			if (i.hasNext()) path += MetricUtil.NEW_RELIC_PATH_SEPARATOR;
+		}
+		return path;
 	}
 
 	public String getDataPath() {
@@ -55,13 +60,17 @@ public class Metric implements Serializable {
 		this.dataPath = dataPath;
 	}
 
-	public String getReportedPath() {
-		return reportedPath;
+	public String getReportingPath() {
+		String path = getBaseReportingPath();
+		path += MetricUtil.NEW_RELIC_PATH_SEPARATOR + (diff ? "diff" : "absolute");
+		path += MetricUtil.NEW_RELIC_PATH_SEPARATOR + (displayName == null ? name : displayName);
+		path += "[" + unit.getName() + "]";
+		return path;
 	}
 
-	public void setReportedPath(String reportedPath) {
-		this.reportedPath = reportedPath;
-	}
+//	public void setReportingPath(String reportingPath) {
+//		this.reportingPath = reportingPath;
+//	}
 
 	public Source getSource() {
 		return source;
@@ -91,13 +100,49 @@ public class Metric implements Serializable {
 		return maxWindowSize;
 	}
 
-	public void setMaxWindowSize(int maxWindowSize) {
+	public void setMaxWindowSize(Integer maxWindowSize) {
 		this.maxWindowSize = maxWindowSize;
+	}
+
+	public boolean isDiff() {
+		return diff;
+	}
+
+	public void setDiff(boolean diff) {
+		this.diff = diff;
+	}
+
+	public boolean isCreateDiff() {
+		return createDiff;
+	}
+
+	public void setCreateDiff(boolean createDiff) {
+		this.createDiff = createDiff;
 	}
 
 	public RatioType getRatioType() {
 		if (ratioType == null) ratioType = RatioType.neither;
 		return ratioType;
+	}
+
+	public List<String> getReportingComponents() {
+		return reportingComponents;
+	}
+
+	public void setReportingComponents(List<String> reportingComponents) {
+		this.reportingComponents = reportingComponents;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
 	}
 
 	public void setRatioType(RatioType ratioType) {
@@ -132,8 +177,8 @@ public class Metric implements Serializable {
     @Override
     public String toString() {
         return "Metric{" +
-                "metricName='" + metricName + '\'' +
-                ", reportingPath='" + reportedPath + '\'' +
+                "name='" + name + '\'' +
+                ", reportingPath='" + getReportingPath() + '\'' +
                 ", dataPath='" + dataPath + '\'' +
                 ", source=" + source +
                 ", unit=" + unit +

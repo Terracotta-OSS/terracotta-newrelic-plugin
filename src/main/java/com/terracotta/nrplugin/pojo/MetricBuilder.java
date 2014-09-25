@@ -1,8 +1,6 @@
 package com.terracotta.nrplugin.pojo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,7 +8,7 @@ import java.util.List;
  */
 public class MetricBuilder {
 
-	String metricName;
+	String name;
 	String displayName;
 	String dataPath;
 	String reportingPath;
@@ -22,29 +20,34 @@ public class MetricBuilder {
 	Metric.Unit unit;
 	Metric.Type type;
 	Metric.RatioType ratioType;
-	Integer maxWindowSize = MetricDataset.WINDOW_SIZE_DEFAULT;
+	Integer maxWindowSize;
+	boolean diff = false;
+	boolean createDiff = false;
 
-	public static final String NEW_RELIC_PATH_SEPARATOR = "/";
-
-	public MetricBuilder(String metricName) {
-		this.metricName = metricName;
+	public MetricBuilder(String name) {
+		this.name = name;
 	}
 
 	public Metric build() {
 		Metric metric = Metric.Type.ratio == type ? new RatioMetric() : new Metric();
+		metric.setName(name);
 		if (dataPath == null) {
-			metric.setDataPath(toDataPath(this.metricName, this.source));
+			metric.setDataPath(toDataPath(this.name, this.source));
 		}
 		else {
 			metric.setDataPath(dataPath);
 		}
-		reportingComponents.add(displayName == null ? metricName : displayName);
-		metric.setReportedPath(toReportingPath());
+//		reportingComponents.add(diff ? "diff" : "absolute");
+//		reportingComponents.add(displayName == null ? name : displayName);
+//		metric.setReportingPath(toReportingPath());
+		metric.setReportingComponents(reportingComponents);
 		metric.setSource(source);
 		metric.setUnit(unit);
 		metric.setType(type == null ? Metric.Type.regular : type);
 		metric.setRatioType(ratioType);
-		metric.setMaxWindowSize(maxWindowSize);
+		metric.setMaxWindowSize(maxWindowSize == null ? MetricDataset.WINDOW_SIZE_DEFAULT : maxWindowSize);
+		metric.setDiff(diff);
+		metric.setCreateDiff(createDiff);
 
 		if (Metric.Type.ratio.equals(type)) {
 			((RatioMetric) metric).setNumeratorCount(numeratorCount);
@@ -55,16 +58,16 @@ public class MetricBuilder {
 		return metric;
 	}
 
-	public String toReportingPath() {
-		String path = "";
-		Iterator<String> i = reportingComponents.iterator();
-		while (i.hasNext()) {
-			path += i.next();
-			if (i.hasNext()) path += NEW_RELIC_PATH_SEPARATOR;
-		}
-		path += "[" + unit.getName() + "]";
-		return path;
-	}
+//	public String toReportingPath() {
+//		String path = "";
+//		Iterator<String> i = reportingComponents.iterator();
+//		while (i.hasNext()) {
+//			path += i.next();
+//			if (i.hasNext()) path += NEW_RELIC_PATH_SEPARATOR;
+//		}
+//		path += "[" + unit.getName() + "]";
+//		return path;
+//	}
 
 	private static String toDataPath(String metricName, Metric.Source source) {
 		String dataPath = null;
@@ -77,8 +80,8 @@ public class MetricBuilder {
 		return new MetricBuilder(metricName);
 	}
 
-	public String getMetricName() {
-		return metricName;
+	public String getName() {
+		return name;
 	}
 
 	public String getReportingPath() {
@@ -137,11 +140,11 @@ public class MetricBuilder {
 		return this;
 	}
 
-	public int getMaxWindowSize() {
+	public Integer getMaxWindowSize() {
 		return maxWindowSize;
 	}
 
-	public MetricBuilder setMaxWindowSize(int maxWindowSize) {
+	public MetricBuilder setMaxWindowSize(Integer maxWindowSize) {
 		this.maxWindowSize = maxWindowSize;
 		return this;
 	}
@@ -163,6 +166,21 @@ public class MetricBuilder {
 
 	public MetricBuilder setPair(RatioMetric pair) {
 		this.pair = pair;
+		return this;
+	}
+
+	public MetricBuilder setDiff(boolean diff) {
+		this.diff = diff;
+		return this;
+	}
+
+	public MetricBuilder setReportingComponents(List<String> reportingComponents) {
+		this.reportingComponents = reportingComponents;
+		return this;
+	}
+
+	public MetricBuilder setCreateDiff(boolean createDiff) {
+		this.createDiff = createDiff;
 		return this;
 	}
 

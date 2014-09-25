@@ -84,9 +84,7 @@ public class DefaultMetricProvider implements MetricProvider {
 				MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
 				Component component = componentMap.get(metricDataset.getComponentName());
 				if (component == null) {
-					double durationSeconds = durationMillis * 0.001;
-					component = new Component(componentPrefix + "_" + metricDataset.getComponentName(),
-							metricDataset.getComponentGuid(), (long) durationSeconds);
+					component = constructComponent(metricDataset);
 				}
 				Map.Entry entry = metricUtil.metricAsJson(metricDataset);
 				component.putMetric((String) entry.getKey(), entry.getValue());
@@ -94,9 +92,32 @@ public class DefaultMetricProvider implements MetricProvider {
 				numMetrics++;
 			}
 		}
+
+		// Get diff metrics
+		for (Object key : diffsCache.getKeys()) {
+			Element element = diffsCache.get((key));
+			if (element != null) {
+				MetricCacher.DiffEntry diffEntry = (MetricCacher.DiffEntry) element.getObjectValue();
+//				Map.Entry<String, Map<String, Number>> diff = (Map.Entry<String, Map<String,Number>>) element.getObjectValue();
+				String componentName = diffEntry.getMetricDataset().getComponentName();
+				Component component = componentMap.get(componentName);
+				if (component == null) {
+					component = constructComponent(diffEntry.getMetricDataset());
+				}
+				component.putMetric(diffEntry.getMetricDataset().getMetric().getReportingPath(), diffEntry.getDiffs());
+				componentMap.put(componentName, component);
+			}
+		}
+
 		payload.setAgent(new Agent(hostname, pid, version));
 		payload.setComponents(new ArrayList<Component>(componentMap.values()));
 		log.info("Returning " + numMetrics + " metric(s) from cache.");
 		return payload;
+	}
+
+	private Component constructComponent(MetricDataset metricDataset) {
+		double durationSeconds = durationMillis * 0.001;
+		return new Component(componentPrefix + "_" + metricDataset.getComponentName(),
+						metricDataset.getComponentGuid(), (long) durationSeconds);
 	}
 }

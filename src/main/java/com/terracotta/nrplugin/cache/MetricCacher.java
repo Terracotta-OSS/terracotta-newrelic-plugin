@@ -4,6 +4,7 @@ import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
 import com.terracotta.nrplugin.pojo.Metric;
+import com.terracotta.nrplugin.pojo.MetricBuilder;
 import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.RatioMetric;
 import com.terracotta.nrplugin.rest.tmc.MetricFetcher;
@@ -56,11 +57,11 @@ public class MetricCacher {
 	@Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
 	int windowSize;
 
-	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
-	String terracottaAgentGuid;
-
-	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
-	String ehcacheAgentGuid;
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
+//	String terracottaAgentGuid;
+//
+//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
+//	String ehcacheAgentGuid;
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
@@ -83,8 +84,8 @@ public class MetricCacher {
 					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("name").is(cacheName)));
 					MetricDataset metricDataset = getMetricDataset(metric, cacheName);
 					log.trace("Extracting values for " + metricDataset.getKey());
+					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValues(metricDataset, values);
-					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
 				}
 			}
 			else if (Metric.Source.server.equals(metric.getSource())) {
@@ -93,37 +94,30 @@ public class MetricCacher {
 					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("sourceId").is(serverName)));
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
 					log.trace("Extracting values for " + metricDataset.getKey());
+					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValues(metricDataset, values);
-					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
 				}
 			}
-//			else {
-//				for (Object o : objects) {
-//					MetricDataset metricDataset = getMetricDataset(metric, MetricDataset.SUMMARY_COMPONENT);
-//					log.trace("Extracting values for " + metricDataset.getKey());
-//					Object value = JsonPath.read(o, metricDataset.getMetric().getDataPath());
-//					putValue(metricDataset, value);
-//					putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
-//				}
-//			}
 		}
 
 		// Handle special metrics
 		for (Metric metric : metricUtil.getSpecialMetrics()) {
 			JSONArray objects = jsonObjects.get(metric.getSource());
-			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getMetricName())) {
+			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
 				JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities");
 				JSONArray array = (JSONArray) clientEntities.get(0);
 				for (String serverName : serverNames) {
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
+					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValue(metricDataset, array.size());
 				}
 			}
-			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getMetricName())) {
+			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getName())) {
 				for (String serverName : serverNames) {
 					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
 					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
+					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
 				}
 			}
@@ -148,11 +142,11 @@ public class MetricCacher {
 							MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
 							double numerator = metricDataset.getStatistics().getSum();
 							double denominator = (metricDataset.getStatistics().getSum() + denominatorDataset.getStatistics().getSum());
-                            double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
-                            MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
+							double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
+							MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
 //							ratioDataset.setActualVarReplaceMap(metricDataset.getActualVarReplaceMap());
+							if (ratioMetric.isCreateDiff()) putDiff(ratioDataset);
 							putValue(ratioDataset, ratio);
-							putDiff(lastDataSet.get(ratioDataset.getKey()), ratioDataset);
 							log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
 						}
 					}
@@ -217,15 +211,11 @@ public class MetricCacher {
 	}
 
 	public MetricDataset getMetricDataset(Metric metric, String componentName) {
-    Element element = statsCache.get(MetricDataset.getKey(metric, componentName));
-    if (element != null) return (MetricDataset) element.getObjectValue();
-    else {
-	    // Set componentGuid to ehcache if the source is client or cache, terracotta otherwise
-	    String componentGuid =
-			    Metric.Source.client.equals(metric.getSource()) || Metric.Source.cache.equals(metric.getSource()) ?
-			    ehcacheAgentGuid : terracottaAgentGuid;
-	    return new MetricDataset(metric, componentName, componentGuid, metric.getMaxWindowSize());
-    }
+		Element element = statsCache.get(MetricDataset.getKey(metric, componentName));
+		if (element != null) return (MetricDataset) element.getObjectValue();
+		else {
+			return new MetricDataset(metric, componentName, metric.getMaxWindowSize());
+		}
 	}
 
 	public void putMetricDataset(MetricDataset metricDataset) {
@@ -239,27 +229,79 @@ public class MetricCacher {
 		else return null;
 	}
 
-	private void putDiff(MetricDataset previous, MetricDataset latest) {
+	private void putDiff(MetricDataset latest) {
+		MetricDataset previous = lastDataSet.get(latest.getKey());
 		if (previous == null) {
 			log.debug("No previously cached data for metric " + latest.getKey());
 		}
 		else {
-			Map<String, Number> diffs = new HashMap<String, Number>();
-			diffs.put(MetricUtil.NEW_RELIC_MIN, latest.getStatistics().getMin() - previous.getStatistics().getMin());
-			diffs.put(MetricUtil.NEW_RELIC_MAX, latest.getStatistics().getMax() - previous.getStatistics().getMax());
-			diffs.put(MetricUtil.NEW_RELIC_TOTAL, latest.getStatistics().getSum() - previous.getStatistics().getSum());
-			diffs.put(MetricUtil.NEW_RELIC_COUNT, 1);
-			diffs.put(MetricUtil.NEW_RELIC_SUM_OF_SQUARES, latest.getStatistics().getSumsq() - previous.getStatistics().getSumsq());
+//			Map<String, Number> diffs = new HashMap<String, Number>();
+//			diffs.put(MetricUtil.NEW_RELIC_MIN, latest.getStatistics().getMin() - previous.getStatistics().getMin());
+//			diffs.put(MetricUtil.NEW_RELIC_MAX, latest.getStatistics().getMax() - previous.getStatistics().getMax());
+//			diffs.put(MetricUtil.NEW_RELIC_TOTAL, latest.getStatistics().getSum() - previous.getStatistics().getSum());
+//			diffs.put(MetricUtil.NEW_RELIC_COUNT, latest.getStatistics().getN() - previous.getStatistics().getN());
+//			diffs.put(MetricUtil.NEW_RELIC_SUM_OF_SQUARES, latest.getStatistics().getSumsq() - previous.getStatistics().getSumsq());
 
 			// Generate new key for diff rather than absolute
-			String newKey = new MetricDataset(latest.getMetric(), latest.getComponentName(), latest.getComponentGuid(),
-					MetricDataset.Type.diff).getKey();
-			log.trace("Putting " + newKey);
-			diffsCache.put(new Element(newKey, diffs));
+//			String newKey = new MetricDataset(latest.getMetric(), latest.getComponentName(), latest.getComponentGuid(),
+//					MetricDataset.Type.diff).getKey();
+
+			Metric diffMetric = MetricBuilder.create(latest.getMetric().getName()).
+					setReportingComponents(latest.getMetric().getReportingComponents()).
+					setSource(latest.getMetric().getSource()).
+					setUnit(latest.getMetric().getUnit()).
+					setType(latest.getMetric().getType()).
+					setDiff(true).
+					build();
+			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
+			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(diffMetric.getReportingPath(),
+					toDouble(latest.getStatistics().getMin() - previous.getStatistics().getMin()),
+					toDouble(latest.getStatistics().getMax() - previous.getStatistics().getMax()),
+					toDouble(latest.getStatistics().getSum() - previous.getStatistics().getSum()),
+					latest.getStatistics().getN() - previous.getStatistics().getN(),
+					toDouble(latest.getStatistics().getSumsq() - previous.getStatistics().getSumsq()));
+
+			String diffKey = diffDataSet.getKey();
+			log.trace("Putting " + diffKey);
+			diffsCache.put(new Element(diffKey, new DiffEntry(diffDataSet, diff.getValue())));
 		}
 
 		// Update lastDataSet after done
 		lastDataSet.put(latest.getKey(), latest);
 	}
 
+	private double toDouble(double value) {
+		if (Double.isNaN(value)) return 0;
+		else return value;
+	}
+
+	public class DiffEntry {
+
+		MetricDataset metricDataset;
+		Map<String, Number> diffs;
+
+		public DiffEntry() {
+		}
+
+		public DiffEntry(MetricDataset metricDataset, Map<String, Number> diffs) {
+			this.metricDataset = metricDataset;
+			this.diffs = diffs;
+		}
+
+		public Map<String, Number> getDiffs() {
+			return diffs;
+		}
+
+		public void setDiffs(Map<String, Number> diffs) {
+			this.diffs = diffs;
+		}
+
+		public MetricDataset getMetricDataset() {
+			return metricDataset;
+		}
+
+		public void setMetricDataset(MetricDataset metricDataset) {
+			this.metricDataset = metricDataset;
+		}
+	}
 }
