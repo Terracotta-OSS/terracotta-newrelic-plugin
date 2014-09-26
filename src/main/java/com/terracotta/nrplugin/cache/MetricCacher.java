@@ -3,10 +3,7 @@ package com.terracotta.nrplugin.cache;
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
-import com.terracotta.nrplugin.pojo.Metric;
-import com.terracotta.nrplugin.pojo.MetricBuilder;
-import com.terracotta.nrplugin.pojo.MetricDataset;
-import com.terracotta.nrplugin.pojo.RatioMetric;
+import com.terracotta.nrplugin.pojo.*;
 import com.terracotta.nrplugin.rest.tmc.MetricFetcher;
 import com.terracotta.nrplugin.util.MetricUtil;
 import net.minidev.json.JSONArray;
@@ -16,6 +13,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,6 +56,9 @@ public class MetricCacher {
 
 	@Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
 	int windowSize;
+
+//	@Autowired
+//	MetricDatasetFactory metricDatasetFactory;
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
@@ -206,7 +207,9 @@ public class MetricCacher {
 		Element element = statsCache.get(MetricDataset.getKey(metric, componentName));
 		if (element != null) return (MetricDataset) element.getObjectValue();
 		else {
-			return new MetricDataset(metric, componentName, metric.getMaxWindowSize());
+//			return metricDatasetFactory.construct(metric, componentName);
+//			return (MetricDataset) beanFactory.getBean("metricDataset", metric, componentName, metric.getMaxWindowSize());
+			return new MetricDataset(metric, componentName);
 		}
 	}
 
@@ -237,6 +240,7 @@ public class MetricCacher {
 					setDiff(true).
 					build();
 			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
+//			MetricDataset diffDataSet = metricDatasetFactory.construct(diffMetric, latest.getComponentName());
 			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(diffMetric.getReportingPath(),
 					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
 					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),

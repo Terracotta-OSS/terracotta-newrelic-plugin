@@ -16,6 +16,7 @@ import java.util.List;
 public class Metric implements Serializable {
 
 	private static final long serialVersionUID = -1055398640926238446L;
+	public static final int WINDOW_SIZE_DEFAULT = 10000;
 
 	String name;
 	String displayName;
@@ -26,7 +27,7 @@ public class Metric implements Serializable {
 	Unit unit;
 	Type type;
 	RatioType ratioType;
-	Integer maxWindowSize;
+	Integer maxWindowSize = WINDOW_SIZE_DEFAULT;
 	boolean diff;
 	boolean createDiff;
 

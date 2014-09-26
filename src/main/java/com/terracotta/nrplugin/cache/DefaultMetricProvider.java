@@ -1,6 +1,7 @@
 package com.terracotta.nrplugin.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.terracotta.nrplugin.pojo.Metric;
 import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.nr.Agent;
 import com.terracotta.nrplugin.pojo.nr.Component;
@@ -49,6 +50,12 @@ public class DefaultMetricProvider implements MetricProvider {
 	String componentPrefix;
 
 	String hostname = "TC-NR-HOST";
+
+	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
+	String terracottaAgentGuid;
+
+	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
+	String ehcacheAgentGuid;
 
 	long pid;
 
@@ -117,7 +124,11 @@ public class DefaultMetricProvider implements MetricProvider {
 
 	private Component constructComponent(MetricDataset metricDataset) {
 		double durationSeconds = durationMillis * 0.001;
-		return new Component(componentPrefix + "_" + metricDataset.getComponentName(),
-						metricDataset.getComponentGuid(), (long) durationSeconds);
+		String guid =
+				Metric.Source.client.equals(metricDataset.getMetric().getSource()) ||
+				Metric.Source.cache.equals(metricDataset.getMetric().getSource()) ?
+						ehcacheAgentGuid : terracottaAgentGuid;
+		return new Component(componentPrefix + "_" + metricDataset.getComponentName(), guid, (long) durationSeconds);
 	}
+
 }

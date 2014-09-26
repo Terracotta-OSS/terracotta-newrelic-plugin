@@ -45,7 +45,7 @@ public class MetricBuilder {
 		metric.setUnit(unit);
 		metric.setType(type == null ? Metric.Type.regular : type);
 		metric.setRatioType(ratioType);
-		metric.setMaxWindowSize(maxWindowSize == null ? MetricDataset.WINDOW_SIZE_DEFAULT : maxWindowSize);
+		metric.setMaxWindowSize(maxWindowSize == null ? Metric.WINDOW_SIZE_DEFAULT : maxWindowSize);
 		metric.setDiff(diff);
 		metric.setCreateDiff(createDiff);
 

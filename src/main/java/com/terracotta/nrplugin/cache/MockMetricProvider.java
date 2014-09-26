@@ -25,6 +25,9 @@ public class MockMetricProvider implements MetricProvider {
 	@Autowired
 	MetricUtil metricUtil;
 
+//	@Autowired
+//	MetricDatasetFactory metricDatasetFactory;
+
 	@Override
 	public NewRelicPayload assemblePayload() throws Exception {
 		String metricName = "FakeMetricName";
@@ -34,11 +37,12 @@ public class MockMetricProvider implements MetricProvider {
 				setUnit(Metric.Unit.Bytes).
 				build();
 		MetricDataset m1 = new MetricDataset(metric, "componentname");
+//		MetricDataset m1 = metricDatasetFactory.construct(metric, "componentname");
 		m1.addValue(100);
 		m1.addValue(50);
 		m1.addValue(300);
 //		map.put(m1.getComponentName(), metricUtil.metricsAsJson(Collections.singletonList(m1)));
 		return new NewRelicPayload(new Agent(),
-				Collections.singletonList(new Component(m1.getComponentName(), m1.getComponentGuid(), 30)));
+				Collections.singletonList(new Component(m1.getComponentName(), "someguid", 30)));
 	}
 }
