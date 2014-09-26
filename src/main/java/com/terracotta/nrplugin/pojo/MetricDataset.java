@@ -30,10 +30,10 @@ public class MetricDataset implements Serializable {
 	String componentGuid;
 
 //	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
-	String terracottaAgentGuid = "Terracotta";
+	String terracottaAgentGuid = "com.saggs.terracotta.Terracotta";
 
 //	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
-	String ehcacheAgentGuid = "Ehcache";
+	String ehcacheAgentGuid = "com.saggs.terracotta.Ehcache";
 //	final ReentrantLock lock = new ReentrantLock();
 
 	public enum Type {absolute, diff}

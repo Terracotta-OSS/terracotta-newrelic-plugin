@@ -12,6 +12,8 @@ import com.terracotta.nrplugin.util.MetricUtil;
 import net.minidev.json.JSONArray;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,16 +54,10 @@ public class MetricCacher {
 	@Value("#{cacheManager.getCache('diffsCache')}")
 	Cache diffsCache;
 
-	Map<String, MetricDataset> lastDataSet = new HashMap<String, MetricDataset>();
+	Map<String, DescriptiveStatistics> lastDataSet = new HashMap<String, DescriptiveStatistics>();
 
 	@Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
 	int windowSize;
-
-//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.terracotta.guid}")
-//	String terracottaAgentGuid;
-//
-//	@Value("${com.saggs.terracotta.nrplugin.nr.agent.ehcache.guid}")
-//	String ehcacheAgentGuid;
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
@@ -84,8 +80,7 @@ public class MetricCacher {
 					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("name").is(cacheName)));
 					MetricDataset metricDataset = getMetricDataset(metric, cacheName);
 					log.trace("Extracting values for " + metricDataset.getKey());
-					if (metric.isCreateDiff()) putDiff(metricDataset);
-					putValues(metricDataset, values);
+					putValue(metricDataset, values);
 				}
 			}
 			else if (Metric.Source.server.equals(metric.getSource())) {
@@ -94,8 +89,7 @@ public class MetricCacher {
 					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("sourceId").is(serverName)));
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
 					log.trace("Extracting values for " + metricDataset.getKey());
-					if (metric.isCreateDiff()) putDiff(metricDataset);
-					putValues(metricDataset, values);
+					putValue(metricDataset, values);
 				}
 			}
 		}
@@ -108,7 +102,6 @@ public class MetricCacher {
 				JSONArray array = (JSONArray) clientEntities.get(0);
 				for (String serverName : serverNames) {
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
-					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValue(metricDataset, array.size());
 				}
 			}
@@ -117,7 +110,6 @@ public class MetricCacher {
 					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
 					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
 					MetricDataset metricDataset = getMetricDataset(metric, serverName);
-					if (metric.isCreateDiff()) putDiff(metricDataset);
 					putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
 				}
 			}
@@ -131,8 +123,6 @@ public class MetricCacher {
 				if (element != null && element.getObjectValue() instanceof MetricDataset) {
 					MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
 					if (metricDataset.getKey().contains(ratioMetric.getNumeratorCount())) {
-//                        log.info("Found match for '" + metricDataset.getKey() + "' and '"
-//                                + ratioMetric.getNumeratorCount() + "'");
 						String denominatorKey = ratioMetric.isHitRatio() ?
 								metricDataset.getKey().replace("Hit", "Miss") :
 								metricDataset.getKey().replace("Miss", "Hit");
@@ -144,8 +134,6 @@ public class MetricCacher {
 							double denominator = (metricDataset.getStatistics().getSum() + denominatorDataset.getStatistics().getSum());
 							double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
 							MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
-//							ratioDataset.setActualVarReplaceMap(metricDataset.getActualVarReplaceMap());
-							if (ratioMetric.isCreateDiff()) putDiff(ratioDataset);
 							putValue(ratioDataset, ratio);
 							log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
 						}
@@ -183,31 +171,31 @@ public class MetricCacher {
 		return jsonObjects;
 	}
 
-	private void putValues(MetricDataset metricDataset, JSONArray jsonArray) {
-		for (Object o : jsonArray) {
-			putValue(metricDataset, o);
+	private void putValue(MetricDataset metricDataset, Object value) {
+		if (metricDataset.getMetric().isCreateDiff()) putDiff(metricDataset);
+		if (value instanceof JSONArray) {
+			JSONArray jsonArray = (JSONArray) value;
+			for (Object child : jsonArray) {
+				putPrimitiveValue(metricDataset, child);
+			}
+		}
+		else if (value instanceof Number) {
+			putPrimitiveValue(metricDataset, value);
 		}
 	}
 
-	private void putValue(MetricDataset metricDataset, Object value) {
-//		Object value = JsonPath.read(jsonObject, metricDataset.getMetric().getDataPath());
-		if (value instanceof Integer) putPrimitiveValue(metricDataset, (Integer) value);
-		else if (value instanceof Double) putPrimitiveValue(metricDataset, (Double) value);
-		else if (value instanceof Long) putPrimitiveValue(metricDataset, (Long) value);
-		else if (value instanceof JSONArray) {
-			JSONArray jsonArray = (JSONArray) value;
-			putPrimitiveValue(metricDataset, jsonArray.size());
+	private void putPrimitiveValue(MetricDataset metricDataset, Object value) {
+		if (value instanceof Number) {
+			putPrimitiveValue(metricDataset, ((Number) value).doubleValue());
 		}
 		else {
 			log.warn("Class " + value.getClass() + " not numeric.");
 		}
-//        putMetricDataset(metricDataset);
 	}
 
 	private void putPrimitiveValue(MetricDataset metricDataset, double value) {
 		metricDataset.addValue(value);
 		putMetricDataset(metricDataset);
-//        putDiff(lastDataSet.get(metricDataset.getKey()), metricDataset);
 	}
 
 	public MetricDataset getMetricDataset(Metric metric, String componentName) {
@@ -230,21 +218,12 @@ public class MetricCacher {
 	}
 
 	private void putDiff(MetricDataset latest) {
-		MetricDataset previous = lastDataSet.get(latest.getKey());
-		if (previous == null) {
+		DescriptiveStatistics previousStatistics = lastDataSet.get(latest.getKey());
+		if (previousStatistics == null) {
 			log.debug("No previously cached data for metric " + latest.getKey());
 		}
 		else {
-//			Map<String, Number> diffs = new HashMap<String, Number>();
-//			diffs.put(MetricUtil.NEW_RELIC_MIN, latest.getStatistics().getMin() - previous.getStatistics().getMin());
-//			diffs.put(MetricUtil.NEW_RELIC_MAX, latest.getStatistics().getMax() - previous.getStatistics().getMax());
-//			diffs.put(MetricUtil.NEW_RELIC_TOTAL, latest.getStatistics().getSum() - previous.getStatistics().getSum());
-//			diffs.put(MetricUtil.NEW_RELIC_COUNT, latest.getStatistics().getN() - previous.getStatistics().getN());
-//			diffs.put(MetricUtil.NEW_RELIC_SUM_OF_SQUARES, latest.getStatistics().getSumsq() - previous.getStatistics().getSumsq());
-
-			// Generate new key for diff rather than absolute
-//			String newKey = new MetricDataset(latest.getMetric(), latest.getComponentName(), latest.getComponentGuid(),
-//					MetricDataset.Type.diff).getKey();
+			log.debug("Latest SUM: " + latest.getStatistics().getSum() + ", Previous SUM: " + previousStatistics.getSum());
 
 			Metric diffMetric = MetricBuilder.create(latest.getMetric().getName()).
 					setReportingComponents(latest.getMetric().getReportingComponents()).
@@ -255,11 +234,11 @@ public class MetricCacher {
 					build();
 			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
 			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(diffMetric.getReportingPath(),
-					toDouble(latest.getStatistics().getMin() - previous.getStatistics().getMin()),
-					toDouble(latest.getStatistics().getMax() - previous.getStatistics().getMax()),
-					toDouble(latest.getStatistics().getSum() - previous.getStatistics().getSum()),
-					latest.getStatistics().getN() - previous.getStatistics().getN(),
-					toDouble(latest.getStatistics().getSumsq() - previous.getStatistics().getSumsq()));
+					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
+					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),
+					toDouble(latest.getStatistics().getSum() - previousStatistics.getSum()),
+					latest.getStatistics().getN() - previousStatistics.getN(),
+					toDouble(latest.getStatistics().getSumsq() - previousStatistics.getSumsq()));
 
 			String diffKey = diffDataSet.getKey();
 			log.trace("Putting " + diffKey);
@@ -267,7 +246,9 @@ public class MetricCacher {
 		}
 
 		// Update lastDataSet after done
-		lastDataSet.put(latest.getKey(), latest);
+		log.debug("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
+		lastDataSet.put(latest.getKey(), new SynchronizedDescriptiveStatistics(
+				(SynchronizedDescriptiveStatistics) latest.getStatistics()));
 	}
 
 	private double toDouble(double value) {
