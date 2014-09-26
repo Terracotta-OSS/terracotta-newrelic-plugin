@@ -99,18 +99,22 @@ public class MetricCacher {
 			JSONArray objects = jsonObjects.get(metric.getSource());
 			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
 				JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities");
-				JSONArray array = (JSONArray) clientEntities.get(0);
-				for (String serverName : serverNames) {
-					MetricDataset metricDataset = getMetricDataset(metric, serverName);
-					putValue(metricDataset, array.size());
+				if (clientEntities.size() > 0) {
+					JSONArray array = (JSONArray) clientEntities.get(0);
+					for (String serverName : serverNames) {
+						MetricDataset metricDataset = getMetricDataset(metric, serverName);
+						putValue(metricDataset, array.size());
+					}
 				}
 			}
 			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getName())) {
 				for (String serverName : serverNames) {
 					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
 					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
-					MetricDataset metricDataset = getMetricDataset(metric, serverName);
-					putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
+					if (stateArray.size() > 0) {
+						MetricDataset metricDataset = getMetricDataset(metric, serverName);
+						putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
+					}
 				}
 			}
 		}
