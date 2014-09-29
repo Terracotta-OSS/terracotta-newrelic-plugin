@@ -124,8 +124,8 @@ public class MetricUtil {
 //		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Count, data, rates);
 //		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Count, data, rates);
 //		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Count,data, rates);
-		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Count, off, bytes);
-		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Count, off, bytes);
+		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Bytes, off, bytes);
+		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Bytes, off, bytes);
 
 		// Client metrics
 //        metrics.add(new Metric("$[?].statistics." + METRIC_READ_RATE,
@@ -185,9 +185,9 @@ public class MetricUtil {
 
 		// Special Metrics
 		addMetric(METRIC_NUM_CONNECTED_CLIENTS, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
-				false, Arrays.asList(srv), null, 1);
+				false, Arrays.asList(cm, tc, srv), null, 1);
 		addMetric(METRIC_SERVER_STATE, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
-				false, Arrays.asList(srv), null, 1);
+				false, Arrays.asList(cm, tc, srv), null, 1);
 
 		// Populate cache stat names list
 		for (Metric metric : metrics) {

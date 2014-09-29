@@ -245,7 +245,7 @@ public class MetricCacher {
 					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
 					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),
 					toDouble(latest.getStatistics().getSum() - previousStatistics.getSum()),
-					latest.getStatistics().getN() - previousStatistics.getN(),
+					latest.getStatistics().getN(), // Use the absolute count here because TMC is reporting absolute values
 					toDouble(latest.getStatistics().getSumsq() - previousStatistics.getSumsq()));
 
 			String diffKey = diffDataSet.getKey();
