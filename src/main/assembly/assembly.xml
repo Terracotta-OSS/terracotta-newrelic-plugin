@@ -24,7 +24,7 @@
 				<include>**/*.bat</include>
 			</includes>
 			<outputDirectory>/bin</outputDirectory>
-            <directory>${basedir}/src/main/scripts</directory>
+			<directory>${basedir}/src/main/scripts</directory>
 			<lineEnding>windows</lineEnding>
 		</fileSet>
 		<fileSet>

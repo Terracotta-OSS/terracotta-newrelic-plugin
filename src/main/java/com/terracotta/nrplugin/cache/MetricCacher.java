@@ -3,7 +3,10 @@ package com.terracotta.nrplugin.cache;
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
-import com.terracotta.nrplugin.pojo.*;
+import com.terracotta.nrplugin.pojo.Metric;
+import com.terracotta.nrplugin.pojo.MetricBuilder;
+import com.terracotta.nrplugin.pojo.MetricDataset;
+import com.terracotta.nrplugin.pojo.RatioMetric;
 import com.terracotta.nrplugin.rest.tmc.MetricFetcher;
 import com.terracotta.nrplugin.util.MetricUtil;
 import net.minidev.json.JSONArray;
@@ -13,13 +16,15 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /**

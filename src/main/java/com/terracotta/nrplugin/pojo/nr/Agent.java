@@ -12,40 +12,40 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Agent {
 
-    String host;
-    long pid;
-    String version;
+	String host;
+	long pid;
+	String version;
 
-    public Agent() {
-    }
+	public Agent() {
+	}
 
-    public Agent(String host, long pid, String version) {
-        this.host = host;
-        this.pid = pid;
-        this.version = version;
-    }
+	public Agent(String host, long pid, String version) {
+		this.host = host;
+		this.pid = pid;
+		this.version = version;
+	}
 
-    public String getHost() {
-        return host;
-    }
+	public String getHost() {
+		return host;
+	}
 
-    public void setHost(String host) {
-        this.host = host;
-    }
+	public void setHost(String host) {
+		this.host = host;
+	}
 
-    public long getPid() {
-        return pid;
-    }
+	public long getPid() {
+		return pid;
+	}
 
-    public void setPid(int pid) {
-        this.pid = pid;
-    }
+	public void setPid(int pid) {
+		this.pid = pid;
+	}
 
-    public String getVersion() {
-        return version;
-    }
+	public String getVersion() {
+		return version;
+	}
 
-    public void setVersion(String version) {
-        this.version = version;
-    }
+	public void setVersion(String version) {
+		this.version = version;
+	}
 }

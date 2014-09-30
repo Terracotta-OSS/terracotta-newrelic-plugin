@@ -1,18 +1,11 @@
 package com.terracotta.nrplugin.pojo;
 
-import com.terracotta.nrplugin.util.MetricUtil;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -41,7 +34,7 @@ public class MetricDataset implements Serializable {
 	}
 
 	public void addValue(double value) {
-			statistics.addValue(value);
+		statistics.addValue(value);
 	}
 
 	public static String getKey(Metric metric, String componentName) {

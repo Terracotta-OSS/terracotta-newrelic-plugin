@@ -21,15 +21,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {AppConfig.class})
 public class MetricCacherTest {
 
-    final Logger log = LoggerFactory.getLogger(this.getClass());
+	final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    MetricCacher metricCacher;
+	@Autowired
+	MetricCacher metricCacher;
 
-    @Test
-    public void test() throws Exception {
-        log.info("Testing statsCacher...");
-        metricCacher.cacheStats();
-    }
+	@Test
+	public void test() throws Exception {
+		log.info("Testing statsCacher...");
+		metricCacher.cacheStats();
+	}
 
 }

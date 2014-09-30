@@ -11,24 +11,24 @@ import java.util.Map;
  */
 public abstract class BaseStatistics extends TmcBase {
 
-    private static final long serialVersionUID = 144647955717932276L;
+	private static final long serialVersionUID = 144647955717932276L;
 
-    String sourceId;
-    Map<String, Object> statistics;
+	String sourceId;
+	Map<String, Object> statistics;
 
-    public String getSourceId() {
-        return sourceId;
-    }
+	public String getSourceId() {
+		return sourceId;
+	}
 
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
-    }
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
+	}
 
-    public Map<String, Object> getStatistics() {
-        return statistics;
-    }
+	public Map<String, Object> getStatistics() {
+		return statistics;
+	}
 
-    public void setStatistics(Map<String, Object> statistics) {
-        this.statistics = statistics;
-    }
+	public void setStatistics(Map<String, Object> statistics) {
+		this.statistics = statistics;
+	}
 }

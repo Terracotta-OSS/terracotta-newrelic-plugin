@@ -12,6 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientStatistics extends BaseStatistics {
 
-    private static final long serialVersionUID = 144647955717932276L;
+	private static final long serialVersionUID = 144647955717932276L;
 
 }

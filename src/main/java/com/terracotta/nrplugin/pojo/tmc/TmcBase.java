@@ -11,8 +11,8 @@ import java.io.Serializable;
  */
 public class TmcBase implements Serializable {
 
-    private static final long serialVersionUID = 7765955903501554373L;
+	private static final long serialVersionUID = 7765955903501554373L;
 
-    String version;
-    String agentId;
+	String version;
+	String agentId;
 }

@@ -17,7 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -126,7 +128,7 @@ public class DefaultMetricProvider implements MetricProvider {
 		double durationSeconds = durationMillis * 0.001;
 		String guid =
 				Metric.Source.client.equals(metricDataset.getMetric().getSource()) ||
-				Metric.Source.cache.equals(metricDataset.getMetric().getSource()) ?
+						Metric.Source.cache.equals(metricDataset.getMetric().getSource()) ?
 						ehcacheAgentGuid : terracottaAgentGuid;
 		return new Component(componentPrefix + "_" + metricDataset.getComponentName(), guid, (long) durationSeconds);
 	}

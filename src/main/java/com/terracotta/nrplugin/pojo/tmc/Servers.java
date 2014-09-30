@@ -15,22 +15,22 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Servers extends TmcBase {
 
-    private static final long serialVersionUID = 2509014753927444187L;
+	private static final long serialVersionUID = 2509014753927444187L;
 
-    Map<String, Object> attributes;
+	Map<String, Object> attributes;
 
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
 
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
-    }
+	public void setAttributes(Map<String, Object> attributes) {
+		this.attributes = attributes;
+	}
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("attributes", attributes)
-                .toString();
-    }
+	@Override
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("attributes", attributes)
+				.toString();
+	}
 }

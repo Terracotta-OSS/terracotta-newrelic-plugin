@@ -13,7 +13,7 @@ public class MetricBuilder {
 	String dataPath;
 	String reportingPath;
 	String numeratorCount;
-  String denominatorCount;
+	String denominatorCount;
 	RatioMetric pair;
 	List<String> reportingComponents = new ArrayList<String>();
 	Metric.Source source;
@@ -71,7 +71,8 @@ public class MetricBuilder {
 
 	private static String toDataPath(String metricName, Metric.Source source) {
 		String dataPath = null;
-		if (Metric.Source.client.equals(source) || Metric.Source.server.equals(source)) dataPath = "$[?].statistics." + metricName;
+		if (Metric.Source.client.equals(source) || Metric.Source.server.equals(source))
+			dataPath = "$[?].statistics." + metricName;
 		else if (Metric.Source.cache.equals(source)) dataPath = "$[?].attributes." + metricName;
 		return dataPath;
 	}

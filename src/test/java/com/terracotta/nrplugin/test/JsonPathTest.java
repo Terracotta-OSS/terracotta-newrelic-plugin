@@ -4,7 +4,6 @@ import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
 import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -23,7 +22,7 @@ public class JsonPathTest {
 
 	final Logger log = LoggerFactory.getLogger(this.getClass());
 
-//	@Test
+	//	@Test
 	public void testCacheStats() throws IOException {
 		String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("cache-details.json"));
 		JSONArray jsonArray = JsonPath.read(json, "$[*]");
@@ -45,7 +44,7 @@ public class JsonPathTest {
 	}
 
 
-//	@Test
+	//	@Test
 	public void testServerStats() throws IOException {
 		String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("4.0/server-statistics.json"));
 		JSONArray jsonArray = JsonPath.read(json, "$[*]");

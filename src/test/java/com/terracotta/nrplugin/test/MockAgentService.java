@@ -1,6 +1,5 @@
 package com.terracotta.nrplugin.test;
 
-import com.terracotta.nrplugin.rest.tmc.AgentService;
 import com.terracotta.nrplugin.rest.tmc.BaseAgentService;
 
 import java.util.Arrays;

@@ -21,15 +21,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {ReportingConfig.class})
 public class MetricReporterTest {
 
-    final Logger log = LoggerFactory.getLogger(this.getClass());
+	final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    MetricReporter metricReporter;
+	@Autowired
+	MetricReporter metricReporter;
 
-    @Test
-    public void test() {
-        log.info("Testing " + metricReporter.getClass() + ".");
-        metricReporter.reportMetrics();
-    }
+	@Test
+	public void test() {
+		log.info("Testing " + metricReporter.getClass() + ".");
+		metricReporter.reportMetrics();
+	}
 
 }

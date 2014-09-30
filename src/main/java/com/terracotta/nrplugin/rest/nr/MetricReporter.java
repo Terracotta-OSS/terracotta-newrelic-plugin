@@ -5,11 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terracotta.nrplugin.cache.LockManager;
 import com.terracotta.nrplugin.cache.MetricProvider;
 import com.terracotta.nrplugin.pojo.MetricDataset;
-import com.terracotta.nrplugin.pojo.nr.Agent;
-import com.terracotta.nrplugin.pojo.nr.Component;
 import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 import com.terracotta.nrplugin.rest.StateManager;
-import com.terracotta.nrplugin.util.MetricUtil;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.apache.http.HttpHost;
@@ -22,7 +19,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.hyperic.sigar.Sigar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -104,7 +100,7 @@ public class MetricReporter {
 		HttpClientBuilder httpClientBuilder = HttpClients.custom()
 				.setDefaultRequestConfig(defaultRequestConfig);
 		if (useProxy) {
-			HttpHost proxy  = new HttpHost(proxyHostname, proxyPort, proxyScheme);
+			HttpHost proxy = new HttpHost(proxyHostname, proxyPort, proxyScheme);
 			httpClientBuilder.setProxy(proxy);
 			log.info("Configuring HttpClient with proxy '" + proxy.toString() + "'");
 		}

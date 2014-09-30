@@ -20,7 +20,7 @@ public class Metric implements Serializable {
 
 	String name;
 	String displayName;
-//	String reportingPath;
+	//	String reportingPath;
 	List<String> reportingComponents;
 	String dataPath;
 	Source source;
@@ -34,9 +34,9 @@ public class Metric implements Serializable {
 	public Metric() {
 	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
 //    public String getName() {
 //        String[] split = reportingPath.split(MetricUtil.NEW_RELIC_PATH_SEPARATOR);
@@ -149,7 +149,8 @@ public class Metric implements Serializable {
 	public void setRatioType(RatioType ratioType) {
 		this.ratioType = ratioType;
 	}
-		public static enum Type {regular, special, ratio}
+
+	public static enum Type {regular, special, ratio}
 
 	public static enum RatioType {hit, miss, neither}
 
@@ -175,17 +176,17 @@ public class Metric implements Serializable {
 		}
 	}
 
-    @Override
-    public String toString() {
-        return "Metric{" +
-                "name='" + name + '\'' +
-                ", reportingPath='" + getReportingPath() + '\'' +
-                ", dataPath='" + dataPath + '\'' +
-                ", source=" + source +
-                ", unit=" + unit +
-                ", type=" + type +
-                ", ratioType=" + ratioType +
-                ", maxWindowSize=" + maxWindowSize +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Metric{" +
+				"name='" + name + '\'' +
+				", reportingPath='" + getReportingPath() + '\'' +
+				", dataPath='" + dataPath + '\'' +
+				", source=" + source +
+				", unit=" + unit +
+				", type=" + type +
+				", ratioType=" + ratioType +
+				", maxWindowSize=" + maxWindowSize +
+				'}';
+	}
 }

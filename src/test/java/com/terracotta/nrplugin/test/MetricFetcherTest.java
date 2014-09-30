@@ -1,7 +1,6 @@
 package com.terracotta.nrplugin.test;
 
 import com.terracotta.nrplugin.app.ReportingConfig;
-import com.terracotta.nrplugin.app.RestConfig;
 import com.terracotta.nrplugin.pojo.tmc.CacheStatistics;
 import com.terracotta.nrplugin.pojo.tmc.ClientStatistics;
 import com.terracotta.nrplugin.pojo.tmc.ServerStatistics;
@@ -32,42 +31,41 @@ import java.util.List;
 @ContextConfiguration(classes = {ReportingConfig.class})
 public class MetricFetcherTest {
 
-    final Logger log = LoggerFactory.getLogger(this.getClass());
+	final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    MetricFetcher metricFetcher;
+	@Autowired
+	MetricFetcher metricFetcher;
 
-    @Test
-    public void test() throws Exception {
-        log.info("Getting server stats...");
-        List<ServerStatistics> serverStatisticsList = metricFetcher.getServerStatistics();
-        log.info("Getting client stats...");
-        List<ClientStatistics> clientStatisticsList = metricFetcher.getClientStatistics();
-        log.info("Getting cache stats...");
-        List<CacheStatistics> cacheStatisticsList = metricFetcher.getCacheStatistics();
-        log.info("Done.");
-    }
+	@Test
+	public void test() throws Exception {
+		log.info("Getting server stats...");
+		List<ServerStatistics> serverStatisticsList = metricFetcher.getServerStatistics();
+		log.info("Getting client stats...");
+		List<ClientStatistics> clientStatisticsList = metricFetcher.getClientStatistics();
+		log.info("Getting cache stats...");
+		List<CacheStatistics> cacheStatisticsList = metricFetcher.getCacheStatistics();
+		log.info("Done.");
+	}
 
 
-
-//    @Test
-    public void testUriBuilder() {
-        MultiValueMap<String, String> cacheStatsRequestParams = new LinkedMultiValueMap<String, String>();
-        cacheStatsRequestParams.add("p1", "stuff");
-        cacheStatsRequestParams.add("p1", "bar");
-        cacheStatsRequestParams.add("p2", "asd");
+	//    @Test
+	public void testUriBuilder() {
+		MultiValueMap<String, String> cacheStatsRequestParams = new LinkedMultiValueMap<String, String>();
+		cacheStatsRequestParams.add("p1", "stuff");
+		cacheStatsRequestParams.add("p1", "bar");
+		cacheStatsRequestParams.add("p2", "asd");
 
 //        Map<String, String> cacheStatsRequestParams = new HashMap<String, String>();
 //        cacheStatsRequestParams.put("p1", "stuff");
 //        cacheStatsRequestParams.put("p1", "bar");
 //        cacheStatsRequestParams.put("p2", "asd");
 
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme("http").host("example.com").path("/hotels?p1={p1}").build()
-                .expand(cacheStatsRequestParams)
-                .encode();
-        URI uri = uriComponents.toUri();
-        log.info(uri.toString());
-    }
+		UriComponents uriComponents = UriComponentsBuilder.newInstance()
+				.scheme("http").host("example.com").path("/hotels?p1={p1}").build()
+				.expand(cacheStatsRequestParams)
+				.encode();
+		URI uri = uriComponents.toUri();
+		log.info(uri.toString());
+	}
 
 }

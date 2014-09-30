@@ -2,8 +2,6 @@ package com.terracotta.nrplugin.pojo;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Map;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Jeff
@@ -13,45 +11,45 @@ import java.util.Map;
  */
 public class RatioMetric extends Metric {
 
-    private static final long serialVersionUID = -8738437849912104248L;
+	private static final long serialVersionUID = -8738437849912104248L;
 
-    RatioMetric pair;
-    String numeratorCount;
-    String denominatorCount;
+	RatioMetric pair;
+	String numeratorCount;
+	String denominatorCount;
 
-    public RatioMetric() {
-        super();
-    }
+	public RatioMetric() {
+		super();
+	}
 
-    public boolean isHitRatio() {
-        return StringUtils.containsIgnoreCase(numeratorCount, "hit");
-    }
+	public boolean isHitRatio() {
+		return StringUtils.containsIgnoreCase(numeratorCount, "hit");
+	}
 
-    public boolean isMissRatio() {
-        return StringUtils.containsIgnoreCase(numeratorCount, "miss");
-    }
+	public boolean isMissRatio() {
+		return StringUtils.containsIgnoreCase(numeratorCount, "miss");
+	}
 
-    public RatioMetric getPair() {
-        return pair;
-    }
+	public RatioMetric getPair() {
+		return pair;
+	}
 
-    public void setPair(RatioMetric pair) {
-        this.pair = pair;
-    }
+	public void setPair(RatioMetric pair) {
+		this.pair = pair;
+	}
 
-    public String getNumeratorCount() {
-        return numeratorCount;
-    }
+	public String getNumeratorCount() {
+		return numeratorCount;
+	}
 
-    public void setNumeratorCount(String numeratorCount) {
-        this.numeratorCount = numeratorCount;
-    }
+	public void setNumeratorCount(String numeratorCount) {
+		this.numeratorCount = numeratorCount;
+	}
 
-    public String getDenominatorCount() {
-        return denominatorCount;
-    }
+	public String getDenominatorCount() {
+		return denominatorCount;
+	}
 
-    public void setDenominatorCount(String denominatorCount) {
-        this.denominatorCount = denominatorCount;
-    }
+	public void setDenominatorCount(String denominatorCount) {
+		this.denominatorCount = denominatorCount;
+	}
 }

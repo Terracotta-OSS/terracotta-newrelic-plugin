@@ -15,42 +15,42 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Topologies extends TmcBase {
 
-    private static final long serialVersionUID = 8106596157713698078L;
+	private static final long serialVersionUID = 8106596157713698078L;
 
-    List<ServerGroupEntities> serverGroupEntities;
-    List<ClientEntities> clientEntities;
-    UnreadOperatorEventCount unreadOperatorEventCount;
+	List<ServerGroupEntities> serverGroupEntities;
+	List<ClientEntities> clientEntities;
+	UnreadOperatorEventCount unreadOperatorEventCount;
 
-    public List<ServerGroupEntities> getServerGroupEntities() {
-        return serverGroupEntities;
-    }
+	public List<ServerGroupEntities> getServerGroupEntities() {
+		return serverGroupEntities;
+	}
 
-    public void setServerGroupEntities(List<ServerGroupEntities> serverGroupEntities) {
-        this.serverGroupEntities = serverGroupEntities;
-    }
+	public void setServerGroupEntities(List<ServerGroupEntities> serverGroupEntities) {
+		this.serverGroupEntities = serverGroupEntities;
+	}
 
-    public List<ClientEntities> getClientEntities() {
-        return clientEntities;
-    }
+	public List<ClientEntities> getClientEntities() {
+		return clientEntities;
+	}
 
-    public void setClientEntities(List<ClientEntities> clientEntities) {
-        this.clientEntities = clientEntities;
-    }
+	public void setClientEntities(List<ClientEntities> clientEntities) {
+		this.clientEntities = clientEntities;
+	}
 
-    public UnreadOperatorEventCount getUnreadOperatorEventCount() {
-        return unreadOperatorEventCount;
-    }
+	public UnreadOperatorEventCount getUnreadOperatorEventCount() {
+		return unreadOperatorEventCount;
+	}
 
-    public void setUnreadOperatorEventCount(UnreadOperatorEventCount unreadOperatorEventCount) {
-        this.unreadOperatorEventCount = unreadOperatorEventCount;
-    }
+	public void setUnreadOperatorEventCount(UnreadOperatorEventCount unreadOperatorEventCount) {
+		this.unreadOperatorEventCount = unreadOperatorEventCount;
+	}
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("serverGroupEntities", serverGroupEntities)
-                .append("clientEntities", clientEntities)
-                .append("unreadOperatorEventCount", unreadOperatorEventCount)
-                .toString();
-    }
+	@Override
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("serverGroupEntities", serverGroupEntities)
+				.append("clientEntities", clientEntities)
+				.append("unreadOperatorEventCount", unreadOperatorEventCount)
+				.toString();
+	}
 }

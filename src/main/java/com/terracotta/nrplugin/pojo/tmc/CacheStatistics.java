@@ -11,33 +11,33 @@ import java.util.Map;
  */
 public class CacheStatistics extends TmcBase {
 
-    private static final long serialVersionUID = -6957149063340427251L;
+	private static final long serialVersionUID = -6957149063340427251L;
 
-    String name;
-    String cacheManagerName;
-    Map<String, Object> attributes;
+	String name;
+	String cacheManagerName;
+	Map<String, Object> attributes;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getCacheManagerName() {
-        return cacheManagerName;
-    }
+	public String getCacheManagerName() {
+		return cacheManagerName;
+	}
 
-    public void setCacheManagerName(String cacheManagerName) {
-        this.cacheManagerName = cacheManagerName;
-    }
+	public void setCacheManagerName(String cacheManagerName) {
+		this.cacheManagerName = cacheManagerName;
+	}
 
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
 
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
-    }
+	public void setAttributes(Map<String, Object> attributes) {
+		this.attributes = attributes;
+	}
 }

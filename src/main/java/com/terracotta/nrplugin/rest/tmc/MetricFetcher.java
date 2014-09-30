@@ -78,7 +78,7 @@ public class MetricFetcher extends BaseTmcClient {
 			payload = getRestTemplate().getForObject(url, clazz);
 			log.debug("TMC Payload: " + payload);
 			stateManager.setTmcState(StateManager.TmcState.available);
-		} catch (HttpClientErrorException e ) {
+		} catch (HttpClientErrorException e) {
 			stateManager.setTmcState(StateManager.TmcState.unavailable);
 			if (org.springframework.http.HttpStatus.FORBIDDEN == e.getStatusCode()) {
 				log.info("Received response code " + e.getStatusCode() + " for url '" + url + "'.");
@@ -128,7 +128,7 @@ public class MetricFetcher extends BaseTmcClient {
 		List<String> agentIds = findEhcacheAgentSample(agentSamplePercentage);
 		String baseUrl = "/api/agents;ids=";
 		for (int i = 0; i < agentIds.size(); i++) {
-			String agentId =  agentIds.get(i);
+			String agentId = agentIds.get(i);
 			baseUrl += agentId;
 			if (i + 1 < agentIds.size()) baseUrl += ",";
 		}
@@ -148,17 +148,17 @@ public class MetricFetcher extends BaseTmcClient {
 		if (percentage < 0 || percentage > 1) throw new IllegalArgumentException("percentage must be between 0 and 1");
 		Set<String> agentsSample = new HashSet<String>();
 		List<String> allAgents = findAllEhcacheAgents();
-        if (allAgents.size() > 0) {
-            int sampleSize = (int) (allAgents.size() * percentage);
-            for (int i = 0; i < sampleSize; i++) {
-                String sample;
-                do {
-                    sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
-                }
-                while (agentsSample.contains(sample));
-                agentsSample.add(sample);
-            }
-        }
+		if (allAgents.size() > 0) {
+			int sampleSize = (int) (allAgents.size() * percentage);
+			for (int i = 0; i < sampleSize; i++) {
+				String sample;
+				do {
+					sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
+				}
+				while (agentsSample.contains(sample));
+				agentsSample.add(sample);
+			}
+		}
 
 		return new ArrayList<String>(agentsSample);
 	}

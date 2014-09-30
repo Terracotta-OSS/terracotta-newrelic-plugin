@@ -1,13 +1,9 @@
 package com.terracotta.nrplugin.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -18,16 +14,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.HashMap;
 
 /**
  * Created by Jeff on 8/29/2014.
@@ -44,7 +36,7 @@ public class ProxyTest {
 	public void init() {
 		requestConfig = RequestConfig.custom()
 //          .setProxy(proxy)
-          .build();
+				.build();
 	}
 
 	@Test
@@ -63,11 +55,11 @@ public class ProxyTest {
 		log.info(EntityUtils.toString(response.getEntity()));
 	}
 
-//	@Test
+	//	@Test
 	public void testRestTemplate() {
 		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
 		InetSocketAddress address = new InetSocketAddress("localhost", 8080);
-		Proxy proxy = new Proxy(Proxy.Type.HTTP,address);
+		Proxy proxy = new Proxy(Proxy.Type.HTTP, address);
 //		requestFactory.setProxy(proxy);
 
 //		CloseableHttpClient httpClient = HttpClients.custom()

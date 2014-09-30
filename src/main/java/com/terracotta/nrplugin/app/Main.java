@@ -15,19 +15,19 @@ import org.springframework.context.ApplicationContext;
  */
 public class Main implements CommandLineRunner {
 
-    static final Logger log = LoggerFactory.getLogger(Main.class);
+	static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    @Override
-    public void run(String... args) {
-        log.info("Initializing Terracotta NewRelic Plugin...");
-    }
+	@Override
+	public void run(String... args) {
+		log.info("Initializing Terracotta NewRelic Plugin...");
+	}
 
-    public static void main(String[] args) {
-        log.info("Loading Spring ApplicationContext...");
-        SpringApplication app = new SpringApplication(AppConfig.class);
-        app.setWebEnvironment(false);
-        ApplicationContext ctx = app.run(args);
-        log.info("Loaded Spring ApplicationContext.");
-    }
+	public static void main(String[] args) {
+		log.info("Loading Spring ApplicationContext...");
+		SpringApplication app = new SpringApplication(AppConfig.class);
+		app.setWebEnvironment(false);
+		ApplicationContext ctx = app.run(args);
+		log.info("Loaded Spring ApplicationContext.");
+	}
 
 }

@@ -160,9 +160,9 @@ public class MetricUtil {
 		addCacheMetric(METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalOffHeapSize"));
 		addCacheMetric(METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalOffHeapSize"));
 
-        addCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
-        addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
-        addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalDiskEntries"));
+		addCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_BYTES, "Used", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
+		addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_BYTES, "Max", Metric.Unit.Bytes, Arrays.asList("LocalDiskSize"));
+		addCacheMetric(METRIC_MAX_LOCAL_DISK_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalDiskEntries"));
 		addCacheMetric(METRIC_USED_LOCAL_DISK_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("LocalDiskEntries"));
 
 		addCacheMetric(METRIC_MAX_TOTAL_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("TotalEntries"));

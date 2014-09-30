@@ -1,10 +1,6 @@
 package com.terracotta.nrplugin.cache;
 
-import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
