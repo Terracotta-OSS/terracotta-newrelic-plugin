@@ -19,10 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -57,11 +54,20 @@ public class MetricCacher {
 	@Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
 	int windowSize;
 
-//	@Autowired
-//	MetricDatasetFactory metricDatasetFactory;
+	@Autowired
+	LockManager lockManager;
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
+		try {
+			lockManager.lockCache();
+			doCacheStats();
+		} finally {
+			lockManager.unlockCache();
+		}
+	}
+
+	private void doCacheStats() throws Exception {
 		log.info("Starting to cache all stats...");
 		Map<Metric.Source, String> metricData = metricFetcher.getAllMetricData();
 		Map<Metric.Source, JSONArray> jsonObjects = toJsonArray(metricData);
@@ -230,7 +236,7 @@ public class MetricCacher {
 			log.debug("No previously cached data for metric " + latest.getKey());
 		}
 		else {
-			log.debug("Latest SUM: " + latest.getStatistics().getSum() + ", Previous SUM: " + previousStatistics.getSum());
+			log.trace("Latest SUM: " + latest.getStatistics().getSum() + ", Previous SUM: " + previousStatistics.getSum());
 
 			Metric diffMetric = MetricBuilder.create(latest.getMetric().getName()).
 					setReportingComponents(latest.getMetric().getReportingComponents()).
@@ -254,7 +260,7 @@ public class MetricCacher {
 		}
 
 		// Update lastDataSet after done
-		log.debug("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
+		log.trace("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
 		lastDataSet.put(latest.getKey(), new SynchronizedDescriptiveStatistics(
 				(SynchronizedDescriptiveStatistics) latest.getStatistics()));
 	}

@@ -2,12 +2,16 @@ package com.terracotta.nrplugin.rest.nr;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.terracotta.nrplugin.cache.LockManager;
 import com.terracotta.nrplugin.cache.MetricProvider;
+import com.terracotta.nrplugin.pojo.MetricDataset;
 import com.terracotta.nrplugin.pojo.nr.Agent;
 import com.terracotta.nrplugin.pojo.nr.Component;
 import com.terracotta.nrplugin.pojo.nr.NewRelicPayload;
 import com.terracotta.nrplugin.rest.StateManager;
 import com.terracotta.nrplugin.util.MetricUtil;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -83,6 +87,12 @@ public class MetricReporter {
 	@Value("${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}")
 	long durationMillis;
 
+	@Value("#{cacheManager.getCache('statsCache')}")
+	Cache statsCache;
+
+	@Autowired
+	LockManager lockManager;
+
 	@PostConstruct
 	private void init() {
 		RequestConfig defaultRequestConfig = RequestConfig.custom()
@@ -103,6 +113,15 @@ public class MetricReporter {
 
 	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.nr.executor.fixedDelay.milliseconds}", initialDelay = 5000)
 	public void reportMetrics() {
+		try {
+			lockManager.lockCache();
+			doReportMetrics();
+		} finally {
+			lockManager.unlockCache();
+		}
+	}
+
+	private void doReportMetrics() {
 		if (StateManager.TmcState.available.equals(stateManager.getTmcState())) {
 			try {
 				NewRelicPayload newRelicPayload = metricProvider.assemblePayload();
@@ -129,12 +148,23 @@ public class MetricReporter {
 				}
 				EntityUtils.consumeQuietly(response.getEntity());
 				log.info("Done reporting to NewRelic.");
+				clearAllMetricData();
 			} catch (Exception e) {
 				log.error("Error while attempting to publish stats to NewRelic.", e);
 			}
 		}
 		else {
 			log.info("TMC State is '" + stateManager.getTmcState() + "', so disabling NR publication.");
+		}
+	}
+
+	private void clearAllMetricData() {
+		log.info("Clearing all metric data...");
+		List<String> keys = statsCache.getKeys();
+		for (String key : keys) {
+			Element element = statsCache.get(key);
+			MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
+			metricDataset.getStatistics().clear();
 		}
 	}
 
