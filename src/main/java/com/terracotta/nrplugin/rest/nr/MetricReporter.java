@@ -60,7 +60,7 @@ public class MetricReporter {
 	String proxyHostname;
 
 	@Value("${com.saggs.terracotta.nrplugin.nr.proxy.port}")
-	int proxyPort;
+	String proxyPort;
 
 	@Value("${com.saggs.terracotta.nrplugin.nr.proxy.scheme}")
 	String proxyScheme;
@@ -100,7 +100,15 @@ public class MetricReporter {
 		HttpClientBuilder httpClientBuilder = HttpClients.custom()
 				.setDefaultRequestConfig(defaultRequestConfig);
 		if (useProxy) {
-			HttpHost proxy = new HttpHost(proxyHostname, proxyPort, proxyScheme);
+            int parsedProxyPort = 8080;
+            try {
+                parsedProxyPort = Integer.parseInt(proxyPort);
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse the proxyPort. Defaulting to 8080.");
+                parsedProxyPort = 8080;
+            }
+
+            HttpHost proxy = new HttpHost(proxyHostname, parsedProxyPort, proxyScheme);
 			httpClientBuilder.setProxy(proxy);
 			log.info("Configuring HttpClient with proxy '" + proxy.toString() + "'");
 		}
