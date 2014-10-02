@@ -22,7 +22,7 @@ public class LockManager {
 	}
 
 	public void unlockCache() {
-		log.debug(Thread.currentThread().getName() + "unlocking stats cache...");
+		log.debug(Thread.currentThread().getName() + " unlocking stats cache...");
 		cacheLock.unlock();
 	}
 

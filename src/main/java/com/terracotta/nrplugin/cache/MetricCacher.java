@@ -188,7 +188,6 @@ public class MetricCacher {
 	}
 
 	private void putValue(MetricDataset metricDataset, Object value) {
-		if (metricDataset.getMetric().isCreateDiff()) putDiff(metricDataset);
 		if (value instanceof JSONArray) {
 			JSONArray jsonArray = (JSONArray) value;
 			for (Object child : jsonArray) {
@@ -198,6 +197,7 @@ public class MetricCacher {
 		else if (value instanceof Number) {
 			putPrimitiveValue(metricDataset, value);
 		}
+		if (metricDataset.getMetric().isCreateDiff()) putDiff(metricDataset);
 	}
 
 	private void putPrimitiveValue(MetricDataset metricDataset, Object value) {

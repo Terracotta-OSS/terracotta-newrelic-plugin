@@ -120,10 +120,10 @@ public class MetricUtil {
 	private void init() {
 		// Server metrics
 		addServerMetric(METRIC_LIVE_OBJECT_COUNT, Metric.Unit.Count, data, obj);
-//		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Count, data, rates);
-//		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Count, data, rates);
-//		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Count, data, rates);
-//		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Count,data, rates);
+		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Count, data, rates);
+		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Count,data, rates);
 		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Bytes, off, bytes);
 		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Bytes, off, bytes);
 
@@ -138,18 +138,18 @@ public class MetricUtil {
 //		addCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate);
 //		addCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate);
 //		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate);
-		addCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count, false);
-		addCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count, false);
-		addCacheMetric(METRIC_EXPIRED_COUNT, Metric.Unit.Count, false);
-		addCacheMetric(METRIC_EVICTED_COUNT, Metric.Unit.Count, false);
-		addCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, false, Metric.RatioType.hit);
-		addCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, false, Metric.RatioType.miss);
-		addCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, false, Metric.RatioType.hit);
-		addCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, false, Metric.RatioType.miss);
-		addCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, false, Metric.RatioType.hit);
-		addCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, false, Metric.RatioType.miss);
-		addCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, false, Metric.RatioType.hit);
-		addCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, false, Metric.RatioType.miss);
+		addCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count, true);
+		addCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count, true);
+		addCacheMetric(METRIC_EXPIRED_COUNT, Metric.Unit.Count, true);
+		addCacheMetric(METRIC_EVICTED_COUNT, Metric.Unit.Count, true);
+		addCacheMetric(METRIC_CACHE_HIT_COUNT, Metric.Unit.Count, true, Metric.RatioType.hit);
+		addCacheMetric(METRIC_CACHE_MISS_COUNT, Metric.Unit.Count, true, Metric.RatioType.miss);
+		addCacheMetric(METRIC_ON_DISK_HIT_COUNT, Metric.Unit.Count, true, Metric.RatioType.hit);
+		addCacheMetric(METRIC_ON_DISK_MISS_COUNT, Metric.Unit.Count, true, Metric.RatioType.miss);
+		addCacheMetric(METRIC_IN_MEMORY_HIT_COUNT, Metric.Unit.Count, true, Metric.RatioType.hit);
+		addCacheMetric(METRIC_IN_MEMORY_MISS_COUNT, Metric.Unit.Count, true, Metric.RatioType.miss);
+		addCacheMetric(METRIC_OFF_HEAP_HIT_COUNT, Metric.Unit.Count, true, Metric.RatioType.hit);
+		addCacheMetric(METRIC_OFF_HEAP_MISS_COUNT, Metric.Unit.Count, true, Metric.RatioType.miss);
 
 		addCacheMetric(METRIC_MAX_LOCAL_HEAP_SIZE_COUNT, "Max", Metric.Unit.Count, Arrays.asList("LocalHeapEntries"));
 		addCacheMetric(METRIC_USED_LOCAL_HEAP_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("LocalHeapEntries"));
