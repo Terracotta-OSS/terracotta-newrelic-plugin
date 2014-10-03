@@ -120,10 +120,10 @@ public class MetricUtil {
 	private void init() {
 		// Server metrics
 		addServerMetric(METRIC_LIVE_OBJECT_COUNT, Metric.Unit.Count, data, obj);
-		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Count, data, rates);
-		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Count, data, rates);
-		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Count, data, rates);
-		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Count,data, rates);
+		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Rate, data, rates);
+		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Rate, data, rates);
+		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Rate, data, rates);
+		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Rate,data, rates);
 		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Bytes, off, bytes);
 		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Bytes, off, bytes);
 
