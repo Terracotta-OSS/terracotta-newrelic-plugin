@@ -41,10 +41,6 @@ public class MetricUtil {
 	// Cache metrics
 	public static final String METRIC_EVICTED_COUNT = "EvictedCount";
 	public static final String METRIC_EXPIRED_COUNT = "ExpiredCount";
-	public static final String METRIC_CACHE_ON_DISK_HIT_RATE = "CacheOnDiskHitRate";
-	public static final String METRIC_CACHE_IN_MEMORY_HIT_RATE = "CacheInMemoryHitRate";
-	public static final String METRIC_CACHE_OFF_HEAP_HIT_RATE = "CacheOffHeapHitRate";
-	public static final String METRIC_CACHE_HIT_RATE = "CacheHitRate";
 	public static final String METRIC_ON_DISK_HIT_COUNT = "OnDiskHitCount";
 	public static final String METRIC_IN_MEMORY_HIT_COUNT = "InMemoryHitCount";
 	public static final String METRIC_OFF_HEAP_HIT_COUNT = "OffHeapHitCount";
@@ -55,6 +51,21 @@ public class MetricUtil {
 	public static final String METRIC_CACHE_MISS_COUNT = "CacheMissCount";
 	public static final String METRIC_PUT_COUNT = "PutCount";
 	public static final String METRIC_REMOVED_COUNT = "RemovedCount";
+	
+	// Cache Rates
+	public static final String METRIC_CACHE_ON_DISK_HIT_RATE = "CacheOnDiskHitRate";
+	public static final String METRIC_CACHE_IN_MEMORY_HIT_RATE = "CacheInMemoryHitRate";
+	public static final String METRIC_CACHE_OFF_HEAP_HIT_RATE = "CacheOffHeapHitRate";
+	public static final String METRIC_CACHE_HIT_RATE = "CacheHitRate";
+	public static final String METRIC_CACHE_ON_DISK_MISS_RATE = "CacheOnDiskMissRate";
+	public static final String METRIC_CACHE_IN_MEMORY_MISS_RATE = "CacheInMemoryMissRate";
+	public static final String METRIC_CACHE_OFF_HEAP_MISS_RATE = "CacheOffHeapMissRate";
+	public static final String METRIC_CACHE_MISS_RATE = "CacheMissRate";
+	public static final String METRIC_CACHE_PUT_RATE = "CachePutRate";
+	public static final String METRIC_CACHE_REMOVE_RATE = "CacheRemoveRate";
+	public static final String METRIC_CACHE_EVICTION_RATE = "CacheEvictionRate";
+	public static final String METRIC_CACHE_EXPIRATION_RATE = "CacheExpirationRate";
+
 
 	// these are the actual ehcache settings for local values
 	public static final String METRIC_MAX_LOCAL_HEAP_SIZE_BYTES = "MaxBytesLocalHeap";
@@ -134,10 +145,16 @@ public class MetricUtil {
 //                toMetricPath(clients, METRIC_WRITE_RATE), Metric.Source.client, Metric.Unit.Rate));
 
 		// Cache metrics
-//		addCacheMetric(METRIC_CACHE_ON_DISK_HIT_RATE, Metric.Unit.Rate);
-//		addCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate);
-//		addCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate);
-//		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate);
+//		addCacheMetric(METRIC_CACHE_ON_DISK_HIT_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_MISS_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_PUT_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_REMOVE_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_EVICTION_RATE, Metric.Unit.Rate, false);
+		addCacheMetric(METRIC_CACHE_EXPIRATION_RATE, Metric.Unit.Rate, false);
+
 		addCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count, true);
 		addCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count, true);
 		addCacheMetric(METRIC_EXPIRED_COUNT, Metric.Unit.Count, true);
