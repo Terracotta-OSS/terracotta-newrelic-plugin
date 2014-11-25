@@ -68,4 +68,6 @@ public class MetricFetcherTest {
 		log.info(uri.toString());
 	}
 
+
+
 }

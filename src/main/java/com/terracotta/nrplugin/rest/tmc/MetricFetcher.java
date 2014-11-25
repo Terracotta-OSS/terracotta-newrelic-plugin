@@ -12,6 +12,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,11 @@ import java.util.*;
 @Service
 public class MetricFetcher extends BaseTmcClient {
 
+	final Logger tmcResponseLog = LoggerFactory.getLogger("tmcResponseLog");
+
 	List<NameValuePair> cacheNames = new ArrayList<NameValuePair>();
+
+	List<String> agentSample;
 
 	@Autowired
 	MetricUtil metricUtil;
@@ -47,6 +53,9 @@ public class MetricFetcher extends BaseTmcClient {
 
 	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.percentage}")
 	protected double agentSamplePercentage;
+
+	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.enabled}")
+	boolean agentSampleEnabled;
 
 //	@Autowired
 //	AgentService agentService;
@@ -72,11 +81,13 @@ public class MetricFetcher extends BaseTmcClient {
 		if (requestParams != null) {
 			url = buildUrl(url, requestParams);
 			log.debug("Executing HTTP GET to '" + url + "'");
+			tmcResponseLog.debug("Executing HTTP GET to '" + url + "'");
 		}
 		Object payload = null;
 		try {
 			payload = getRestTemplate().getForObject(url, clazz);
-			log.debug("TMC Payload: " + payload);
+//			log.debug("TMC Payload: " + payload);
+			tmcResponseLog.debug("" + payload);
 			stateManager.setTmcState(StateManager.TmcState.available);
 		} catch (HttpClientErrorException e) {
 			stateManager.setTmcState(StateManager.TmcState.unavailable);
@@ -125,15 +136,18 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	private String constructCacheManagersUrl() {
-		List<String> agentIds = findEhcacheAgentSample(agentSamplePercentage);
-		String baseUrl = "/api/agents;ids=";
-		for (int i = 0; i < agentIds.size(); i++) {
-			String agentId = agentIds.get(i);
-			baseUrl += agentId;
-			if (i + 1 < agentIds.size()) baseUrl += ",";
+		if (agentSampleEnabled) {
+			List<String> agentIds = findEhcacheAgentSample();
+			String baseUrl = "/api/agents;ids=";
+			for (int i = 0; i < agentIds.size(); i++) {
+				String agentId = agentIds.get(i);
+				baseUrl += agentId;
+				if (i + 1 < agentIds.size()) baseUrl += ",";
+			}
+			baseUrl += "/cacheManagers/caches";
+			return baseUrl;
 		}
-		baseUrl += "/cacheManagers/caches";
-		return baseUrl;
+		else return "/api/agents/cacheManagers/caches";
 	}
 
 	public List<Topologies> getTopologies() throws Exception {
@@ -144,23 +158,30 @@ public class MetricFetcher extends BaseTmcClient {
 		return (String) doGet("/api/agents/topologies/", String.class);
 	}
 
-	public List<String> findEhcacheAgentSample(double percentage) {
-		if (percentage < 0 || percentage > 1) throw new IllegalArgumentException("percentage must be between 0 and 1");
-		Set<String> agentsSample = new HashSet<String>();
-		List<String> allAgents = findAllEhcacheAgents();
-		if (allAgents.size() > 0) {
-			int sampleSize = (int) (allAgents.size() * percentage);
-			for (int i = 0; i < sampleSize; i++) {
-				String sample;
-				do {
-					sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
-				}
-				while (agentsSample.contains(sample));
-				agentsSample.add(sample);
+	public List<String> findEhcacheAgentSample() {
+		if (agentSample == null || agentSample.size() == 0) {
+			log.info("Creating sample agent list...");
+			if (agentSamplePercentage < 0 || agentSamplePercentage > 1) {
+				throw new IllegalArgumentException("percentage must be between 0 and 1");
 			}
-		}
+			Set<String> agentsSample = new HashSet<String>();
+			List<String> allAgents = findAllEhcacheAgents();
+			if (allAgents.size() > 0) {
+				int sampleSize = (int) (allAgents.size() * agentSamplePercentage);
+				for (int i = 0; i < sampleSize; i++) {
+					String sample;
+					do {
+						sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
+					}
+					while (agentsSample.contains(sample));
+					agentsSample.add(sample);
+				}
+			}
 
-		return new ArrayList<String>(agentsSample);
+			log.info("Created list of " + agentsSample.size() + " agent(s).");
+			agentSample = new ArrayList<String>(agentsSample);
+		}
+		return agentSample;
 	}
 
 	public List<String> findAllEhcacheAgents() {

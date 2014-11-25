@@ -148,12 +148,12 @@ public class MetricUtil {
 //		addCacheMetric(METRIC_CACHE_ON_DISK_HIT_RATE, Metric.Unit.Rate, false);
 //		addCacheMetric(METRIC_CACHE_IN_MEMORY_HIT_RATE, Metric.Unit.Rate, false);
 //		addCacheMetric(METRIC_CACHE_OFF_HEAP_HIT_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_MISS_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_PUT_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_REMOVE_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_EVICTION_RATE, Metric.Unit.Rate, false);
-		addCacheMetric(METRIC_CACHE_EXPIRATION_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_HIT_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_MISS_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_PUT_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_REMOVE_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_EVICTION_RATE, Metric.Unit.Rate, false);
+//		addCacheMetric(METRIC_CACHE_EXPIRATION_RATE, Metric.Unit.Rate, false);
 
 		addCacheMetric(METRIC_PUT_COUNT, Metric.Unit.Count, true);
 		addCacheMetric(METRIC_REMOVED_COUNT, Metric.Unit.Count, true);

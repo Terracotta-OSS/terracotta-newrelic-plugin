@@ -40,6 +40,7 @@ import java.util.List;
 public class MetricReporter {
 
 	final Logger log = LoggerFactory.getLogger(this.getClass());
+	final Logger nrRequestLog = LoggerFactory.getLogger("nrRequestLog");
 
 	public static final String X_LICENSE_KEY = "X-License-Key";
 
@@ -130,9 +131,9 @@ public class MetricReporter {
 			try {
 				NewRelicPayload newRelicPayload = metricProvider.assemblePayload();
 				log.info("Attempting to report stats to NewRelic...");
-				if (log.isDebugEnabled()) {
+				if (nrRequestLog.isDebugEnabled()) {
 					try {
-						log.debug("Payload: " + new ObjectMapper().writeValueAsString(newRelicPayload));
+						nrRequestLog.debug(new ObjectMapper().writeValueAsString(newRelicPayload));
 					} catch (JsonProcessingException e) {
 						log.error("Error serializing payload.", e);
 					}

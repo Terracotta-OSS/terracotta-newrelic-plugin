@@ -6,16 +6,45 @@
 		</encoder>
 	</appender>
 
-	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<!--<file>tc-nr-plugin.log</file>-->
+	<appender name="TMC_RESPONSE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logs.home}/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>log/tmc-response.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="NR_REQUEST" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>log/nr-request.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>log/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>
 			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
 		</encoder>
 	</appender>
+
+	<logger name="tmcResponseLog">
+		<appender-ref ref="TMC_RESPONSE"/>
+		<level value="error"/>
+	</logger>
+
+	<logger name="nrRequestLog">
+		<appender-ref ref="NR_REQUEST"/>
+		<level value="error"/>
+	</logger>
 
 	<logger name="com.terracotta.nrplugin">
 		<level value="info"/>
