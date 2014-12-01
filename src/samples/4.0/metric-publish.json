@@ -1,21 +1,42 @@
 {"agent": {
     "host": "Jeff-THINK",
-    "pid": 240164,
+    "pid": 150172,
     "version": "2.0.0"
 }, "components": [
     {
         "name": "JEFF_LOCAL_server1",
         "guid": "com.saggs.terracotta.Terracotta",
-        "duration": 30,
+        "duration": 60,
         "metrics": {
             "Component/Terracotta/Servers/Data/Objects/absolute/LiveObjectCount[count]": {
-                "total": 1509.0,
-                "min": 1509.0,
-                "max": 1509.0,
+                "total": 5135.0,
+                "min": 5135.0,
+                "max": 5135.0,
                 "count": 1,
-                "sum_of_squares": 2277081.0
+                "sum_of_squares": 2.6368225E7
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ExpirationRate[value/sec]": {
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 1,
+                "sum_of_squares": 0.0
             },
             "Component/Terracotta/Servers/absolute/State[count]": {
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 1,
+                "sum_of_squares": 0.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/EvictionRate[value/sec]": {
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 1,
+                "sum_of_squares": 0.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ReadOperationRate[value/sec]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
@@ -30,151 +51,116 @@
                 "sum_of_squares": 2.74877906944E17
             },
             "Component/Terracotta/Servers/absolute/NumConnectedClients[count]": {
-                "total": 1.0,
-                "min": 1.0,
-                "max": 1.0,
-                "count": 1,
-                "sum_of_squares": 1.0
-            },
-            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapUsedSize[bytes]": {
-                "total": 3490256.0,
-                "min": 3490256.0,
-                "max": 3490256.0,
-                "count": 1,
-                "sum_of_squares": 1.2181886945536E13
-            }
-        }
-    },
-    {
-        "name": "JEFF_LOCAL_server2",
-        "guid": "com.saggs.terracotta.Terracotta",
-        "duration": 30,
-        "metrics": {
-            "Component/Terracotta/Servers/Data/Objects/absolute/LiveObjectCount[count]": {
-                "total": 1509.0,
-                "min": 1509.0,
-                "max": 1509.0,
-                "count": 1,
-                "sum_of_squares": 2277081.0
-            },
-            "Component/Terracotta/Servers/absolute/State[count]": {
                 "total": 2.0,
                 "min": 2.0,
                 "max": 2.0,
                 "count": 1,
                 "sum_of_squares": 4.0
             },
-            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapMaxSize[bytes]": {
-                "total": 5.24288E8,
-                "min": 5.24288E8,
-                "max": 5.24288E8,
+            "Component/Terracotta/Servers/Data/Rates/absolute/WriteOperationRate[value/sec]": {
+                "total": 723.0,
+                "min": 723.0,
+                "max": 723.0,
                 "count": 1,
-                "sum_of_squares": 2.74877906944E17
-            },
-            "Component/Terracotta/Servers/absolute/NumConnectedClients[count]": {
-                "total": 1.0,
-                "min": 1.0,
-                "max": 1.0,
-                "count": 1,
-                "sum_of_squares": 1.0
+                "sum_of_squares": 522729.0
             },
             "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapUsedSize[bytes]": {
-                "total": 3490080.0,
-                "min": 3490080.0,
-                "max": 3490080.0,
+                "total": 1.7331184E7,
+                "min": 1.7331184E7,
+                "max": 1.7331184E7,
                 "count": 1,
-                "sum_of_squares": 1.21806584064E13
+                "sum_of_squares": 3.00369938841856E14
             }
         }
     },
     {
         "name": "JEFF_LOCAL_byteCache",
         "guid": "com.saggs.terracotta.Ehcache",
-        "duration": 30,
+        "duration": 60,
         "metrics": {
             "Component/Terracotta/Ehcache/absolute/CacheHitCount[count]": {
-                "total": 36382.0,
-                "min": 36382.0,
-                "max": 36382.0,
-                "count": 1,
-                "sum_of_squares": 1.323649924E9
+                "total": 298293.0,
+                "min": 25285.0,
+                "max": 273008.0,
+                "count": 2,
+                "sum_of_squares": 7.5172699289E10
             },
             "Component/Terracotta/Ehcache/diff/OnDiskHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/ExpiredCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryHitCount[count]": {
-                "total": 67241.0,
-                "min": 67241.0,
-                "max": 67241.0,
-                "count": 1,
-                "sum_of_squares": 4.521352081E9
+                "total": 299995.0,
+                "min": 25392.0,
+                "max": 274603.0,
+                "count": 2,
+                "sum_of_squares": 7.6051561273E10
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryHitRatio[percent]": {
-                "total": 20.37896306443645,
-                "min": 20.37896306443645,
-                "max": 20.37896306443645,
+                "total": 26.72263667743013,
+                "min": 26.72263667743013,
+                "max": 26.72263667743013,
                 "count": 1,
-                "sum_of_squares": 415.30213558166514
+                "sum_of_squares": 714.0993109939341
             },
             "Component/Terracotta/Ehcache/LocalHeapSize/absolute/LocalHeapSizeInBytes[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalOffHeapEntries/absolute/LocalOffHeapSize[count]": {
-                "total": 235.0,
-                "min": 235.0,
-                "max": 235.0,
-                "count": 1,
-                "sum_of_squares": 55225.0
+                "total": 2042.0,
+                "min": 1019.0,
+                "max": 1023.0,
+                "count": 2,
+                "sum_of_squares": 2084890.0
             },
             "Component/Terracotta/Ehcache/LocalOffHeapSize/absolute/MaxBytesLocalOffHeap[bytes]": {
-                "total": 1.048576E7,
+                "total": 2.097152E7,
                 "min": 1.048576E7,
                 "max": 1.048576E7,
-                "count": 1,
-                "sum_of_squares": 1.099511627776E14
+                "count": 2,
+                "sum_of_squares": 2.199023255552E14
             },
             "Component/Terracotta/Ehcache/LocalDiskSize/absolute/LocalDiskSizeInBytes[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalHeapEntries/absolute/MaxEntriesLocalHeap[count]": {
-                "total": 10000.0,
+                "total": 20000.0,
                 "min": 10000.0,
                 "max": 10000.0,
-                "count": 1,
-                "sum_of_squares": 1.0E8
+                "count": 2,
+                "sum_of_squares": 2.0E8
             },
             "Component/Terracotta/Ehcache/absolute/PutCount[count]": {
-                "total": 69500.0,
-                "min": 69500.0,
-                "max": 69500.0,
-                "count": 1,
-                "sum_of_squares": 4.83025E9
+                "total": 302270.0,
+                "min": 26460.0,
+                "max": 275810.0,
+                "count": 2,
+                "sum_of_squares": 7.67712877E10
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryMissRatio[percent]": {
-                "total": 79.62103693556355,
-                "min": 79.62103693556355,
-                "max": 79.62103693556355,
+                "total": 73.27736332256987,
+                "min": 73.27736332256987,
+                "max": 73.27736332256987,
                 "count": 1,
-                "sum_of_squares": 6339.509522694376
+                "sum_of_squares": 5369.571975507908
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapHitRatio[percent]": {
                 "total": 0.0,
@@ -191,87 +177,87 @@
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryMissCount[count]": {
-                "total": 262712.0,
-                "min": 262712.0,
-                "max": 262712.0,
-                "count": 1,
-                "sum_of_squares": 6.9017594944E10
+                "total": 822630.0,
+                "min": 73416.0,
+                "max": 749214.0,
+                "count": 2,
+                "sum_of_squares": 5.66711526852E11
             },
             "Component/Terracotta/Ehcache/diff/InMemoryMissCount[count]": {
-                "total": 1968.0,
-                "min": 1968.0,
-                "max": 1968.0,
-                "count": 1,
-                "sum_of_squares": 1.030161408E9
+                "total": 59664.0,
+                "min": 29752.0,
+                "max": 29912.0,
+                "count": 2,
+                "sum_of_squares": 4.7409614752E10
             },
             "Component/Terracotta/Ehcache/TotalEntries/absolute/Size[count]": {
-                "total": 235.0,
-                "min": 235.0,
-                "max": 235.0,
-                "count": 1,
-                "sum_of_squares": 55225.0
+                "total": 4069.0,
+                "min": 2034.0,
+                "max": 2035.0,
+                "count": 2,
+                "sum_of_squares": 8278381.0
             },
             "Component/Terracotta/Ehcache/diff/CacheHitCount[count]": {
-                "total": 326.0,
-                "min": 326.0,
-                "max": 326.0,
-                "count": 1,
-                "sum_of_squares": 2.3614788E7
+                "total": 21977.0,
+                "min": 10976.0,
+                "max": 11001.0,
+                "count": 2,
+                "sum_of_squares": 6.320283759E9
             },
             "Component/Terracotta/Ehcache/diff/RemovedCount[count]": {
-                "total": 50.0,
-                "min": 50.0,
-                "max": 50.0,
-                "count": 1,
-                "sum_of_squares": 352500.0
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 2,
+                "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/RemovedCount[count]": {
-                "total": 3550.0,
-                "min": 3550.0,
-                "max": 3550.0,
-                "count": 1,
-                "sum_of_squares": 1.26025E7
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 2,
+                "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/ExpiredCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalDiskSize/absolute/MaxBytesLocalDisk[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/EvictedCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalDiskEntries/absolute/MaxEntriesLocalDisk[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/OnDiskMissCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapMissRatio[percent]": {
@@ -282,32 +268,32 @@
                 "sum_of_squares": 10000.0
             },
             "Component/Terracotta/Ehcache/absolute/CacheMissRatio[percent]": {
-                "total": 56.42143592937738,
-                "min": 56.42143592937738,
-                "max": 56.42143592937738,
+                "total": 26.91655600582133,
+                "min": 26.91655600582133,
+                "max": 26.91655600582133,
                 "count": 1,
-                "sum_of_squares": 3183.378432332837
+                "sum_of_squares": 724.5009872145164
             },
             "Component/Terracotta/Ehcache/LocalOffHeapSize/absolute/LocalOffHeapSizeInBytes[bytes]": {
-                "total": 1793520.0,
-                "min": 1793520.0,
-                "max": 1793520.0,
-                "count": 1,
-                "sum_of_squares": 3.2167139904E12
+                "total": 1.5584544E7,
+                "min": 7777008.0,
+                "max": 7807536.0,
+                "count": 2,
+                "sum_of_squares": 1.2143947182336E14
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalHeapEntries/absolute/LocalHeapSize[count]": {
-                "total": 235.0,
-                "min": 235.0,
-                "max": 235.0,
-                "count": 1,
-                "sum_of_squares": 55225.0
+                "total": 2042.0,
+                "min": 1019.0,
+                "max": 1023.0,
+                "count": 2,
+                "sum_of_squares": 2084890.0
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskMissRatio[percent]": {
                 "total": 0.0,
@@ -320,183 +306,183 @@
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/PutCount[count]": {
-                "total": 500.0,
-                "min": 500.0,
-                "max": 500.0,
-                "count": 1,
-                "sum_of_squares": 6.925E7
+                "total": 22105.0,
+                "min": 11045.0,
+                "max": 11060.0,
+                "count": 2,
+                "sum_of_squares": 6.441102975E9
             },
             "Component/Terracotta/Ehcache/diff/CacheMissCount[count]": {
-                "total": 260.0,
-                "min": 260.0,
-                "max": 260.0,
-                "count": 1,
-                "sum_of_squares": 2.442648E7
+                "total": 7784.0,
+                "min": 3860.0,
+                "max": 3924.0,
+                "count": 2,
+                "sum_of_squares": 8.30571944E8
             },
             "Component/Terracotta/Ehcache/diff/EvictedCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/TotalEntries/absolute/MaxEntriesInCache[count]": {
-                "total": 10000.0,
+                "total": 20000.0,
                 "min": 10000.0,
                 "max": 10000.0,
-                "count": 1,
-                "sum_of_squares": 1.0E8
+                "count": 2,
+                "sum_of_squares": 2.0E8
             },
             "Component/Terracotta/Ehcache/absolute/CacheMissCount[count]": {
-                "total": 47104.0,
-                "min": 47104.0,
-                "max": 47104.0,
-                "count": 1,
-                "sum_of_squares": 2.218786816E9
+                "total": 109861.0,
+                "min": 10311.0,
+                "max": 99550.0,
+                "count": 2,
+                "sum_of_squares": 1.0016519221E10
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskMissCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapMissCount[count]": {
-                "total": 262712.0,
-                "min": 262712.0,
-                "max": 262712.0,
-                "count": 1,
-                "sum_of_squares": 6.9017594944E10
+                "total": 822630.0,
+                "min": 73416.0,
+                "max": 749214.0,
+                "count": 2,
+                "sum_of_squares": 5.66711526852E11
             },
             "Component/Terracotta/Ehcache/diff/OffHeapHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/OffHeapMissCount[count]": {
-                "total": 1968.0,
-                "min": 1968.0,
-                "max": 1968.0,
-                "count": 1,
-                "sum_of_squares": 1.030161408E9
+                "total": 59664.0,
+                "min": 29752.0,
+                "max": 29912.0,
+                "count": 2,
+                "sum_of_squares": 4.7409614752E10
             },
             "Component/Terracotta/Ehcache/diff/InMemoryHitCount[count]": {
-                "total": 463.0,
-                "min": 463.0,
-                "max": 463.0,
-                "count": 1,
-                "sum_of_squares": 6.2050797E7
+                "total": 22077.0,
+                "min": 11022.0,
+                "max": 11055.0,
+                "count": 2,
+                "sum_of_squares": 6.387516069E9
             },
             "Component/Terracotta/Ehcache/LocalDiskEntries/absolute/LocalDiskSize[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/CacheHitRatio[percent]": {
-                "total": 43.57856407062262,
-                "min": 43.57856407062262,
-                "max": 43.57856407062262,
+                "total": 73.08344399417867,
+                "min": 73.08344399417867,
+                "max": 73.08344399417867,
                 "count": 1,
-                "sum_of_squares": 1899.0912464573607
+                "sum_of_squares": 5341.1897860502495
             }
         }
     },
     {
         "name": "JEFF_LOCAL_stringCache",
         "guid": "com.saggs.terracotta.Ehcache",
-        "duration": 30,
+        "duration": 60,
         "metrics": {
             "Component/Terracotta/Ehcache/absolute/CacheHitCount[count]": {
-                "total": 37455.0,
-                "min": 37455.0,
-                "max": 37455.0,
-                "count": 1,
-                "sum_of_squares": 1.402877025E9
+                "total": 298178.0,
+                "min": 25254.0,
+                "max": 272924.0,
+                "count": 2,
+                "sum_of_squares": 7.5125274292E10
             },
             "Component/Terracotta/Ehcache/diff/OnDiskHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/ExpiredCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryHitCount[count]": {
-                "total": 67526.0,
-                "min": 67526.0,
-                "max": 67526.0,
-                "count": 1,
-                "sum_of_squares": 4.559760676E9
+                "total": 299661.0,
+                "min": 25393.0,
+                "max": 274268.0,
+                "count": 2,
+                "sum_of_squares": 7.5867740273E10
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryHitRatio[percent]": {
-                "total": 21.52346588808282,
-                "min": 21.52346588808282,
-                "max": 21.52346588808282,
+                "total": 26.70811107100362,
+                "min": 26.70811107100362,
+                "max": 26.70811107100362,
                 "count": 1,
-                "sum_of_squares": 463.2595838354648
+                "sum_of_squares": 713.3231969810662
             },
             "Component/Terracotta/Ehcache/LocalOffHeapEntries/absolute/LocalOffHeapSize[count]": {
-                "total": 217.0,
-                "min": 217.0,
-                "max": 217.0,
-                "count": 1,
-                "sum_of_squares": 47089.0
+                "total": 2036.0,
+                "min": 1017.0,
+                "max": 1019.0,
+                "count": 2,
+                "sum_of_squares": 2072650.0
             },
             "Component/Terracotta/Ehcache/LocalHeapSize/absolute/LocalHeapSizeInBytes[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalOffHeapSize/absolute/MaxBytesLocalOffHeap[bytes]": {
-                "total": 1.048576E7,
+                "total": 2.097152E7,
                 "min": 1.048576E7,
                 "max": 1.048576E7,
-                "count": 1,
-                "sum_of_squares": 1.099511627776E14
+                "count": 2,
+                "sum_of_squares": 2.199023255552E14
             },
             "Component/Terracotta/Ehcache/LocalDiskSize/absolute/LocalDiskSizeInBytes[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalHeapEntries/absolute/MaxEntriesLocalHeap[count]": {
-                "total": 10000.0,
+                "total": 20000.0,
                 "min": 10000.0,
                 "max": 10000.0,
-                "count": 1,
-                "sum_of_squares": 1.0E8
+                "count": 2,
+                "sum_of_squares": 2.0E8
             },
             "Component/Terracotta/Ehcache/absolute/PutCount[count]": {
-                "total": 69500.0,
-                "min": 69500.0,
-                "max": 69500.0,
-                "count": 1,
-                "sum_of_squares": 4.83025E9
+                "total": 302275.0,
+                "min": 26465.0,
+                "max": 275810.0,
+                "count": 2,
+                "sum_of_squares": 7.6771552325E10
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryMissRatio[percent]": {
-                "total": 78.47653411191718,
-                "min": 78.47653411191718,
-                "max": 78.47653411191718,
+                "total": 73.29188892899637,
+                "min": 73.29188892899637,
+                "max": 73.29188892899637,
                 "count": 1,
-                "sum_of_squares": 6158.5664062189
+                "sum_of_squares": 5371.700982780341
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapHitRatio[percent]": {
                 "total": 0.0,
@@ -513,87 +499,87 @@
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/InMemoryMissCount[count]": {
-                "total": 246206.0,
-                "min": 246206.0,
-                "max": 246206.0,
-                "count": 1,
-                "sum_of_squares": 6.0617394436E10
+                "total": 822324.0,
+                "min": 73704.0,
+                "max": 748620.0,
+                "count": 2,
+                "sum_of_squares": 5.65864184016E11
             },
             "Component/Terracotta/Ehcache/diff/InMemoryMissCount[count]": {
-                "total": 4257.0,
-                "min": 4257.0,
-                "max": 4257.0,
-                "count": 1,
-                "sum_of_squares": 2.078075835E9
+                "total": 59874.0,
+                "min": 29924.0,
+                "max": 29950.0,
+                "count": 2,
+                "sum_of_squares": 4.7460926716E10
             },
             "Component/Terracotta/Ehcache/TotalEntries/absolute/Size[count]": {
-                "total": 217.0,
-                "min": 217.0,
-                "max": 217.0,
-                "count": 1,
-                "sum_of_squares": 47089.0
+                "total": 4079.0,
+                "min": 2039.0,
+                "max": 2040.0,
+                "count": 2,
+                "sum_of_squares": 8319121.0
             },
             "Component/Terracotta/Ehcache/diff/CacheHitCount[count]": {
-                "total": 357.0,
-                "min": 357.0,
-                "max": 357.0,
-                "count": 1,
-                "sum_of_squares": 2.6615421E7
+                "total": 21953.0,
+                "min": 10954.0,
+                "max": 10999.0,
+                "count": 2,
+                "sum_of_squares": 6.316078667E9
             },
             "Component/Terracotta/Ehcache/diff/RemovedCount[count]": {
-                "total": 50.0,
-                "min": 50.0,
-                "max": 50.0,
-                "count": 1,
-                "sum_of_squares": 352500.0
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 2,
+                "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/RemovedCount[count]": {
-                "total": 3550.0,
-                "min": 3550.0,
-                "max": 3550.0,
-                "count": 1,
-                "sum_of_squares": 1.26025E7
+                "total": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 2,
+                "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/ExpiredCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalDiskSize/absolute/MaxBytesLocalDisk[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/EvictedCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalDiskEntries/absolute/MaxEntriesLocalDisk[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/OnDiskMissCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapMissRatio[percent]": {
@@ -604,38 +590,38 @@
                 "sum_of_squares": 10000.0
             },
             "Component/Terracotta/Ehcache/LocalOffHeapSize/absolute/LocalOffHeapSizeInBytes[bytes]": {
-                "total": 95480.0,
-                "min": 95480.0,
-                "max": 95480.0,
-                "count": 1,
-                "sum_of_squares": 9.1164304E9
+                "total": 895840.0,
+                "min": 447480.0,
+                "max": 448360.0,
+                "count": 2,
+                "sum_of_squares": 4.0126504E11
             },
             "Component/Terracotta/Ehcache/absolute/CacheMissRatio[percent]": {
-                "total": 55.212369062993254,
-                "min": 55.212369062993254,
-                "max": 55.212369062993254,
+                "total": 26.943299701577377,
+                "min": 26.943299701577377,
+                "max": 26.943299701577377,
                 "count": 1,
-                "sum_of_squares": 3048.4056975481744
+                "sum_of_squares": 725.9413988090196
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/LocalHeapEntries/absolute/LocalHeapSize[count]": {
-                "total": 217.0,
-                "min": 217.0,
-                "max": 217.0,
-                "count": 1,
-                "sum_of_squares": 47089.0
+                "total": 2036.0,
+                "min": 1017.0,
+                "max": 1019.0,
+                "count": 2,
+                "sum_of_squares": 2072650.0
             },
             "Component/Terracotta/Ehcache/LocalHeapSize/absolute/MaxBytesLocalHeap[bytes]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskMissRatio[percent]": {
@@ -646,88 +632,88 @@
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/PutCount[count]": {
-                "total": 500.0,
-                "min": 500.0,
-                "max": 500.0,
-                "count": 1,
-                "sum_of_squares": 6.925E7
+                "total": 22110.0,
+                "min": 11050.0,
+                "max": 11060.0,
+                "count": 2,
+                "sum_of_squares": 6.4413676E9
             },
             "Component/Terracotta/Ehcache/diff/CacheMissCount[count]": {
-                "total": 229.0,
-                "min": 229.0,
-                "max": 229.0,
-                "count": 1,
-                "sum_of_squares": 2.1094793E7
+                "total": 7911.0,
+                "min": 3954.0,
+                "max": 3957.0,
+                "count": 2,
+                "sum_of_squares": 8.38931907E8
             },
             "Component/Terracotta/Ehcache/diff/EvictedCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/TotalEntries/absolute/MaxEntriesInCache[count]": {
-                "total": 10000.0,
+                "total": 20000.0,
                 "min": 10000.0,
                 "max": 10000.0,
-                "count": 1,
-                "sum_of_squares": 1.0E8
+                "count": 2,
+                "sum_of_squares": 2.0E8
             },
             "Component/Terracotta/Ehcache/absolute/CacheMissCount[count]": {
-                "total": 46173.0,
-                "min": 46173.0,
-                "max": 46173.0,
-                "count": 1,
-                "sum_of_squares": 2.131945929E9
+                "total": 109968.0,
+                "min": 10480.0,
+                "max": 99488.0,
+                "count": 2,
+                "sum_of_squares": 1.0007692544E10
             },
             "Component/Terracotta/Ehcache/absolute/OffHeapMissCount[count]": {
-                "total": 246206.0,
-                "min": 246206.0,
-                "max": 246206.0,
-                "count": 1,
-                "sum_of_squares": 6.0617394436E10
+                "total": 822324.0,
+                "min": 73704.0,
+                "max": 748620.0,
+                "count": 2,
+                "sum_of_squares": 5.65864184016E11
             },
             "Component/Terracotta/Ehcache/absolute/OnDiskMissCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/OffHeapHitCount[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/diff/OffHeapMissCount[count]": {
-                "total": 4257.0,
-                "min": 4257.0,
-                "max": 4257.0,
-                "count": 1,
-                "sum_of_squares": 2.078075835E9
+                "total": 59874.0,
+                "min": 29924.0,
+                "max": 29950.0,
+                "count": 2,
+                "sum_of_squares": 4.7460926716E10
             },
             "Component/Terracotta/Ehcache/diff/InMemoryHitCount[count]": {
-                "total": 477.0,
-                "min": 477.0,
-                "max": 477.0,
-                "count": 1,
-                "sum_of_squares": 6.4192275E7
+                "total": 22063.0,
+                "min": 11013.0,
+                "max": 11050.0,
+                "count": 2,
+                "sum_of_squares": 6.377240349E9
             },
             "Component/Terracotta/Ehcache/LocalDiskEntries/absolute/LocalDiskSize[count]": {
                 "total": 0.0,
                 "min": 0.0,
                 "max": 0.0,
-                "count": 1,
+                "count": 2,
                 "sum_of_squares": 0.0
             },
             "Component/Terracotta/Ehcache/absolute/CacheHitRatio[percent]": {
-                "total": 44.787630937006746,
-                "min": 44.787630937006746,
-                "max": 44.787630937006746,
+                "total": 73.05670029842263,
+                "min": 73.05670029842263,
+                "max": 73.05670029842263,
                 "count": 1,
-                "sum_of_squares": 2005.9318849495237
+                "sum_of_squares": 5337.281458493545
             }
         }
     }

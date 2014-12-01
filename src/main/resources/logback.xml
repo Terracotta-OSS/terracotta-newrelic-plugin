@@ -8,8 +8,11 @@
 
 	<appender name="TMC_RESPONSE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logs.home}/tmc-response.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>log/tmc-response.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>7</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>500MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
 		<encoder>
 			<pattern>%d{HH:mm:ss.SSS} %-5level - %msg%n</pattern>
@@ -18,8 +21,11 @@
 
 	<appender name="NR_REQUEST" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logs.home}/nr-request.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>log/nr-request.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>7</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>500MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
 		<encoder>
 			<pattern>%d{HH:mm:ss.SSS} %-5level - %msg%n</pattern>
@@ -28,7 +34,7 @@
 
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${logs.home}/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>log/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>

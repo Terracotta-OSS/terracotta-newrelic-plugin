@@ -38,8 +38,6 @@ public class MetricFetcher extends BaseTmcClient {
 
 	List<NameValuePair> cacheNames = new ArrayList<NameValuePair>();
 
-	List<String> agentSample;
-
 	@Autowired
 	MetricUtil metricUtil;
 
@@ -159,29 +157,26 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public List<String> findEhcacheAgentSample() {
-		if (agentSample == null || agentSample.size() == 0) {
-			log.info("Creating sample agent list...");
-			if (agentSamplePercentage < 0 || agentSamplePercentage > 1) {
-				throw new IllegalArgumentException("percentage must be between 0 and 1");
-			}
-			Set<String> agentsSample = new HashSet<String>();
-			List<String> allAgents = findAllEhcacheAgents();
-			if (allAgents.size() > 0) {
-				int sampleSize = (int) (allAgents.size() * agentSamplePercentage);
-				for (int i = 0; i < sampleSize; i++) {
-					String sample;
-					do {
-						sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
-					}
-					while (agentsSample.contains(sample));
-					agentsSample.add(sample);
-				}
-			}
-
-			log.info("Created list of " + agentsSample.size() + " agent(s).");
-			agentSample = new ArrayList<String>(agentsSample);
+		log.info("Creating sample agent list...");
+		if (agentSamplePercentage < 0 || agentSamplePercentage > 1) {
+			throw new IllegalArgumentException("percentage must be between 0 and 1");
 		}
-		return agentSample;
+		Set<String> agentsSample = new HashSet<String>();
+		List<String> allAgents = findAllEhcacheAgents();
+		if (allAgents.size() > 0) {
+			int sampleSize = (int) (allAgents.size() * agentSamplePercentage);
+			for (int i = 0; i < sampleSize; i++) {
+				String sample;
+				do {
+					sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
+				}
+				while (agentsSample.contains(sample));
+				agentsSample.add(sample);
+			}
+		}
+
+		log.info("Created list of " + agentsSample.size() + " agent(s).");
+		return new ArrayList<String>(agentsSample);
 	}
 
 	public List<String> findAllEhcacheAgents() {
