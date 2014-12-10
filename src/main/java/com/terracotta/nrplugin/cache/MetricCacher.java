@@ -146,18 +146,38 @@ public class MetricCacher {
 						Element denominatorElement = statsCache.get(denominatorKey);
 						if (denominatorElement != null && denominatorElement.getObjectValue() instanceof MetricDataset) {
 							MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
-							double numerator = metricDataset.getStatistics().getSum();
-							double denominator = (metricDataset.getStatistics().getSum() + denominatorDataset.getStatistics().getSum());
-							double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
-							MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
-							putValue(ratioDataset, ratio);
-							log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
+							double numerator = getDiffSum(metricDataset);
+							double denominator = numerator + getDiffSum(denominatorDataset);
+							if (numerator > 0 && denominator > 0) {
+								log.trace("Got Diff Sum for numerator '" + metricDataset.getMetric().getName() + "': " + numerator);
+								log.trace("Got Diff Sum for denominator '" + denominatorDataset.getMetric().getName() + "': " + denominator);
+								double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
+
+								MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
+								putValue(ratioDataset, ratio);
+								log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
+							}
+							else {
+								log.warn("Could not calculate ratio for '" + metricDataset.getMetric().getName());
+							}
 						}
 					}
 				}
 			}
 		}
 		log.info("Done caching stats.");
+	}
+
+	private double getDiffSum(MetricDataset metricDataset) {
+		Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
+		MetricDataset diffDataSet = new MetricDataset(diffMetric, metricDataset.getComponentName());
+		String diffKey = diffDataSet.getKey();
+		Element diff = diffsCache.get(diffKey);
+		if (diff != null && diff.getObjectValue() instanceof DiffEntry) {
+			DiffEntry diffEntry = (DiffEntry) diff.getObjectValue();
+			return (Double) diffEntry.getDiffs().get(MetricUtil.NEW_RELIC_TOTAL);
+		}
+		return -1;
 	}
 
 	private Set<String> getCacheNames(JSONArray objects) {
@@ -243,13 +263,7 @@ public class MetricCacher {
 		else {
 			log.trace("Latest SUM: " + latest.getStatistics().getSum() + ", Previous SUM: " + previousStatistics.getSum());
 
-			Metric diffMetric = MetricBuilder.create(latest.getMetric().getName()).
-					setReportingComponents(latest.getMetric().getReportingComponents()).
-					setSource(latest.getMetric().getSource()).
-					setUnit(latest.getMetric().getUnit()).
-					setType(latest.getMetric().getType()).
-					setDiff(true).
-					build();
+			Metric diffMetric = getDiffMetricForAbsoluteMetric(latest.getMetric());
 			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
 //			MetricDataset diffDataSet = metricDatasetFactory.construct(diffMetric, latest.getComponentName());
 			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(diffMetric.getReportingPath(),
@@ -268,6 +282,16 @@ public class MetricCacher {
 		log.trace("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
 		lastDataSet.put(latest.getKey(), new SynchronizedDescriptiveStatistics(
 				(SynchronizedDescriptiveStatistics) latest.getStatistics()));
+	}
+
+	public Metric getDiffMetricForAbsoluteMetric(Metric absolute) {
+		return MetricBuilder.create(absolute.getName()).
+				setReportingComponents(absolute.getReportingComponents()).
+				setSource(absolute.getSource()).
+				setUnit(absolute.getUnit()).
+				setType(absolute.getType()).
+				setDiff(true).
+				build();
 	}
 
 	private double toDouble(double value) {
