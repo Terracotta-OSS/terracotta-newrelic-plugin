@@ -146,9 +146,10 @@ public class MetricCacher {
 						Element denominatorElement = statsCache.get(denominatorKey);
 						if (denominatorElement != null && denominatorElement.getObjectValue() instanceof MetricDataset) {
 							MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
-							double numerator = getDiffSum(metricDataset);
-							double denominator = numerator + getDiffSum(denominatorDataset);
-							if (numerator > 0 && denominator > 0) {
+							Double numerator = getDiffSum(metricDataset);
+							Double denominator = getDiffSum(denominatorDataset);
+							if (numerator != null && denominator != null) {
+								denominator += numerator;
 								log.trace("Got Diff Sum for numerator '" + metricDataset.getMetric().getName() + "': " + numerator);
 								log.trace("Got Diff Sum for denominator '" + denominatorDataset.getMetric().getName() + "': " + denominator);
 								double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
@@ -168,7 +169,7 @@ public class MetricCacher {
 		log.info("Done caching stats.");
 	}
 
-	private double getDiffSum(MetricDataset metricDataset) {
+	private Double getDiffSum(MetricDataset metricDataset) {
 		Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
 		MetricDataset diffDataSet = new MetricDataset(diffMetric, metricDataset.getComponentName());
 		String diffKey = diffDataSet.getKey();
@@ -177,7 +178,7 @@ public class MetricCacher {
 			DiffEntry diffEntry = (DiffEntry) diff.getObjectValue();
 			return (Double) diffEntry.getDiffs().get(MetricUtil.NEW_RELIC_TOTAL);
 		}
-		return -1;
+		return null;
 	}
 
 	private Set<String> getCacheNames(JSONArray objects) {
