@@ -7,9 +7,10 @@
 	</appender>
 
 	<appender name="TMC_RESPONSE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>log/tmc-response.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>log/tmc-response.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>7</maxHistory>
+			<fileNamePattern>log/tmc-response.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!--<maxHistory>7</maxHistory>-->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>500MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
@@ -20,9 +21,10 @@
 	</appender>
 
 	<appender name="NR_REQUEST" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>log/nr-request.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>log/nr-request.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>7</maxHistory>
+			<fileNamePattern>log/nr-request.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!--<maxHistory>7</maxHistory>-->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>500MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
@@ -42,14 +44,12 @@
 		</encoder>
 	</appender>
 
-	<logger name="tmcResponseLog">
+	<logger name="tmcResponseLog" level="debug" additivity="false">
 		<appender-ref ref="TMC_RESPONSE"/>
-		<level value="error"/>
 	</logger>
 
-	<logger name="nrRequestLog">
+	<logger name="nrRequestLog" level="debug" additivity="false">
 		<appender-ref ref="NR_REQUEST"/>
-		<level value="error"/>
 	</logger>
 
 	<logger name="com.terracotta.nrplugin">
