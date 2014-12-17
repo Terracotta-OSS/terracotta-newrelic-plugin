@@ -267,12 +267,14 @@ public class MetricCacher {
 			Metric diffMetric = getDiffMetricForAbsoluteMetric(latest.getMetric());
 			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
 //			MetricDataset diffDataSet = metricDatasetFactory.construct(diffMetric, latest.getComponentName());
-			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(diffMetric.getReportingPath(),
-					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
-					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),
+			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(
+					diffMetric.getReportingPath(),
+//					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
+//					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),
 					toDouble(latest.getStatistics().getSum() - previousStatistics.getSum()),
-					latest.getStatistics().getN(), // Use the absolute count here because TMC is reporting absolute values
-					toDouble(latest.getStatistics().getSumsq() - previousStatistics.getSumsq()));
+					latest.getStatistics().getN() // Use the absolute count here because TMC is reporting absolute values
+//					toDouble(latest.getStatistics().getSumsq() - previousStatistics.getSumsq())
+			);
 
 			String diffKey = diffDataSet.getKey();
 			log.trace("Putting " + diffKey);

@@ -299,19 +299,19 @@ public class MetricUtil {
 		return cacheStatsNames;
 	}
 
-	public Map<String, Object> metricsAsJson(Collection<MetricDataset> metrics) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		for (MetricDataset metricDataset : metrics) {
-			try {
-				Map.Entry<String, Map<String, Number>> entry = metricAsJson(metricDataset);
-				log.trace("Deserializing " + entry.getKey());
-				map.put(entry.getKey(), entry.getValue());
-			} catch (Exception e) {
-				log.error("Error marshalling metric to JSON.", e);
-			}
-		}
-		return map;
-	}
+//	public Map<String, Object> metricsAsJson(Collection<MetricDataset> metrics) {
+//		Map<String, Object> map = new HashMap<String, Object>();
+//		for (MetricDataset metricDataset : metrics) {
+//			try {
+//				Map.Entry<String, Map<String, Number>> entry = metricAsJson(metricDataset);
+//				log.trace("Deserializing " + entry.getKey());
+//				map.put(entry.getKey(), entry.getValue());
+//			} catch (Exception e) {
+//				log.error("Error marshalling metric to JSON.", e);
+//			}
+//		}
+//		return map;
+//	}
 
 	public Map.Entry<String, Map<String, Number>> metricAsJson(MetricDataset metricDataset) {
 		return metricAsJson(metricDataset.getMetric().getReportingPath(), metricDataset.getStatistics().getMin(),
@@ -327,6 +327,13 @@ public class MetricUtil {
 		values.put(NEW_RELIC_TOTAL, sum);
 		values.put(NEW_RELIC_COUNT, count);
 		values.put(NEW_RELIC_SUM_OF_SQUARES, sumsq);
+		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
+	}
+
+	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, double sum, long count) {
+		Map<String, Number> values = new HashMap<String, Number>();
+		values.put(NEW_RELIC_TOTAL, sum);
+		values.put(NEW_RELIC_COUNT, count);
 		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
 	}
 
