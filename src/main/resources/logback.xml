@@ -7,10 +7,9 @@
 	</appender>
 
 	<appender name="TMC_RESPONSE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>log/tmc-response.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>log/tmc-response.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<!--<maxHistory>7</maxHistory>-->
+			<fileNamePattern>${logs.home}/tmc-response.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>500MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
@@ -21,10 +20,9 @@
 	</appender>
 
 	<appender name="NR_REQUEST" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>log/nr-request.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>log/nr-request.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<!--<maxHistory>7</maxHistory>-->
+			<fileNamePattern>${logs.home}/nr-request.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>500MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
@@ -36,7 +34,7 @@
 
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>log/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>${logs.home}/tc-nr-plugin.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>
@@ -44,12 +42,14 @@
 		</encoder>
 	</appender>
 
-	<logger name="tmcResponseLog" level="debug" additivity="false">
-		<appender-ref ref="TMC_RESPONSE"/>
+	<logger name="tmcResponseLog" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="TMC_RESPONSE"/>
 	</logger>
 
-	<logger name="nrRequestLog" level="debug" additivity="false">
-		<appender-ref ref="NR_REQUEST"/>
+	<logger name="nrRequestLog" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="NR_REQUEST"/>
 	</logger>
 
 	<logger name="com.terracotta.nrplugin">
@@ -70,7 +70,5 @@
 
 	<root level="error">
 		<appender-ref ref="FILE"/>
-		<appender-ref ref="STDOUT"/>
 	</root>
-
 </configuration>
