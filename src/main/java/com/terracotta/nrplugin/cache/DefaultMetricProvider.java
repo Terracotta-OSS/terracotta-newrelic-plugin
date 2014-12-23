@@ -143,6 +143,8 @@ public class DefaultMetricProvider implements MetricProvider {
 	public List<Component> createRollups(Map<String, Component> componentMap) {
 		// Maps guid -> metric -> stats
 		Map<String, Map<String, Map<String, Number>>> guids = new ConcurrentHashMap<String, Map<String, Map<String, Number>>>();
+
+		// Maps component name -> total entries
 		for (Map.Entry<String, Component> entry : componentMap.entrySet()) {
 			String guid = entry.getValue().getGuid();
 			Map<String, Map<String, Number>> metrics = guids.get(guid);
@@ -158,7 +160,7 @@ public class DefaultMetricProvider implements MetricProvider {
 					metrics.put(metricName, rollup);
 				}
 				Map<String, Number> data = (Map<String, Number>) metricEntry.getValue();
-				addData(rollup, data);
+				addData(metricName, rollup, data);
 			}
 		}
 
@@ -179,14 +181,27 @@ public class DefaultMetricProvider implements MetricProvider {
 		return rollupComponents;
 	}
 
-	private void addData(Map<String, Number> metrics, Map<String, Number> data) {
+	private void addData(String metricName, Map<String, Number> metrics, Map<String, Number> data) {
 		for (Map.Entry<String, Number> entry : data.entrySet()) {
 			String stat = entry.getKey();
 			Number incr = entry.getValue();
 			Double initial = metrics.get(stat) != null ? (Double) metrics.get(stat) : 0;
 			if (incr != null) {
-				metrics.put(stat, initial + incr.doubleValue());
+				// Set count to the number of Components so that the average value equals the sum of all clients/TSAs
+				if (MetricUtil.NEW_RELIC_COUNT.equals(stat) &&
+						data.containsKey(MetricUtil.NEW_RELIC_SUM_OF_SQUARES) &&
+						!metricName.contains("Ratio")) {
+					metrics.put(MetricUtil.NEW_RELIC_COUNT, incr.doubleValue());
+				}
+				else {
+					metrics.put(stat, initial + incr.doubleValue());
+				}
 			}
+		}
+		// Remove min/max for Ratio metrics
+		if (metricName.contains("Ratio")) {
+			metrics.remove(MetricUtil.NEW_RELIC_MIN);
+			metrics.remove(MetricUtil.NEW_RELIC_MAX);
 		}
 	}
 
