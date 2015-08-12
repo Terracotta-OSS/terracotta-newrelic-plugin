@@ -1,85 +1,65 @@
 [
-    {
-        "version": "4.0.6",
-        "agentId": "LocalCluster",
-        "serverGroupEntities": [
-            {
-                "version": "4.0.6",
-                "agentId": "embedded",
-                "id": 0,
-                "name": "default-group",
-                "servers": [
-                    {
-                        "version": "4.0.6",
-                        "agentId": "embedded",
-                        "attributes": {
-                            "DescriptionOfCapabilities": "CLC, TMC, WAN, authentication, ehcache, ehcache offheap, search, security, server array offheap, server striping",
-                            "HostAddress": "192.168.44.1",
-                            "Host": "localhost",
-                            "Restartable": false,
-                            "BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
-                            "JmxPort": 9620,
-                            "Name": "server2",
-                            "ActivateTime": -1,
-                            "TSAListenPort": 9610,
-                            "State": "PASSIVE-STANDBY",
-                            "TSAGroupPort": 9630,
-                            "ResourceState": "NORMAL",
-                            "StartTime": 1410886995538,
-                            "Version": "Terracotta Enterprise 4.0.6"
-                        }
-                    },
-                    {
-                        "version": "4.0.6",
-                        "agentId": "embedded",
-                        "attributes": {
-                            "DescriptionOfCapabilities": "CLC, TMC, WAN, authentication, ehcache, ehcache offheap, search, security, server array offheap, server striping",
-                            "HostAddress": "192.168.44.1",
-                            "Host": "localhost",
-                            "Restartable": false,
-                            "BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
-                            "JmxPort": 9520,
-                            "Name": "server1",
-                            "ActivateTime": 1410886992568,
-                            "TSAListenPort": 9510,
-                            "State": "ACTIVE-COORDINATOR",
-                            "TSAGroupPort": 9530,
-                            "ResourceState": "NORMAL",
-                            "StartTime": 1410886985670,
-                            "Version": "Terracotta Enterprise 4.0.6"
-                        }
-                    }
-                ]
-            }
-        ],
-        "clientEntities": [
-            {
-                "version": "4.0.6",
-                "agentId": "embedded",
-                "attributes": {
-                    "BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
-                    "RemoteAddress": "tcvm:49820",
-                    "Version": "Terracotta Enterprise 4.0.6",
-                    "ClientID": "1"
-                }
-            },
-            {
-                "version": "4.0.6",
-                "agentId": "embedded",
-                "attributes": {
-                    "BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
-                    "RemoteAddress": "tcvm:49820",
-                    "Version": "Terracotta Enterprise 4.0.6",
-                    "ClientID": "2"
-                }
-            }
-        ],
-        "unreadOperatorEventCount": {
-            "ERROR": 0,
-            "CRITICAL": 0,
-            "WARN": 1,
-            "INFO": 102,
-            "DEBUG": 0
-        }
-    }
+	{
+		"version": "4.0.6",
+		"agentId": "LocalCluster",
+		"serverGroupEntities": [
+			{
+				"version": "4.0.6",
+				"agentId": "embedded",
+				"id": 0,
+				"name": "default-group",
+				"servers": [
+					{
+						"version": "4.0.6",
+						"agentId": "embedded",
+						"attributes": {
+							"DescriptionOfCapabilities": "CLC, TMC, WAN, authentication, ehcache, ehcache offheap, search, security, server array offheap, server striping",
+							"HostAddress": "169.254.242.39",
+							"Host": "localhost",
+							"Restartable": false,
+							"BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
+							"JmxPort": 9520,
+							"Name": "server1",
+							"ActivateTime": 1423501614408,
+							"TSAListenPort": 9510,
+							"State": "ACTIVE-COORDINATOR",
+							"TSAGroupPort": 9530,
+							"ResourceState": "NORMAL",
+							"StartTime": 1423501605012,
+							"Version": "Terracotta Enterprise 4.0.6"
+						}
+					}
+				]
+			}
+		],
+		"clientEntities": [
+			{
+				"version": "4.0.6",
+				"agentId": "embedded",
+				"attributes": {
+					"BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
+					"RemoteAddress": "tcvm:50329",
+					"Version": "Terracotta Enterprise 4.0.6",
+					"ClientID": "1"
+				}
+			},
+			{
+				"version": "4.0.6",
+				"agentId": "embedded",
+				"attributes": {
+					"BuildID": "20140425-113016 (Revision 36816-24830 by jenkins-slave@sfo-c64-jenkins-slave-007.eur.ad.sag from 4.0.6)",
+					"RemoteAddress": "tcvm:50268",
+					"Version": "Terracotta Enterprise 4.0.6",
+					"ClientID": "0"
+				}
+			}
+		],
+		"unreadOperatorEventCount": {
+			"ERROR": 0,
+			"CRITICAL": 0,
+			"WARN": 0,
+			"INFO": 3,
+			"DEBUG": 0
+		}
+	}
 ]

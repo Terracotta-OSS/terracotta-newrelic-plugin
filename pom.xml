@@ -6,7 +6,7 @@
 	<groupId>com.terracotta</groupId>
 	<artifactId>tc-nr-plugin</artifactId>
 	<name>Terracotta NewRelic Plugin</name>
-	<version>2.0.0</version>
+	<version>2.0.1</version>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>

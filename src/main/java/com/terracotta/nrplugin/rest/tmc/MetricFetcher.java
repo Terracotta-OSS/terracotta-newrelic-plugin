@@ -55,6 +55,14 @@ public class MetricFetcher extends BaseTmcClient {
 	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.enabled}")
 	boolean agentSampleEnabled;
 
+    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.value}")
+    String idsPrefix;
+
+    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.enabled}")
+    boolean idsPrefixEnabled;
+
+    public static final String API_AGENTS_PREFIX = "/api/agents";
+
 //	@Autowired
 //	AgentService agentService;
 
@@ -64,6 +72,31 @@ public class MetricFetcher extends BaseTmcClient {
 			cacheNames.add(new BasicNameValuePair(MetricUtil.PARAMETER_SHOW, statName));
 		}
 	}
+
+    private String getApiPrefix() {
+        if (idsPrefixEnabled) {
+            return API_AGENTS_PREFIX + ";ids=" + idsPrefix;
+        }
+        else {
+            return API_AGENTS_PREFIX;
+        }
+    }
+
+    private String getClientStatsUrl() {
+        return getApiPrefix() + "/statistics/clients/";
+    }
+
+    private String getServerStatsUrl() {
+        return getApiPrefix() + "/statistics/servers/";
+    }
+
+    private String getCachesUrl() {
+        return getApiPrefix() + "/cacheManagers/caches";
+    }
+
+    private String getTopologiesUrl() {
+        return getApiPrefix() + "/topologies";
+    }
 
 	public Map<Metric.Source, String> getAllMetricData() throws Exception {
 		Map<Metric.Source, String> metrics = new HashMap<Metric.Source, String>();
@@ -110,19 +143,19 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public String getServerStatisticsAsString() throws Exception {
-		return (String) doGet("/api/agents/statistics/servers/", String.class);
+		return (String) doGet(getServerStatsUrl(), String.class);
 	}
 
 	public List<ServerStatistics> getServerStatistics() throws Exception {
-		return (List<ServerStatistics>) doGet("/api/agents/statistics/servers/", List.class);
+		return (List<ServerStatistics>) doGet(getServerStatsUrl(), List.class);
 	}
 
 	public String getClientStatisticsAsString() throws Exception {
-		return (String) doGet("/api/agents/statistics/clients/", String.class);
+		return (String) doGet(getClientStatsUrl(), String.class);
 	}
 
 	public List<ClientStatistics> getClientStatistics() throws Exception {
-		return (List<ClientStatistics>) doGet("/api/agents/statistics/clients/", List.class);
+		return (List<ClientStatistics>) doGet(getClientStatsUrl(), List.class);
 	}
 
 	public String getCacheStatisticsAsString() throws Exception {
@@ -135,64 +168,66 @@ public class MetricFetcher extends BaseTmcClient {
 
 	private String constructCacheManagersUrl() {
 		if (agentSampleEnabled) {
-			List<String> agentIds = findEhcacheAgentSample();
-			String baseUrl = "/api/agents;ids=";
-			for (int i = 0; i < agentIds.size(); i++) {
-				String agentId = agentIds.get(i);
-				baseUrl += agentId;
-				if (i + 1 < agentIds.size()) baseUrl += ",";
-			}
-			baseUrl += "/cacheManagers/caches";
-			return baseUrl;
+//			List<String> agentIds = findEhcacheAgentSample();
+//			String baseUrl = "/api/agents;ids=";
+//			for (int i = 0; i < agentIds.size(); i++) {
+//				String agentId = agentIds.get(i);
+//				baseUrl += agentId;
+//				if (i + 1 < agentIds.size()) baseUrl += ",";
+//			}
+//			baseUrl += "/cacheManagers/caches";
+//			return baseUrl;
+            log.warn("Sampling Disabled! Not filtering agents.");
+            return getCachesUrl();
 		}
-		else return "/api/agents/cacheManagers/caches";
+		else return getCachesUrl();
 	}
 
 	public List<Topologies> getTopologies() throws Exception {
-		return (List<Topologies>) doGet("/api/agents/topologies/", List.class);
+		return (List<Topologies>) doGet(getTopologiesUrl(), List.class);
 	}
 
 	public String getTopologiesAsString() throws Exception {
-		return (String) doGet("/api/agents/topologies/", String.class);
+		return (String) doGet(getTopologiesUrl(), String.class);
 	}
 
-	public List<String> findEhcacheAgentSample() {
-		log.info("Creating sample agent list...");
-		if (agentSamplePercentage < 0 || agentSamplePercentage > 1) {
-			throw new IllegalArgumentException("percentage must be between 0 and 1");
-		}
-		Set<String> agentsSample = new HashSet<String>();
-		List<String> allAgents = findAllEhcacheAgents();
-		if (allAgents.size() > 0) {
-			int sampleSize = (int) (allAgents.size() * agentSamplePercentage);
-			for (int i = 0; i < sampleSize; i++) {
-				String sample;
-				do {
-					sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
-				}
-				while (agentsSample.contains(sample));
-				agentsSample.add(sample);
-			}
-		}
-
-		log.info("Created list of " + agentsSample.size() + " agent(s).");
-		return new ArrayList<String>(agentsSample);
-	}
-
-	public List<String> findAllEhcacheAgents() {
-		List<String> agents = new ArrayList<String>();
-		try {
-			List<Map<String, Object>> payload = getRestTemplate().getForObject(tmcUrl + "/api/agents/info", List.class);
-			for (Map<String, Object> map : payload) {
-				if ("Ehcache".equals(map.get("agencyOf"))) {
-					agents.add((String) map.get("agentId"));
-				}
-			}
-		} catch (Exception e) {
-			log.error("Error: ", e);
-		}
-		return agents;
-	}
+//	public List<String> findEhcacheAgentSample() {
+//		log.info("Creating sample agent list...");
+//		if (agentSamplePercentage < 0 || agentSamplePercentage > 1) {
+//			throw new IllegalArgumentException("percentage must be between 0 and 1");
+//		}
+//		Set<String> agentsSample = new HashSet<String>();
+//		List<String> allAgents = findAllEhcacheAgents();
+//		if (allAgents.size() > 0) {
+//			int sampleSize = (int) (allAgents.size() * agentSamplePercentage);
+//			for (int i = 0; i < sampleSize; i++) {
+//				String sample;
+//				do {
+//					sample = allAgents.get(RandomUtils.nextInt(allAgents.size()));
+//				}
+//				while (agentsSample.contains(sample));
+//				agentsSample.add(sample);
+//			}
+//		}
+//
+//		log.info("Created list of " + agentsSample.size() + " agent(s).");
+//		return new ArrayList<String>(agentsSample);
+//	}
+//
+//	public List<String> findAllEhcacheAgents() {
+//		List<String> agents = new ArrayList<String>();
+//		try {
+//			List<Map<String, Object>> payload = getRestTemplate().getForObject(tmcUrl + "/api/agents/info", List.class);
+//			for (Map<String, Object> map : payload) {
+//				if ("Ehcache".equals(map.get("agencyOf"))) {
+//					agents.add((String) map.get("agentId"));
+//				}
+//			}
+//		} catch (Exception e) {
+//			log.error("Error: ", e);
+//		}
+//		return agents;
+//	}
 
 	public String buildUrl(String url, List<NameValuePair> params) throws URISyntaxException {
 		HttpUriRequest request = RequestBuilder.get()
