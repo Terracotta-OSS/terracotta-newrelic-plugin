@@ -68,7 +68,12 @@
 		<level value="error"/>
 	</logger>
 
+    <logger name="org.apache.http.headers">
+        <level value="error"/>
+    </logger>
+
 	<root level="error">
 		<appender-ref ref="FILE"/>
 	</root>
+
 </configuration>
