@@ -15,6 +15,7 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +31,9 @@ public class BaseTmcClient {
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private RestTemplate restTemplate = null;
+
+    @Autowired
+    protected NewRelicUserAgentInterceptor newRelicUserAgentInterceptor;
 
 	@Value("${com.saggs.terracotta.nrplugin.tmc.authentication.enabled}")
 	protected boolean tmcAuthenticationEnabled;
@@ -77,7 +81,9 @@ public class BaseTmcClient {
 			else {
 				restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
 			}
-		}
+            log.info("Adding User-Agent interceptor to RestTemplate...");
+            restTemplate.getInterceptors().add(newRelicUserAgentInterceptor);
+        }
 		return restTemplate;
 	}
 
