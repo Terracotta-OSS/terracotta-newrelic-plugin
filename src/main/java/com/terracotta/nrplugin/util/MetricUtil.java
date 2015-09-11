@@ -319,20 +319,20 @@ public class MetricUtil {
 				metricDataset.getStatistics().getN(), metricDataset.getStatistics().getSumsq());
 	}
 
-	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, double min, double max, double sum,
-	                                                           long count, double sumsq) {
+	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double min, Double max, Double sum,
+	                                                           Long count, Double sumsq) {
 		Map<String, Number> values = new HashMap<String, Number>();
-		values.put(NEW_RELIC_MIN, min);
-		values.put(NEW_RELIC_MAX, max);
-		values.put(NEW_RELIC_TOTAL, sum);
+		values.put(NEW_RELIC_MIN, min.isNaN() ? 0 : min);
+		values.put(NEW_RELIC_MAX, max.isNaN() ? 0 : max);
+		values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
 		values.put(NEW_RELIC_COUNT, count);
-		values.put(NEW_RELIC_SUM_OF_SQUARES, sumsq);
+		values.put(NEW_RELIC_SUM_OF_SQUARES, sumsq.isNaN() ? 0 : sumsq);
 		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
 	}
 
-	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, double sum, long count) {
+	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double sum, Long count) {
 		Map<String, Number> values = new HashMap<String, Number>();
-		values.put(NEW_RELIC_TOTAL, sum);
+		values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
 		values.put(NEW_RELIC_COUNT, count);
 		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
 	}
