@@ -40,11 +40,16 @@
 		</fileSet>
 		<fileSet>
 			<outputDirectory>/config</outputDirectory>
-			<directory>${basedir}/src/main/resources</directory>
+			<directory>${project.build.directory}</directory>
+            <includes>
+                <include>*.properties</include>
+                <include>*.xml</include>
+            </includes>
 		</fileSet>
 		<fileSet>
 			<includes>
-				<include>*.docx</include>
+				<include>README.md</include>
+                <include>LICENSE</include>
 			</includes>
 			<outputDirectory>/</outputDirectory>
 			<directory>${basedir}</directory>

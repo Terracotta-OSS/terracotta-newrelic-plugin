@@ -17,6 +17,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<springframework.version>4.0.2.RELEASE</springframework.version>
 		<ehcache-ee.version>2.7.6</ehcache-ee.version>
+        <nrplugin.version>2.0.2</nrplugin.version>
+        <restapi.url>CHANGEME</restapi.url>
+        <nr.agent.licenseKey>CHANGEME</nr.agent.licenseKey>
 	</properties>
 
 	<dependencies>
@@ -118,7 +121,16 @@
 	</dependencies>
 
 	<build>
-		<plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -158,6 +170,10 @@
 								<resource>
 									<directory>${basedir}/src/main/scripts</directory>
 								</resource>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                </resource>
 							</resources>
 						</configuration>
 					</execution>

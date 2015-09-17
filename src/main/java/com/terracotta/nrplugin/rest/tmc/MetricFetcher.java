@@ -108,7 +108,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public Object doGet(String uriPath, Class clazz, List<NameValuePair> requestParams) throws Exception {
-		String url = tmcUrl + uriPath;
+		String url = restApiUrl + uriPath;
 		if (requestParams != null) {
 			url = buildUrl(url, requestParams);
 			log.debug("Executing HTTP GET to '" + url + "'");
