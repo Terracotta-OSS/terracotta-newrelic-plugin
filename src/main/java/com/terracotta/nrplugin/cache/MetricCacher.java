@@ -62,7 +62,7 @@ public class MetricCacher {
 	@Autowired
 	LockManager lockManager;
 
-	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.tmc.executor.fixedDelay.milliseconds}", initialDelay = 500)
+	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.restapi.executor.fixedDelay.milliseconds}", initialDelay = 500)
 	public void cacheStats() throws Exception {
 		try {
 			lockManager.lockCache();

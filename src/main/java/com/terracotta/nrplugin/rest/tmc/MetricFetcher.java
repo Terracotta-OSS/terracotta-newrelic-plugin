@@ -46,22 +46,22 @@ public class MetricFetcher extends BaseTmcClient {
 
 	int numRelogAttempts = 0;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.numRelogAttempts}")
+	@Value("${com.saggs.terracotta.nrplugin.restapi.numRelogAttempts}")
 	int maxRelogAttempts;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.percentage}")
+	@Value("${com.saggs.terracotta.nrplugin.restapi.agents.sample.percentage}")
 	protected double agentSamplePercentage;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.enabled}")
+	@Value("${com.saggs.terracotta.nrplugin.restapi.agents.sample.enabled}")
 	boolean agentSampleEnabled;
 
-    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.value}")
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.value}")
     String idsPrefix;
 
-    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.enabled}")
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.enabled}")
     boolean idsPrefixEnabled;
 
-    public static final String API_AGENTS_PREFIX = "/api/agents";
+    public static final String API_AGENTS_PREFIX = "/agents";
 
 //	@Autowired
 //	AgentService agentService;
