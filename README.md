@@ -5,11 +5,17 @@ This plug-in pulls metrics from a running Terracotta Server Array (TSA) at sched
 and makes use of New Relic’s RESTful metric publishing API (at https://platform-api.newrelic.com/platform/v1/metrics) 
 to push aggregated metrics to the NewRelic platform.
 
-This plugin is _not officially supported by Terracotta_, and has been tested with various versions of Terracotta 4.x, both Enterprise and OSS.
+When running the plugin, you will see 2 new plugin tabs in your New Relic plugins section:
+ - **Terracotta**: This tab is all about the Terracotta server-specific metrics such as clients connected, offheap used, read/write rates, etc...
+ - **Ehcache**: This tab has all the cache-specific stats such as cache sizes by tiers, hit/miss ratios, hit/miss rates, etc...
+ 
+**IMPORTANT NOTE 1**: This plugin **does rely on a running Terracotta**, and will **not** work at this stage for application using Ehcache-only / Ehcache Standalone library. 
 
-Note: this plugin will *not* work with Terracotta 3.x and below. 
+**IMPORTANT NOTE 2**: Also, this plugin is **_not officially supported by Software AG / Terracotta_**!! 
+So while it has been tested with various versions of Terracotta 4.x (both Enterprise and OSS) and should work for you, it's not a guarantee. 
+Please report bugs or feature enhancements directly on this github project and we volunteers will make every efforts to fix things in a timely manner.
 
-Please report bugs or feature enhancements directly on this github project.
+**IMPORTANT NOTE 3**: **This plugin is not designed to work with Terracotta 3.x and below**.
 
 Prerequisites
 -------------
@@ -51,7 +57,7 @@ NOTE: The property prefix "com.saggs.terracotta.nrplugin" is omitted in the tabl
 | restapi.authentication.enabled |  Enable if REST API url is the Terracotta Management Console with authentication  |  false  |
 | restapi.authentication.username |  If REST API requires authentication, this is the username that will be used  |    |
 | restapi.authentication.password |  If REST API requires authentication, this is the password that will be used  |    |
-| restapi.numRelogAttempts |  Number of times the plugin will attempt to authenticate into the TMC before giving up  |  3  |
+| restapi.authentication.numRelogAttempts |  Number of times the plugin will attempt to authenticate into the TMC before giving up  |  3  |
 | restapi.agents.idsPrefix.enabled |  (*TMC access only*) If multiple connections in TMC, you need to enable idsPrefix so the plugin can connect to the right Terracotta connection  |  false  |
 | restapi.agents.idsPrefix.value |  (*TMC access only*) If idsPrefix is enabled , this is where you specify what Terracotta TMC connection to attach to  |    |
 | nr.executor.fixedDelay.milliseconds |  This is the interval for the stats to be pushed to NewRelic cloud API  |  60000  |

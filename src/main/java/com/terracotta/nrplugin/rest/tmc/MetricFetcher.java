@@ -46,14 +46,8 @@ public class MetricFetcher extends BaseTmcClient {
 
 	int numRelogAttempts = 0;
 
-	@Value("${com.saggs.terracotta.nrplugin.restapi.numRelogAttempts}")
+	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.numRelogAttempts}")
 	int maxRelogAttempts;
-
-	@Value("${com.saggs.terracotta.nrplugin.restapi.agents.sample.percentage}")
-	protected double agentSamplePercentage;
-
-	@Value("${com.saggs.terracotta.nrplugin.restapi.agents.sample.enabled}")
-	boolean agentSampleEnabled;
 
     @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.value}")
     String idsPrefix;
@@ -167,20 +161,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	private String constructCacheManagersUrl() {
-		if (agentSampleEnabled) {
-//			List<String> agentIds = findEhcacheAgentSample();
-//			String baseUrl = "/api/agents;ids=";
-//			for (int i = 0; i < agentIds.size(); i++) {
-//				String agentId = agentIds.get(i);
-//				baseUrl += agentId;
-//				if (i + 1 < agentIds.size()) baseUrl += ",";
-//			}
-//			baseUrl += "/cacheManagers/caches";
-//			return baseUrl;
-            log.warn("Sampling Disabled! Not filtering agents.");
-            return getCachesUrl();
-		}
-		else return getCachesUrl();
+		return getCachesUrl();
 	}
 
 	public List<Topologies> getTopologies() throws Exception {
