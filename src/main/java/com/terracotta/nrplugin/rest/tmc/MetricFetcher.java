@@ -46,22 +46,16 @@ public class MetricFetcher extends BaseTmcClient {
 
 	int numRelogAttempts = 0;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.numRelogAttempts}")
+	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.numRelogAttempts}")
 	int maxRelogAttempts;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.percentage}")
-	protected double agentSamplePercentage;
-
-	@Value("${com.saggs.terracotta.nrplugin.tmc.agents.sample.enabled}")
-	boolean agentSampleEnabled;
-
-    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.value}")
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.value}")
     String idsPrefix;
 
-    @Value("${com.saggs.terracotta.nrplugin.tmc.agents.idsPrefix.enabled}")
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.enabled}")
     boolean idsPrefixEnabled;
 
-    public static final String API_AGENTS_PREFIX = "/api/agents";
+    public static final String API_AGENTS_PREFIX = "/agents";
 
 //	@Autowired
 //	AgentService agentService;
@@ -108,7 +102,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	public Object doGet(String uriPath, Class clazz, List<NameValuePair> requestParams) throws Exception {
-		String url = tmcUrl + uriPath;
+		String url = restApiUrl + uriPath;
 		if (requestParams != null) {
 			url = buildUrl(url, requestParams);
 			log.debug("Executing HTTP GET to '" + url + "'");
@@ -167,20 +161,7 @@ public class MetricFetcher extends BaseTmcClient {
 	}
 
 	private String constructCacheManagersUrl() {
-		if (agentSampleEnabled) {
-//			List<String> agentIds = findEhcacheAgentSample();
-//			String baseUrl = "/api/agents;ids=";
-//			for (int i = 0; i < agentIds.size(); i++) {
-//				String agentId = agentIds.get(i);
-//				baseUrl += agentId;
-//				if (i + 1 < agentIds.size()) baseUrl += ",";
-//			}
-//			baseUrl += "/cacheManagers/caches";
-//			return baseUrl;
-            log.warn("Sampling Disabled! Not filtering agents.");
-            return getCachesUrl();
-		}
-		else return getCachesUrl();
+		return getCachesUrl();
 	}
 
 	public List<Topologies> getTopologies() throws Exception {

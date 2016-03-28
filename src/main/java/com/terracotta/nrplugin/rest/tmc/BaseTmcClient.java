@@ -35,17 +35,17 @@ public class BaseTmcClient {
     @Autowired
     protected NewRelicUserAgentInterceptor newRelicUserAgentInterceptor;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.authentication.enabled}")
-	protected boolean tmcAuthenticationEnabled;
+	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.enabled}")
+	protected boolean restApiAuthenticationEnabled;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.url}")
-	protected String tmcUrl;
+	@Value("${com.saggs.terracotta.nrplugin.restapi.url}")
+	protected String restApiUrl;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.username}")
-	protected String tmcUsername;
+	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.username}")
+	protected String restApiUsername;
 
-	@Value("${com.saggs.terracotta.nrplugin.tmc.password}")
-	protected String tmcPassword;
+	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.password}")
+	protected String restApiPassword;
 
 	public void resetRestTemplate() {
 		restTemplate = null;
@@ -53,7 +53,7 @@ public class BaseTmcClient {
 
 	public RestTemplate getRestTemplate() throws Exception {
 		if (restTemplate == null) {
-			log.info("Attempting to log in to TMC at '" + tmcUrl + "'...");
+			log.info("Attempting to log in to TMC at '" + restApiUrl + "'...");
 			BasicCookieStore cookieStore = new BasicCookieStore();
 			CloseableHttpClient httpclient = HttpClients.custom()
 					.setDefaultCookieStore(cookieStore)
@@ -63,12 +63,12 @@ public class BaseTmcClient {
 					.addInterceptorFirst(new GzipResponseInterceptor())
 					.build();
 
-			if (tmcAuthenticationEnabled) {
-				String loginUrl = tmcUrl + "/login.jsp";
+			if (restApiAuthenticationEnabled) {
+				String loginUrl = restApiUrl + "/login.jsp";
 				HttpUriRequest login = RequestBuilder.post()
 						.setUri(new URI(loginUrl))
-						.addParameter("username", tmcUsername)
-						.addParameter("password", tmcPassword)
+						.addParameter("username", restApiUsername)
+						.addParameter("password", restApiPassword)
 						.build();
 				CloseableHttpResponse loginResponse = httpclient.execute(login);
 				HttpEntity loginResponseEntity = loginResponse.getEntity();

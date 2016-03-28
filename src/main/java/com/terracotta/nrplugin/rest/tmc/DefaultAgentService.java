@@ -19,7 +19,7 @@ public class DefaultAgentService extends BaseAgentService {
 	public List<String> findAllEhcacheAgents() {
 		List<String> agents = new ArrayList<String>();
 		try {
-			List<Map<String, Object>> payload = getRestTemplate().getForObject(tmcUrl + "/api/agents/info", List.class);
+			List<Map<String, Object>> payload = getRestTemplate().getForObject(restApiUrl + "/api/agents/info", List.class);
 			for (Map<String, Object> map : payload) {
 				if ("Ehcache".equals(map.get("agencyOf"))) {
 					agents.add((String) map.get("agentId"));
