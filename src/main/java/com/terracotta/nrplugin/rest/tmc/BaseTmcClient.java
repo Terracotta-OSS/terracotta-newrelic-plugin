@@ -35,11 +35,11 @@ public class BaseTmcClient {
     @Autowired
     protected NewRelicUserAgentInterceptor newRelicUserAgentInterceptor;
 
-	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.enabled}")
-	protected boolean restApiAuthenticationEnabled;
+    @Value("${com.saggs.terracotta.nrplugin.restapi.url}")
+    private String restApiUrl;
 
-	@Value("${com.saggs.terracotta.nrplugin.restapi.url}")
-	protected String restApiUrl;
+    @Value("${com.saggs.terracotta.nrplugin.restapi.authentication.enabled}")
+	protected boolean restApiAuthenticationEnabled;
 
 	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.username}")
 	protected String restApiUsername;
@@ -47,13 +47,42 @@ public class BaseTmcClient {
 	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.password}")
 	protected String restApiPassword;
 
-	public void resetRestTemplate() {
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.enabled}")
+    boolean idsPrefixEnabled;
+
+    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.value}")
+    String idsPrefix;
+
+    public static final String TMC_PREFIX = "/tmc";
+    public static final String TMC_API_PREFIX = "/api";
+    public static final String AGENTS_PREFIX = "/agents";
+
+    protected String getClientStatsUrl() {
+        return getRestApiUrl() + getApiPrefix() + "/statistics/clients/";
+    }
+
+    protected String getServerStatsUrl() {
+        return getRestApiUrl() + getApiPrefix() + "/statistics/servers/";
+    }
+
+    protected String getCachesUrl() {
+        return getRestApiUrl() + getApiPrefix() + "/cacheManagers/caches";
+    }
+
+    protected String getInfoUrl() {
+        return getRestApiUrl() + getApiPrefix() + "/info";
+    }
+
+    protected String getTopologiesUrl() {
+        return getRestApiUrl() + getApiPrefix() + "/topologies";
+    }
+
+    public void resetRestTemplate() {
 		restTemplate = null;
 	}
 
 	public RestTemplate getRestTemplate() throws Exception {
 		if (restTemplate == null) {
-			log.info("Attempting to log in to TMC at '" + restApiUrl + "'...");
 			BasicCookieStore cookieStore = new BasicCookieStore();
 			CloseableHttpClient httpclient = HttpClients.custom()
 					.setDefaultCookieStore(cookieStore)
@@ -63,28 +92,58 @@ public class BaseTmcClient {
 					.addInterceptorFirst(new GzipResponseInterceptor())
 					.build();
 
-			if (restApiAuthenticationEnabled) {
-				String loginUrl = restApiUrl + "/login.jsp";
-				HttpUriRequest login = RequestBuilder.post()
-						.setUri(new URI(loginUrl))
-						.addParameter("username", restApiUsername)
-						.addParameter("password", restApiPassword)
-						.build();
-				CloseableHttpResponse loginResponse = httpclient.execute(login);
-				HttpEntity loginResponseEntity = loginResponse.getEntity();
-				EntityUtils.consume(loginResponseEntity);
-				if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
-					restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-				}
-				else throw new IOException("Could not authenticate to TMC.");
-			}
-			else {
-				restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
-			}
+            if (!restApiAuthenticationEnabled) {
+                log.info(String.format("Attempting to connect to terracotta rest API at '%s' without authentication (not enabled)", restApiUrl));
+                restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+            }
+			else if (restApiAuthenticationEnabled && isRestApiUrlTMC()) {
+                log.info(String.format("Attempting to authenticate to terracotta rest API at '%s' with username %s...", restApiUrl, restApiUsername));
+
+                String loginUrl = restApiUrl + "/login.jsp";
+                HttpUriRequest login = RequestBuilder.post()
+                        .setUri(new URI(loginUrl))
+                        .addParameter("username", restApiUsername)
+                        .addParameter("password", restApiPassword)
+                        .build();
+                CloseableHttpResponse loginResponse = httpclient.execute(login);
+                HttpEntity loginResponseEntity = loginResponse.getEntity();
+                EntityUtils.consume(loginResponseEntity);
+                if (HttpStatus.SC_OK == loginResponse.getStatusLine().getStatusCode()) {
+                    restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpclient));
+                } else throw new IOException("Could not authenticate to TMC.");
+            }
+            else if (restApiAuthenticationEnabled && !isRestApiUrlTMC()) {
+                throw new IOException("Authentication is not yet supported with non-TMC endpoints");
+            }
+
             log.info("Adding User-Agent interceptor to RestTemplate...");
             restTemplate.getInterceptors().add(newRelicUserAgentInterceptor);
         }
 		return restTemplate;
 	}
 
+    private String getRestApiUrl() {
+        //naive approach to cleaning ending /
+        return (restApiUrl.endsWith("/"))?restApiUrl.substring(0,restApiUrl.length()-1):restApiUrl;
+    }
+
+    protected boolean isRestApiUrlTMC() {
+        return getRestApiUrl().toLowerCase().endsWith(TMC_PREFIX.toLowerCase());
+    }
+
+    protected String getApiPrefix() {
+        String apiPrefix = "";
+
+        if(isRestApiUrlTMC())
+            apiPrefix += TMC_API_PREFIX;
+
+        if (idsPrefixEnabled) {
+            apiPrefix += AGENTS_PREFIX + ";ids=" + idsPrefix;
+        }
+        else {
+            apiPrefix += AGENTS_PREFIX;
+        }
+
+        return apiPrefix;
+    }
 }

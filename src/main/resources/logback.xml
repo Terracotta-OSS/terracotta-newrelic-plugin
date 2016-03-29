@@ -57,7 +57,7 @@
 	</logger>
 
 	<logger name="org.springframework.web">
-		<level value="info"/>
+		<level value="error"/>
 	</logger>
 
 	<logger name="org.apache.http">
@@ -73,7 +73,6 @@
     </logger>
 
 	<root level="error">
-		<appender-ref ref="FILE"/>
+        <appender-ref ref="FILE"/>
 	</root>
-
 </configuration>

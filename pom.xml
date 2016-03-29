@@ -17,8 +17,12 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<springframework.version>4.0.2.RELEASE</springframework.version>
 		<ehcache-ee.version>2.7.6</ehcache-ee.version>
-        <restapi.url>CHANGEME</restapi.url>
+        <nr.environment.prefix>CHANGEME</nr.environment.prefix>
+        <terracotta.restapi.url>CHANGEME</terracotta.restapi.url>
         <nr.agent.licenseKey>CHANGEME</nr.agent.licenseKey>
+        <terracotta.restapi.authentication.enabled>false</terracotta.restapi.authentication.enabled>
+        <terracotta.restapi.login.username></terracotta.restapi.login.username>
+        <terracotta.restapi.login.password></terracotta.restapi.login.password>
 	</properties>
 
 	<dependencies>

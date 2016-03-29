@@ -7,7 +7,6 @@ import com.terracotta.nrplugin.pojo.tmc.ServerStatistics;
 import com.terracotta.nrplugin.pojo.tmc.Topologies;
 import com.terracotta.nrplugin.rest.StateManager;
 import com.terracotta.nrplugin.util.MetricUtil;
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -22,7 +21,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -49,14 +51,6 @@ public class MetricFetcher extends BaseTmcClient {
 	@Value("${com.saggs.terracotta.nrplugin.restapi.authentication.numRelogAttempts}")
 	int maxRelogAttempts;
 
-    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.value}")
-    String idsPrefix;
-
-    @Value("${com.saggs.terracotta.nrplugin.restapi.agents.idsPrefix.enabled}")
-    boolean idsPrefixEnabled;
-
-    public static final String API_AGENTS_PREFIX = "/agents";
-
 //	@Autowired
 //	AgentService agentService;
 
@@ -67,31 +61,6 @@ public class MetricFetcher extends BaseTmcClient {
 		}
 	}
 
-    private String getApiPrefix() {
-        if (idsPrefixEnabled) {
-            return API_AGENTS_PREFIX + ";ids=" + idsPrefix;
-        }
-        else {
-            return API_AGENTS_PREFIX;
-        }
-    }
-
-    private String getClientStatsUrl() {
-        return getApiPrefix() + "/statistics/clients/";
-    }
-
-    private String getServerStatsUrl() {
-        return getApiPrefix() + "/statistics/servers/";
-    }
-
-    private String getCachesUrl() {
-        return getApiPrefix() + "/cacheManagers/caches";
-    }
-
-    private String getTopologiesUrl() {
-        return getApiPrefix() + "/topologies";
-    }
-
 	public Map<Metric.Source, String> getAllMetricData() throws Exception {
 		Map<Metric.Source, String> metrics = new HashMap<Metric.Source, String>();
 		metrics.put(Metric.Source.cache, getCacheStatisticsAsString());
@@ -101,8 +70,7 @@ public class MetricFetcher extends BaseTmcClient {
 		return metrics;
 	}
 
-	public Object doGet(String uriPath, Class clazz, List<NameValuePair> requestParams) throws Exception {
-		String url = restApiUrl + uriPath;
+	public Object doGet(String url, Class clazz, List<NameValuePair> requestParams) throws Exception {
 		if (requestParams != null) {
 			url = buildUrl(url, requestParams);
 			log.debug("Executing HTTP GET to '" + url + "'");
@@ -125,15 +93,15 @@ public class MetricFetcher extends BaseTmcClient {
 					throw new Exception("Exceeded maximum relog attempts.");
 				}
 				else {
-					return doGet(uriPath, clazz, requestParams);
+					return doGet(url, clazz, requestParams);
 				}
 			}
 		}
 		return payload;
 	}
 
-	public Object doGet(String uriPath, Class clazz) throws Exception {
-		return doGet(uriPath, clazz, null);
+	public Object doGet(String url, Class clazz) throws Exception {
+		return doGet(url, clazz, null);
 	}
 
 	public String getServerStatisticsAsString() throws Exception {
