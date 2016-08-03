@@ -338,10 +338,9 @@ public class MetricUtil {
 	}
 
 	public int toStateCode(String stateString) {
-		if (stateString.startsWith("ACTIVE")) return 0;
+		if (stateString.startsWith("ACTIVE")) return 1;
 		else if (stateString.startsWith("PASSIVE")) return 2;
 		else if (stateString.startsWith("INITIALIZING")) return 4;
 		else return 8;
 	}
-
 }
