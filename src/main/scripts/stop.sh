@@ -4,7 +4,7 @@
 #
 
 
-function getPID() {
+getPID() {
     PIDGREP="com.terracotta.nrplugin.app.Main"
     PID_CMD=`ps -elf | grep ${PIDGREP} | grep -v grep | awk '{print $4}'`
     echo $PID_CMD
@@ -12,4 +12,4 @@ function getPID() {
 
 PID=`getPID`
 echo "Shutting down Terracotta Newrelic plug-in with process id: $PID"
-kill -9 $PID
+kill $PID
