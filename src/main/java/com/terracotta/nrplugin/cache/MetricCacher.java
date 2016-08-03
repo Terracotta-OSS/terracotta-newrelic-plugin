@@ -123,10 +123,15 @@ public class MetricCacher {
 				for (String serverName : serverNames) {
 					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
 					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
-					if (stateArray.size() > 0) {
-						MetricDataset metricDataset = getMetricDataset(metric, serverName);
+
+                    // always capture the state...
+                    // if no results from the json query, it means there's an error for that server...eg. server is down or something...
+                    MetricDataset metricDataset = getMetricDataset(metric, serverName);
+                    if (stateArray.size() > 0) {
 						putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
-					}
+					} else { //could not find the state for that server name...something happened.
+                        putValue(metricDataset, metricUtil.toStateCode("ERROR"));
+                    }
 				}
 			}
 		}
