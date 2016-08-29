@@ -3,10 +3,7 @@ package com.terracotta.nrplugin.cache;
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.JsonPath;
-import com.terracotta.nrplugin.pojo.Metric;
-import com.terracotta.nrplugin.pojo.MetricBuilder;
-import com.terracotta.nrplugin.pojo.MetricDataset;
-import com.terracotta.nrplugin.pojo.RatioMetric;
+import com.terracotta.nrplugin.pojo.*;
 import com.terracotta.nrplugin.rest.tmc.MetricFetcher;
 import com.terracotta.nrplugin.util.MetricUtil;
 import net.minidev.json.JSONArray;
@@ -37,303 +34,400 @@ import java.util.concurrent.ExecutorService;
 @Service
 public class MetricCacher {
 
-	final Logger log = LoggerFactory.getLogger(this.getClass());
+    final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Autowired
-	ExecutorService executorService;
+    @Autowired
+    ExecutorService executorService;
 
-	@Autowired
-	MetricFetcher metricFetcher;
+    @Autowired
+    MetricFetcher metricFetcher;
 
-	@Autowired
-	MetricUtil metricUtil;
+    @Autowired
+    MetricUtil metricUtil;
 
-	@Value("#{cacheManager.getCache('statsCache')}")
-	Cache statsCache;
+    @Value("#{cacheManager.getCache('statsCache')}")
+    Cache statsCache;
 
-	@Value("#{cacheManager.getCache('diffsCache')}")
-	Cache diffsCache;
+    @Value("#{cacheManager.getCache('diffsCache')}")
+    Cache diffsCache;
 
-	Map<String, DescriptiveStatistics> lastDataSet = new HashMap<String, DescriptiveStatistics>();
+    @Value("#{cacheManager.getCache('lastStatisticsCache')}")
+    Cache lastStatisticsCache;
 
-	@Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
-	int windowSize;
+    @Value("${com.saggs.terracotta.nrplugin.data.windowSize}")
+    int windowSize;
 
-	@Autowired
-	LockManager lockManager;
+    @Autowired
+    LockManager lockManager;
 
-	@Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.restapi.executor.fixedDelay.milliseconds}", initialDelay = 500)
-	public void cacheStats() throws Exception {
-		try {
-			lockManager.lockCache();
-			doCacheStats();
-		} finally {
-			lockManager.unlockCache();
-		}
-	}
+    @Scheduled(fixedDelayString = "${com.saggs.terracotta.nrplugin.restapi.executor.fixedDelay.milliseconds}", initialDelay = 500)
+    public void cacheStats() throws Exception {
+        try {
+            lockManager.lockCache();
+            doCacheStats();
+        } finally {
+            lockManager.unlockCache();
+        }
+    }
 
-	private void doCacheStats() throws Exception {
-		log.info("Starting to cache all stats...");
-		Map<Metric.Source, String> metricData = metricFetcher.getAllMetricData();
-		Map<Metric.Source, JSONArray> jsonObjects = toJsonArray(metricData);
+    private void doCacheStats() throws Exception {
+        log.info("Starting to cache all stats...");
+        Map<Metric.Source, String> metricData = metricFetcher.getAllMetricData();
+        Map<Metric.Source, JSONArray> jsonObjects = toJsonArray(metricData);
 
-		// Get all cache names
-		Set<String> cacheNames = getCacheNames(jsonObjects.get(Metric.Source.cache));
-		Set<String> serverNames = getServerNames(jsonObjects.get(Metric.Source.server));
+        // Get all cache names
+        Set<MetricDatasetCacheComponent> cacheComponents = getCacheComponents(jsonObjects);
 
-		log.info("Parsed metrics into JSONArrays...");
-		for (Metric metric : metricUtil.getRegularMetrics()) {
-			// Get all JSON data for this source
-			JSONArray objects = jsonObjects.get(metric.getSource());
+        // Get all server names and their mapped stripe name
+        Set<MetricDatasetServerComponent> serverComponents = getServerComponents(jsonObjects);
 
-			if (Metric.Source.cache.equals(metric.getSource())) {
-				for (String cacheName : cacheNames) {
-					// Filter by cache name & metric
-					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("name").is(cacheName)));
-					MetricDataset metricDataset = getMetricDataset(metric, cacheName);
-					log.trace("Extracting values for " + metricDataset.getKey());
-					putValue(metricDataset, values);
-				}
-			}
-			else if (Metric.Source.server.equals(metric.getSource())) {
-				for (String serverName : serverNames) {
-					// Filter by server name & metric
-					JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("sourceId").is(serverName)));
-					MetricDataset metricDataset = getMetricDataset(metric, serverName);
-					log.trace("Extracting values for " + metricDataset.getKey());
-					putValue(metricDataset, values);
-				}
-			}
-		}
+        log.info("Parsed metrics into JSONArrays...");
+        for (Metric metric : metricUtil.getRegularMetrics()) {
+            // Get all JSON data for this source
+            JSONArray objects = jsonObjects.get(metric.getSource());
 
-		// Handle special metrics
-		for (Metric metric : metricUtil.getSpecialMetrics()) {
-			JSONArray objects = jsonObjects.get(metric.getSource());
-			if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
-				JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities");
-				if (clientEntities.size() > 0) {
-					JSONArray array = (JSONArray) clientEntities.get(0);
-					for (String serverName : serverNames) {
-						MetricDataset metricDataset = getMetricDataset(metric, serverName);
-						putValue(metricDataset, array.size());
-					}
-				}
-			}
-			else if (MetricUtil.METRIC_SERVER_STATE.equals(metric.getName())) {
-				for (String serverName : serverNames) {
-					JSONArray attributes = JsonPath.read(objects, "$[*].serverGroupEntities.servers.attributes");
-					JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
+            if (Metric.Source.cache.equals(metric.getSource())) {
+                for (MetricDatasetCacheComponent cacheComponent : cacheComponents) {
+                    // Filter by cache name & metric
+                    JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("name").is(cacheComponent.getCacheName())));
 
-                    // always capture the state...
-                    // if no results from the json query, it means there's an error for that server...eg. server is down or something...
-                    MetricDataset metricDataset = getMetricDataset(metric, serverName);
-                    if (stateArray.size() > 0) {
-						putValue(metricDataset, metricUtil.toStateCode((String) stateArray.get(0)));
-					} else { //could not find the state for that server name...something happened.
-                        putValue(metricDataset, metricUtil.toStateCode("ERROR"));
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, cacheComponent);
+                    putValueInDataset(metricDataset, values);
+                    putMetricDataSetInCache(metricDataset);
+
+                    if (metricDataset.getMetric().isCreateDiff()) {
+                        MetricDataset diffMetricDataset = new MetricDataset(metricDataset.getMetric().clone(), metricDataset.getComponentDetail().clone());
+                        putValueInDataset(diffMetricDataset, values);
+                        putDiffDataInCache(diffMetricDataset);
                     }
-				}
-			}
-		}
+                }
+            } else if (Metric.Source.server.equals(metric.getSource())) {
+                for (MetricDatasetServerComponent serverComponent : serverComponents) {
+                    // Filter by server name & metric
+                    JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("sourceId").is(serverComponent.getServerName())));
 
-		log.info("Starting to cache Ratio Metrics...");
-		for (Metric metric : metricUtil.getRatioMetrics()) {
-			RatioMetric ratioMetric = (RatioMetric) metric;
-			for (Object key : statsCache.getKeys()) {
-				Element element = statsCache.get((key));
-				if (element != null && element.getObjectValue() instanceof MetricDataset) {
-					MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
-					if (metricDataset.getKey().contains(ratioMetric.getNumeratorCount())) {
-						String denominatorKey = ratioMetric.isHitRatio() ?
-								metricDataset.getKey().replace("Hit", "Miss") :
-								metricDataset.getKey().replace("Miss", "Hit");
-						String ratioKey = metricDataset.getKey().replace("Count", "Ratio");
-						Element denominatorElement = statsCache.get(denominatorKey);
-						if (denominatorElement != null && denominatorElement.getObjectValue() instanceof MetricDataset) {
-							MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
-							Double numerator = getDiffSum(metricDataset);
-							Double denominator = getDiffSum(denominatorDataset);
-							if (numerator != null && denominator != null) {
-								denominator += numerator;
-								log.trace("Got Diff Sum for numerator '" + metricDataset.getMetric().getName() + "': " + numerator);
-								log.trace("Got Diff Sum for denominator '" + denominatorDataset.getMetric().getName() + "': " + denominator);
-								double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    putValueInDataset(metricDataset, values);
+                    putMetricDataSetInCache(metricDataset);
 
-								MetricDataset ratioDataset = getMetricDataset(ratioMetric, denominatorDataset.getComponentName());
-								putValue(ratioDataset, ratio);
-								log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
-							}
-							else {
-								log.warn("Could not calculate ratio for '" + metricDataset.getMetric().getName());
-							}
-						}
-					}
-				}
-			}
-		}
-		log.info("Done caching stats.");
-	}
+                    if (metricDataset.getMetric().isCreateDiff()) {
+                        MetricDataset diffMetricDataset = new MetricDataset(metricDataset.getMetric().clone(), metricDataset.getComponentDetail().clone());
+                        putValueInDataset(diffMetricDataset, values);
+                        putDiffDataInCache(diffMetricDataset);
+                    }
+                }
+            }
+        }
 
-	private Double getDiffSum(MetricDataset metricDataset) {
-		Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
-		MetricDataset diffDataSet = new MetricDataset(diffMetric, metricDataset.getComponentName());
-		String diffKey = diffDataSet.getKey();
-		Element diff = diffsCache.get(diffKey);
-		if (diff != null && diff.getObjectValue() instanceof DiffEntry) {
-			DiffEntry diffEntry = (DiffEntry) diff.getObjectValue();
-			return (Double) diffEntry.getDiffs().get(MetricUtil.NEW_RELIC_TOTAL);
-		}
-		return null;
-	}
+        // Handle special metrics
+        for (Metric metric : metricUtil.getSpecialMetrics()) {
+            JSONArray objects = jsonObjects.get(metric.getSource());
+            if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
+                JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities[*]");
+                for (MetricDatasetServerComponent serverComponent : serverComponents) {
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    if (null != metricDataset.getComponentDetail() &&
+                            metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent &&
+                            ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).getState() == MetricDatasetServerComponent.State.ACTIVE) {
+                        putValueInDataset(metricDataset, clientEntities.size());
+                    } else {
+                        putValueInDataset(metricDataset, 0);
+                    }
+                    putMetricDataSetInCache(metricDataset);
+                }
+            } else if (MetricUtil.METRIC_SERVER_STATE.equals((metric.getReportingComponents().size() > 0) ? metric.getReportingComponents().get(metric.getReportingComponents().size() - 1) : "")) {
+                for (MetricDatasetServerComponent serverComponent : serverComponents) {
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    if (MetricDatasetServerComponent.State.parseString(metric.getName()) == serverComponent.getState()) {
+                        putValueInDataset(metricDataset, 1);
+                    } else {
+                        putValueInDataset(metricDataset, 0);
+                    }
+                    putMetricDataSetInCache(metricDataset);
+                }
+            }
+        }
 
-	private Set<String> getCacheNames(JSONArray objects) {
-		return getSet(objects, "name");
-	}
+        log.info("Starting to cache Ratio Metrics...");
+        for (Metric metric : metricUtil.getRatioMetrics()) {
+            RatioMetric ratioMetric = (RatioMetric) metric;
+            for (Object key : statsCache.getKeys()) {
+                Element element = statsCache.get((key));
+                if (element != null && element.getObjectValue() instanceof MetricDataset) {
+                    MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
+                    if (metricDataset.getKey().contains(ratioMetric.getNumeratorCount())) {
+                        String denominatorKey = ratioMetric.isHitRatio() ?
+                                metricDataset.getKey().replace("Hit", "Miss") :
+                                metricDataset.getKey().replace("Miss", "Hit");
+                        String ratioKey = metricDataset.getKey().replace("Count", "Ratio");
+                        Element denominatorElement = statsCache.get(denominatorKey);
+                        if (denominatorElement != null && denominatorElement.getObjectValue() instanceof MetricDataset) {
+                            MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
+                            Double numerator = getDiffSum(metricDataset);
+                            Double denominator = getDiffSum(denominatorDataset);
+                            if (numerator != null && denominator != null) {
+                                denominator += numerator;
+                                log.trace("Got Diff Sum for numerator '" + metricDataset.getMetric().getName() + "': " + numerator);
+                                log.trace("Got Diff Sum for denominator '" + denominatorDataset.getMetric().getName() + "': " + denominator);
+                                double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
 
-	private Set<String> getServerNames(JSONArray objects) {
-		return getSet(objects, "sourceId");
-	}
+                                MetricDataset ratioDataset = getMetricDatasetFromCache(ratioMetric, denominatorDataset.getComponentDetail());
+                                putValueInDataset(ratioDataset, ratio);
+                                putMetricDataSetInCache(ratioDataset);
+                                log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
+                            } else {
+                                log.warn("Could not calculate ratio for '" + metricDataset.getMetric().getName());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        log.info("Done caching stats.");
+    }
 
-	private Set<String> getSet(JSONArray objects, String attribute) {
-		JSONArray nameArray = JsonPath.read(objects, "$[*]." + attribute);
-		Set<String> names = new HashSet<String>();
-		for (Object object : nameArray) {
-			names.add((String) object);
-		}
-		return names;
-	}
+    private MetricDatasetServerComponent.State getServerState(Map<Metric.Source, JSONArray> jsonObjects, String serverName) {
+        MetricDatasetServerComponent.State serverState = MetricDatasetServerComponent.State.UNKNOWN; //could not find the state for that server name...something happened.
 
-	private Map<Metric.Source, JSONArray> toJsonArray(Map<Metric.Source, String> metricData) {
-		Map<Metric.Source, JSONArray> jsonObjects = new HashMap<Metric.Source, JSONArray>();
-		for (Metric.Source source : Metric.Source.values()) {
-			String json = metricData.get(source);
-			JSONArray objects = JsonPath.read(json, "$[*]");
-			jsonObjects.put(source, objects);
-		}
-		return jsonObjects;
-	}
+        JSONArray topologies = jsonObjects.get(Metric.Source.topologies);
+        JSONArray attributes = JsonPath.read(topologies, "$[*].serverGroupEntities.servers.attributes");
+        JSONArray stateArray = JsonPath.read(attributes, "$[?].State", Filter.filter(Criteria.where("Name").is(serverName)));
 
-	private void putValue(MetricDataset metricDataset, Object value) {
-		if (value instanceof JSONArray) {
-			JSONArray jsonArray = (JSONArray) value;
-			for (Object child : jsonArray) {
-				putPrimitiveValue(metricDataset, child);
-			}
-		}
-		else if (value instanceof Number) {
-			putPrimitiveValue(metricDataset, value);
-		}
-		if (metricDataset.getMetric().isCreateDiff()) putDiff(metricDataset);
-	}
+        // always capture the state...
+        // if no results from the json query, it means there's an error for that server...eg. server is down or something...
+        if (stateArray.size() > 0) {
+            serverState = MetricDatasetServerComponent.State.parseString((String) stateArray.get(0));
+        } else {
+            serverState = MetricDatasetServerComponent.State.ERROR;
+        }
 
-	private void putPrimitiveValue(MetricDataset metricDataset, Object value) {
-		if (value instanceof Number) {
-			putPrimitiveValue(metricDataset, ((Number) value).doubleValue());
-		}
-		else {
-			log.warn("Class " + value.getClass() + " not numeric.");
-		}
-	}
+        return serverState;
+    }
 
-	private void putPrimitiveValue(MetricDataset metricDataset, double value) {
-		metricDataset.addValue(value);
-		putMetricDataset(metricDataset);
-	}
+    private Double getDiffSum(MetricDataset metricDataset) {
+        Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
+        MetricDataset diffDataSet = getDiffDataSetFromCache(MetricDataset.getKey(diffMetric, metricDataset.getComponentDetail()));
+        if (null != diffDataSet) {
+            return diffDataSet.getStatistics().getSum();
+        }
+        return null;
+    }
 
-	public MetricDataset getMetricDataset(Metric metric, String componentName) {
-		Element element = statsCache.get(MetricDataset.getKey(metric, componentName));
-		if (element != null) return (MetricDataset) element.getObjectValue();
-		else {
+    private Set<String> getCacheManagerNames(Map<Metric.Source, JSONArray> jsonObjects) {
+        JSONArray cacheStats = jsonObjects.get(Metric.Source.cache);
+        return getSet(cacheStats, "cacheManagerName");
+    }
+
+    private Set<String> getCacheNamesInCacheManager(Map<Metric.Source, JSONArray> jsonObjects, String cacheManagerName) {
+        JSONArray cacheStats = jsonObjects.get(Metric.Source.cache);
+
+        Set<String> cacheNames;
+        if (null != cacheManagerName && !"".equals(cacheManagerName.trim())) {
+            JSONArray caches = JsonPath.read(cacheStats, "$[?]", Filter.filter(Criteria.where("cacheManagerName").is(cacheManagerName)));
+            cacheNames = getSet(caches, "name");
+        } else
+            cacheNames = getSet(cacheStats, "name");
+
+
+        return cacheNames;
+    }
+
+    private Set<String> getServerNames(Map<Metric.Source, JSONArray> jsonObjects) {
+        return getServerNames(jsonObjects, null);
+    }
+
+    private Set<String> getServerNames(Map<Metric.Source, JSONArray> jsonObjects, String stripeName) {
+        JSONArray topologies = jsonObjects.get(Metric.Source.topologies);
+
+//        String jsonQuery;
+//        if(null != stripeName && !"".equals(stripeName.trim()))
+//            jsonQuery = String.format("$[*].serverGroupEntities[?(@.name=='%s')].servers[*].attributes", stripeName);
+//        else
+//            jsonQuery = "$[*].serverGroupEntities[*].servers[*].attributes";
+
+        JSONArray servers;
+        if (null != stripeName && !"".equals(stripeName.trim()))
+            servers = JsonPath.read(topologies, "$[*].serverGroupEntities[?].servers[*].attributes", Filter.filter(Criteria.where("name").is(stripeName)));
+        else
+            servers = JsonPath.read(topologies, "$[*].serverGroupEntities[*].servers[*].attributes");
+
+        return getSet(servers, "Name");
+    }
+
+    private Set<String> getServerStripes(Map<Metric.Source, JSONArray> jsonObjects) {
+        JSONArray topologies = jsonObjects.get(Metric.Source.topologies);
+        JSONArray stripes = JsonPath.read(topologies, "$[*].serverGroupEntities[*]");
+        return getSet(stripes, "name");
+    }
+
+    private Map<String, String> getServersToStripesMap(Map<Metric.Source, JSONArray> jsonObjects) {
+        Map<String, String> serversToStripesMap = new HashMap<String, String>();
+        Set<String> stripes = getServerStripes(jsonObjects);
+        for (String stripe : stripes) {
+            Set<String> serversInStripe = getServerNames(jsonObjects, stripe);
+            for (String serverName : serversInStripe) {
+                serversToStripesMap.put(serverName, stripe);
+            }
+        }
+        return serversToStripesMap;
+    }
+
+    private Set<MetricDatasetCacheComponent> getCacheComponents(Map<Metric.Source, JSONArray> jsonObjects) {
+        Set<MetricDatasetCacheComponent> cacheComponents = new HashSet<MetricDatasetCacheComponent>();
+        Set<String> cacheManagerNames = getCacheManagerNames(jsonObjects);
+        for (String cacheManager : cacheManagerNames) {
+            Set<String> cacheNames = getCacheNamesInCacheManager(jsonObjects, cacheManager);
+            for (String cacheName : cacheNames) {
+                cacheComponents.add(new MetricDatasetCacheComponent(cacheName, cacheManager));
+            }
+        }
+        return cacheComponents;
+    }
+
+    private Set<MetricDatasetServerComponent> getServerComponents(Map<Metric.Source, JSONArray> jsonObjects) {
+        Set<MetricDatasetServerComponent> serverComponents = new HashSet<MetricDatasetServerComponent>();
+        Set<String> stripes = getServerStripes(jsonObjects);
+        for (String stripe : stripes) {
+            Set<String> serversInStripe = getServerNames(jsonObjects, stripe);
+            for (String serverName : serversInStripe) {
+                serverComponents.add(new MetricDatasetServerComponent(serverName, stripe, getServerState(jsonObjects, serverName)));
+            }
+        }
+        return serverComponents;
+    }
+
+    private Set<String> getSet(JSONArray objects, String attribute) {
+        JSONArray nameArray = JsonPath.read(objects, "$[*]." + attribute);
+        Set<String> names = new HashSet<String>();
+        for (Object object : nameArray) {
+            names.add((String) object);
+        }
+        return names;
+    }
+
+    private Map<Metric.Source, JSONArray> toJsonArray(Map<Metric.Source, String> metricData) {
+        Map<Metric.Source, JSONArray> jsonObjects = new HashMap<Metric.Source, JSONArray>();
+        for (Metric.Source source : Metric.Source.values()) {
+            String json = metricData.get(source);
+            JSONArray objects = JsonPath.read(json, "$[*]");
+            jsonObjects.put(source, objects);
+        }
+        return jsonObjects;
+    }
+
+    private void putValueInDataset(MetricDataset metricDataset, Object value) {
+        if (value instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) value;
+            for (Object child : jsonArray) {
+                putPrimitiveValue(metricDataset, child);
+            }
+        } else if (value instanceof Number) {
+            putPrimitiveValue(metricDataset, value);
+        }
+    }
+
+    private void putPrimitiveValue(MetricDataset metricDataset, Object value) {
+        if (value instanceof Number) {
+            putPrimitiveValue(metricDataset, ((Number) value).doubleValue());
+        } else {
+            log.warn("Class " + value.getClass() + " not numeric.");
+        }
+    }
+
+    private void putPrimitiveValue(MetricDataset metricDataset, double value) {
+        log.trace("Adding values {} to dataset {}", value, metricDataset.getKey());
+        metricDataset.addValue(value);
+    }
+
+    public MetricDataset getMetricDatasetFromCache(Metric metric, MetricDatasetComponent componentDetail) {
+        Element element = statsCache.get(MetricDataset.getKey(metric, componentDetail));
+        MetricDataset metricDataset = null;
+        if (element != null) {
+            metricDataset = (MetricDataset) element.getObjectValue();
+
+            //set the component state as it may have changed since last iteration
+            if (null != componentDetail && componentDetail instanceof MetricDatasetServerComponent
+                    && null != metricDataset.getComponentDetail() && metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent) {
+                ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).setState(((MetricDatasetServerComponent) componentDetail).getState());
+            }
+
+            log.trace("Extracting metricDataset values for {} - {}", metricDataset.getKey(), metricUtil.metricAsJson(metricDataset, true).toString());
+        } else {
+            log.trace("metricDataset not found in cache...creating a new one");
+
 //			return metricDatasetFactory.construct(metric, componentName);
 //			return (MetricDataset) beanFactory.getBean("metricDataset", metric, componentName, metric.getMaxWindowSize());
-			return new MetricDataset(metric, componentName);
-		}
-	}
 
-	public void putMetricDataset(MetricDataset metricDataset) {
-		log.trace("Putting " + metricDataset.getKey() + " to statsCache.");
-		statsCache.put(new Element(metricDataset.getKey(), metricDataset));
-	}
+            metricDataset = new MetricDataset(metric, componentDetail);
+        }
+        return metricDataset;
+    }
 
-	public Map<String, Number> getDiff(String key) {
-		Element element = diffsCache.get(key);
-		if (element != null) return (Map<String, Number>) element.getObjectValue();
-		else return null;
-	}
+    public void putMetricDataSetInCache(MetricDataset metricDataset) {
+        log.trace("Putting " + metricDataset.getKey() + " to statsCache.");
+        statsCache.put(new Element(metricDataset.getKey(), metricDataset));
+    }
 
-	private void putDiff(MetricDataset latest) {
-		DescriptiveStatistics previousStatistics = lastDataSet.get(latest.getKey());
-		if (previousStatistics == null) {
-			log.debug("No previously cached data for metric " + latest.getKey());
-		}
-		else {
-			log.trace("Latest SUM: " + latest.getStatistics().getSum() + ", Previous SUM: " + previousStatistics.getSum());
+    public MetricDataset getDiffDataSetFromCache(String key) {
+        Element element = diffsCache.get(key);
+        if (element != null) return (MetricDataset) element.getObjectValue();
+        else return null;
+    }
 
-			Metric diffMetric = getDiffMetricForAbsoluteMetric(latest.getMetric());
-			MetricDataset diffDataSet = new MetricDataset(diffMetric, latest.getComponentName());
-//			MetricDataset diffDataSet = metricDatasetFactory.construct(diffMetric, latest.getComponentName());
-			Map.Entry<String, Map<String, Number>> diff = metricUtil.metricAsJson(
-					diffMetric.getReportingPath(),
-//					toDouble(latest.getStatistics().getMin() - previousStatistics.getMin()),
-//					toDouble(latest.getStatistics().getMax() - previousStatistics.getMax()),
-					toDouble(latest.getStatistics().getSum() - previousStatistics.getSum()),
-					latest.getStatistics().getN() // Use the absolute count here because TMC is reporting absolute values
-//					toDouble(latest.getStatistics().getSumsq() - previousStatistics.getSumsq())
-			);
+    public void putDiffDataSetInCache(String key, MetricDataset metricDataset) {
+        diffsCache.put(new Element(key, metricDataset));
+    }
 
-			String diffKey = diffDataSet.getKey();
-			log.trace("Putting " + diffKey);
-			diffsCache.put(new Element(diffKey, new DiffEntry(diffDataSet, diff.getValue())));
-		}
+    public DescriptiveStatistics getLastStatisticsFromCache(String key) {
+        Element element = lastStatisticsCache.get(key);
+        if (element != null) return (DescriptiveStatistics) element.getObjectValue();
+        else return null;
+    }
 
-		// Update lastDataSet after done
-		log.trace("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
-		lastDataSet.put(latest.getKey(), new SynchronizedDescriptiveStatistics(
-				(SynchronizedDescriptiveStatistics) latest.getStatistics()));
-	}
+    public void putLastStatisticsInCache(String key, DescriptiveStatistics stats) {
+        lastStatisticsCache.put(new Element(key, stats));
+    }
 
-	public Metric getDiffMetricForAbsoluteMetric(Metric absolute) {
-		return MetricBuilder.create(absolute.getName()).
-				setReportingComponents(absolute.getReportingComponents()).
-				setSource(absolute.getSource()).
-				setUnit(absolute.getUnit()).
-				setType(absolute.getType()).
-				setDiff(true).
-				build();
-	}
+    private void putDiffDataInCache(MetricDataset latest) {
+        DescriptiveStatistics previousStatistics = getLastStatisticsFromCache(latest.getKey());
+        if (previousStatistics == null) {
+            log.debug("No previously cached data for metric " + latest.getKey());
+        } else {
+            Metric diffMetric = getDiffMetricForAbsoluteMetric(latest.getMetric());
+            log.trace("{}: Latest SUM {} - Previous SUM {} = {}", diffMetric.getReportingPath(), latest.getStatistics().getSum(), previousStatistics.getSum(), latest.getStatistics().getSum() - previousStatistics.getSum());
 
-	private double toDouble(double value) {
-		if (Double.isNaN(value)) return 0;
-		else return value;
-	}
+            MetricDataset diffDataSet = getDiffDataSetFromCache(MetricDataset.getKey(diffMetric, latest.getComponentDetail()));
+            if (null == diffDataSet) {
+                diffDataSet = new MetricDataset(diffMetric, latest.getComponentDetail());
+            }
 
-	public class DiffEntry {
+            //create a new dataset with the diff value and the right count
+            diffDataSet.addValue(latest.getStatistics().getSum() - previousStatistics.getSum());
 
-		MetricDataset metricDataset;
-		Map<String, Number> diffs;
+            putDiffDataSetInCache(diffDataSet.getKey(), diffDataSet);
+        }
 
-		public DiffEntry() {
-		}
+        // Update lastDataSet after done
+        log.trace("Updating key '" + latest.getKey() + "', SUM: " + latest.getStatistics().getSum());
+        putLastStatisticsInCache(latest.getKey(), new SynchronizedDescriptiveStatistics(
+                (SynchronizedDescriptiveStatistics) latest.getStatistics()));
+    }
 
-		public DiffEntry(MetricDataset metricDataset, Map<String, Number> diffs) {
-			this.metricDataset = metricDataset;
-			this.diffs = diffs;
-		}
+    public Metric getDiffMetricForAbsoluteMetric(Metric absolute) {
+        Metric diffMetric = null;
+        if (null != absolute) {
+            try {
+                diffMetric = absolute.clone();
+                diffMetric.setDiff(true);
+            } catch (CloneNotSupportedException e) {
+                log.error("Could not clone the Metric object", e);
+            }
+        }
+        return diffMetric;
+    }
 
-		public Map<String, Number> getDiffs() {
-			return diffs;
-		}
-
-		public void setDiffs(Map<String, Number> diffs) {
-			this.diffs = diffs;
-		}
-
-		public MetricDataset getMetricDataset() {
-			return metricDataset;
-		}
-
-		public void setMetricDataset(MetricDataset metricDataset) {
-			this.metricDataset = metricDataset;
-		}
-	}
+    private double toDouble(double value) {
+        if (Double.isNaN(value)) return 0;
+        else return value;
+    }
 }

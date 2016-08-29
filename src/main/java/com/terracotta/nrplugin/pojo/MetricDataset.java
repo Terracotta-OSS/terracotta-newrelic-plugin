@@ -16,64 +16,55 @@ import java.io.Serializable;
  */
 @Component
 @Scope("prototype")
-public class MetricDataset implements Serializable {
+public class MetricDataset implements Serializable, Cloneable {
 
-	private static final long serialVersionUID = 483809302495395084L;
+    private static final long serialVersionUID = 483809302495395084L;
 
-	Metric metric;
-	SynchronizedDescriptiveStatistics statistics;
-	Type type = Type.absolute;
-	String componentName;
+    final Metric metric;
+    final MetricDatasetComponent componentDetail;
+    final SynchronizedDescriptiveStatistics statistics;
 
-	public enum Type {absolute, diff}
+    public MetricDataset(Metric metric, MetricDatasetComponent componentDetail) {
+        if (metric == null || componentDetail == null)
+            throw new IllegalArgumentException("Metric or MetricDatasetComponent may not be null");
 
-	public MetricDataset(Metric metric, String componentName) {
-		this.metric = metric;
-		this.componentName = componentName;
-		this.statistics = new SynchronizedDescriptiveStatistics(metric.getMaxWindowSize());
-	}
+        this.metric = metric;
+        this.componentDetail = componentDetail;
+        this.statistics = new SynchronizedDescriptiveStatistics(metric.getMaxWindowSize());
+    }
 
-	public void addValue(double value) {
-		statistics.addValue(value);
-	}
+    public void addValue(double value) {
+        statistics.addValue(value);
+    }
 
-	public static String getKey(Metric metric, String componentName) {
-		return new MetricDataset(metric, componentName).getKey();
-	}
+    public static String getKey(Metric metric, MetricDatasetComponent componentDetail) {
+        return new MetricDataset(metric, componentDetail).getKey();
+    }
 
-	public String getKey() {
-		return componentName + metric.getReportingPath();
-	}
+    public String getKey() {
+        return componentDetail.getComponentName() + metric.getReportingPath();
+    }
 
-	public Metric getMetric() {
-		return metric;
-	}
+    public Metric getMetric() {
+        return metric;
+    }
 
-	public DescriptiveStatistics getStatistics() {
-		return statistics;
-	}
+    public DescriptiveStatistics getStatistics() {
+        return statistics;
+    }
 
-	public void setMetric(Metric metric) {
-		this.metric = metric;
-	}
+    public MetricDatasetComponent getComponentDetail() {
+        return componentDetail;
+    }
 
-	public Type getType() {
-		return type;
-	}
+    public String getStatisticsAsString() {
+        return String.format("%s -- [min=%.2f,max=%.2f,sum=%f,samples=%d,sumsq=%.2f] ", getMetric().getReportingPath(), getStatistics().getMin(),
+                getStatistics().getMax(), getStatistics().getSum(),
+                getStatistics().getN(), getStatistics().getSumsq());
+    }
 
-	public void setType(Type type) {
-		this.type = type;
-	}
-
-	public String getComponentName() {
-		return componentName;
-	}
-
-	public void setComponentName(String componentName) {
-		this.componentName = componentName;
-	}
-
-	public void setStatistics(SynchronizedDescriptiveStatistics statistics) {
-		this.statistics = statistics;
-	}
+    @Override
+    public MetricDataset clone() throws CloneNotSupportedException {
+        return (MetricDataset) super.clone();
+    }
 }

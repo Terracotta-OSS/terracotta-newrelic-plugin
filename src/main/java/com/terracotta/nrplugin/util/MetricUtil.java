@@ -1,9 +1,6 @@
 package com.terracotta.nrplugin.util;
 
-import com.terracotta.nrplugin.pojo.Metric;
-import com.terracotta.nrplugin.pojo.MetricBuilder;
-import com.terracotta.nrplugin.pojo.MetricDataset;
-import com.terracotta.nrplugin.pojo.RatioMetric;
+import com.terracotta.nrplugin.pojo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,8 +28,16 @@ public class MetricUtil {
 	public static final String METRIC_READ_OPERATION_RATE = "ReadOperationRate";
 	public static final String METRIC_EVICTION_RATE = "EvictionRate";
 	public static final String METRIC_EXPIRATION_RATE = "ExpirationRate";
-	public static final String METRIC_OFFHEAP_USED_SIZE = "OffheapUsedSize";
-	public static final String METRIC_OFFHEAP_MAX_SIZE = "OffheapMaxSize";
+    public static final String METRIC_DATA_USED_SIZE = "StorageStats.DATA.used";
+    public static final String METRIC_DATA_MAX_SIZE = "StorageStats.DATA.max";
+    public static final String METRIC_OFFHEAP_USED_SIZE = "StorageStats.OFFHEAP.used";
+    public static final String METRIC_OFFHEAP_MAX_SIZE = "StorageStats.OFFHEAP.max";
+
+    public static final String METRIC_DISPLAYNAME_DATA_USED_SIZE = "DataUsedSize";
+    public static final String METRIC_DISPLAYNAME_DATA_MAX_SIZE = "DataMaxSize";
+    public static final String METRIC_DISPLAYNAME_OFFHEAP_USED_SIZE = "OffheapUsedSize";
+    public static final String METRIC_DISPLAYNAME_OFFHEAP_MAX_SIZE = "OffheapMaxSize";
+
 
 	// Client metrics
 	public static final String METRIC_READ_RATE = "ReadRate";
@@ -117,7 +122,8 @@ public class MetricUtil {
 	final String clnt = "Clients";
 	final String eh = "Ehcache";
 	final String data = "Data";
-	final String off = "OffHeap";
+    final String storage = "Storage";
+    final String off = "OffHeap";
 	final String obj = "Objects";
 	final String rates = "Rates";
 	final String bytes = "Bytes";
@@ -130,13 +136,15 @@ public class MetricUtil {
 	@PostConstruct
 	private void init() {
 		// Server metrics
-		addServerMetric(METRIC_LIVE_OBJECT_COUNT, Metric.Unit.Count, data, obj);
-		addServerMetric(METRIC_WRITE_OPERATION_RATE, Metric.Unit.Rate, data, rates);
-		addServerMetric(METRIC_READ_OPERATION_RATE, Metric.Unit.Rate, data, rates);
-		addServerMetric(METRIC_EVICTION_RATE, Metric.Unit.Rate, data, rates);
-		addServerMetric(METRIC_EXPIRATION_RATE, Metric.Unit.Rate,data, rates);
-		addServerMetric(METRIC_OFFHEAP_USED_SIZE, Metric.Unit.Bytes, off, bytes);
-		addServerMetric(METRIC_OFFHEAP_MAX_SIZE, Metric.Unit.Bytes, off, bytes);
+        addServerMetric(METRIC_LIVE_OBJECT_COUNT, null, Metric.Unit.Count, Arrays.asList(data, obj));
+        addServerMetric(METRIC_WRITE_OPERATION_RATE, null, Metric.Unit.Rate, Arrays.asList(data, rates));
+        addServerMetric(METRIC_READ_OPERATION_RATE, null, Metric.Unit.Rate, Arrays.asList(data, rates));
+        addServerMetric(METRIC_EVICTION_RATE, null, Metric.Unit.Rate, Arrays.asList(data, rates));
+        addServerMetric(METRIC_EXPIRATION_RATE, null, Metric.Unit.Rate, Arrays.asList(data, rates));
+        addServerMetric(METRIC_DATA_USED_SIZE, METRIC_DISPLAYNAME_DATA_USED_SIZE, Metric.Unit.Bytes, Arrays.asList(storage, data, bytes));
+        addServerMetric(METRIC_DATA_MAX_SIZE, METRIC_DISPLAYNAME_DATA_MAX_SIZE, Metric.Unit.Bytes, Arrays.asList(storage, data, bytes));
+        addServerMetric(METRIC_OFFHEAP_USED_SIZE, METRIC_DISPLAYNAME_OFFHEAP_USED_SIZE, Metric.Unit.Bytes, Arrays.asList(storage, off, bytes));
+        addServerMetric(METRIC_OFFHEAP_MAX_SIZE, METRIC_DISPLAYNAME_OFFHEAP_MAX_SIZE, Metric.Unit.Bytes, Arrays.asList(storage, off, bytes));
 
 		// Client metrics
 //        metrics.add(new Metric("$[?].statistics." + METRIC_READ_RATE,
@@ -186,14 +194,14 @@ public class MetricUtil {
 		addCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, "Used", Metric.Unit.Count, Arrays.asList("TotalEntries"));
 
 		// Cache Ratio metrics
-		RatioMetric cacheHitRatio = addRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT);
-		RatioMetric onDiskHitRatio = addRatioMetric(METRIC_ON_DISK_HIT_RATIO, null, METRIC_ON_DISK_HIT_COUNT, METRIC_ON_DISK_MISS_COUNT);
-		RatioMetric inMemoryHitRatio = addRatioMetric(METRIC_IN_MEMORY_HIT_RATIO, null, METRIC_IN_MEMORY_HIT_COUNT, METRIC_IN_MEMORY_MISS_COUNT);
-		RatioMetric offHeapHitRatio = addRatioMetric(METRIC_OFF_HEAP_HIT_RATIO, null, METRIC_OFF_HEAP_HIT_COUNT, METRIC_OFF_HEAP_MISS_COUNT);
-		RatioMetric cacheMissRatio = addRatioMetric(METRIC_CACHE_MISS_RATIO, cacheHitRatio, METRIC_CACHE_MISS_COUNT, METRIC_CACHE_HIT_COUNT);
-		RatioMetric onDiskMissRatio = addRatioMetric(METRIC_ON_DISK_MISS_RATIO, onDiskHitRatio, METRIC_ON_DISK_MISS_COUNT, METRIC_ON_DISK_HIT_COUNT);
-		RatioMetric inMemoryMissRatio = addRatioMetric(METRIC_IN_MEMORY_MISS_RATIO, inMemoryHitRatio, METRIC_IN_MEMORY_MISS_COUNT, METRIC_IN_MEMORY_HIT_COUNT);
-		RatioMetric offHeapMissRatio = addRatioMetric(METRIC_OFF_HEAP_MISS_RATIO, offHeapHitRatio, METRIC_OFF_HEAP_MISS_COUNT, METRIC_OFF_HEAP_HIT_COUNT);
+        RatioMetric cacheHitRatio = addCacheRatioMetric(METRIC_CACHE_HIT_RATIO, null, METRIC_CACHE_HIT_COUNT, METRIC_CACHE_MISS_COUNT, Metric.RollupType.sum);
+        RatioMetric onDiskHitRatio = addCacheRatioMetric(METRIC_ON_DISK_HIT_RATIO, null, METRIC_ON_DISK_HIT_COUNT, METRIC_ON_DISK_MISS_COUNT, Metric.RollupType.sum);
+        RatioMetric inMemoryHitRatio = addCacheRatioMetric(METRIC_IN_MEMORY_HIT_RATIO, null, METRIC_IN_MEMORY_HIT_COUNT, METRIC_IN_MEMORY_MISS_COUNT, Metric.RollupType.sum);
+        RatioMetric offHeapHitRatio = addCacheRatioMetric(METRIC_OFF_HEAP_HIT_RATIO, null, METRIC_OFF_HEAP_HIT_COUNT, METRIC_OFF_HEAP_MISS_COUNT, Metric.RollupType.sum);
+        RatioMetric cacheMissRatio = addCacheRatioMetric(METRIC_CACHE_MISS_RATIO, cacheHitRatio, METRIC_CACHE_MISS_COUNT, METRIC_CACHE_HIT_COUNT, Metric.RollupType.sum);
+        RatioMetric onDiskMissRatio = addCacheRatioMetric(METRIC_ON_DISK_MISS_RATIO, onDiskHitRatio, METRIC_ON_DISK_MISS_COUNT, METRIC_ON_DISK_HIT_COUNT, Metric.RollupType.sum);
+        RatioMetric inMemoryMissRatio = addCacheRatioMetric(METRIC_IN_MEMORY_MISS_RATIO, inMemoryHitRatio, METRIC_IN_MEMORY_MISS_COUNT, METRIC_IN_MEMORY_HIT_COUNT, Metric.RollupType.sum);
+        RatioMetric offHeapMissRatio = addCacheRatioMetric(METRIC_OFF_HEAP_MISS_RATIO, offHeapHitRatio, METRIC_OFF_HEAP_MISS_COUNT, METRIC_OFF_HEAP_HIT_COUNT, Metric.RollupType.sum);
 
 		cacheHitRatio.setPair(cacheMissRatio);
 		onDiskHitRatio.setPair(onDiskMissRatio);
@@ -201,10 +209,16 @@ public class MetricUtil {
 		offHeapHitRatio.setPair(offHeapMissRatio);
 
 		// Special Metrics
-		addMetric(METRIC_NUM_CONNECTED_CLIENTS, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
-				false, Arrays.asList(cm, tc, srv), null, 1);
-		addMetric(METRIC_SERVER_STATE, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
-				false, Arrays.asList(cm, tc, srv), null, 1);
+        addMetric(METRIC_NUM_CONNECTED_CLIENTS, null, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+                false, Arrays.asList(cm, tc, srv), null, 1, Metric.RollupType.none);
+
+        //add each server state in its own metric
+        for (MetricDatasetServerComponent.State state : MetricDatasetServerComponent.State.values()) {
+            if (state != MetricDatasetServerComponent.State.UNKNOWN) {
+                addMetric(state.getName(), null, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+                        false, Arrays.asList(cm, tc, srv, METRIC_SERVER_STATE), null, 1, Metric.RollupType.sum);
+            }
+        }
 
 		// Populate cache stat names list
 		for (Metric metric : metrics) {
@@ -214,11 +228,14 @@ public class MetricUtil {
 		}
 	}
 
-	private void addServerMetric(String name, Metric.Unit unit, String... suffix) {
-		List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, srv));
-		reportingPathComponents.addAll(Arrays.asList(suffix));
-		addMetric(name, null, null, Metric.Source.server, unit, false, reportingPathComponents, null, null);
-	}
+    private void addServerMetric(String name, String displayName, Metric.Unit unit, List<String> suffix) {
+        List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, srv));
+
+        if (null != suffix)
+            reportingPathComponents.addAll(suffix);
+
+        addMetric(name, displayName, null, null, Metric.Source.server, unit, false, reportingPathComponents, null, null, Metric.RollupType.sum);
+    }
 
 	private void addCacheMetric(String name, Metric.Unit unit, boolean createDiff) {
 		addCacheMetric(name, null, null, unit, createDiff, null, null);
@@ -236,29 +253,32 @@ public class MetricUtil {
 	                            List<String> suffix, Metric.RatioType ratioType) {
 		List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, eh));
 		if (suffix != null && !suffix.isEmpty()) reportingPathComponents.addAll(suffix);
-		addMetric(name, displayName, type, Metric.Source.cache, unit, createDiff, reportingPathComponents, ratioType, null);
-	}
+        addMetric(name, displayName, null, type, Metric.Source.cache, unit, createDiff, reportingPathComponents, ratioType, null, Metric.RollupType.sum);
+    }
 
-	private void addMetric(String name, String displayName, Metric.Type type, Metric.Source source, Metric.Unit unit,
-	                       boolean createDiff, List<String> reportingPathComponents, Metric.RatioType ratioType,
-	                       Integer maxWindowSize) {
-		Metric metric = MetricBuilder.create(name).
+    private void addMetric(String name, String displayName, String dataPath, Metric.Type type, Metric.Source source, Metric.Unit unit,
+                           boolean createDiff, List<String> reportingPathComponents, Metric.RatioType ratioType,
+                           Integer maxWindowSize, Metric.RollupType rollupType) {
+        Metric metric = MetricBuilder.create(name).
 				setDisplayName(displayName).
 				setSource(source).
-				setUnit(unit).
+                setDataPath(dataPath).
+                setUnit(unit).
 				setCreateDiff(createDiff).
 				setType(type).
 				setRatioType(ratioType).
-				setMaxWindowSize(maxWindowSize).
+                setRollupType(rollupType).
+                setMaxWindowSize(maxWindowSize).
 				addReportingPath(reportingPathComponents).
 				build();
 		metrics.add(metric);
 	}
 
-	private RatioMetric addRatioMetric(String name, RatioMetric pair, String numeratorCount, String denominatorCount) {
-		RatioMetric metric = (RatioMetric) MetricBuilder.create(name).
+    private RatioMetric addCacheRatioMetric(String name, RatioMetric pair, String numeratorCount, String denominatorCount, Metric.RollupType rollupType) {
+        RatioMetric metric = (RatioMetric) MetricBuilder.create(name).
 				setType(Metric.Type.ratio).
-				setSource(Metric.Source.cache).
+                setRollupType(rollupType).
+                setSource(Metric.Source.cache).
 				setUnit(Metric.Unit.Percent).
 				setPair(pair).
 				setNumeratorCount(numeratorCount).
@@ -313,11 +333,17 @@ public class MetricUtil {
 //		return map;
 //	}
 
-	public Map.Entry<String, Map<String, Number>> metricAsJson(MetricDataset metricDataset) {
-		return metricAsJson(metricDataset.getMetric().getReportingPath(), metricDataset.getStatistics().getMin(),
-				metricDataset.getStatistics().getMax(), metricDataset.getStatistics().getSum(),
+    //returns a map with key = metric reporting path, and value = count, min, max, sum, sumsq, absolute
+    public Map.Entry<String, Map<String, Number>> metricAsJson(MetricDataset metricDataset, boolean full) {
+        if (full)
+            return metricAsJson(metricDataset.getMetric().getReportingPath(), metricDataset.getStatistics().getMin(),
+                    metricDataset.getStatistics().getMax(), metricDataset.getStatistics().getSum(),
 				metricDataset.getStatistics().getN(), metricDataset.getStatistics().getSumsq());
-	}
+        else
+            return metricAsJson(metricDataset.getMetric().getReportingPath(),
+                    metricDataset.getStatistics().getSum(),
+                    metricDataset.getStatistics().getN());
+    }
 
 	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double min, Double max, Double sum,
 	                                                           Long count, Double sumsq) {

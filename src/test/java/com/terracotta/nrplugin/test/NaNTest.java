@@ -1,10 +1,10 @@
 package com.terracotta.nrplugin.test;
 
 import com.terracotta.nrplugin.app.AppConfig;
-import com.terracotta.nrplugin.app.ReportingConfig;
 import com.terracotta.nrplugin.pojo.Metric;
 import com.terracotta.nrplugin.pojo.MetricBuilder;
 import com.terracotta.nrplugin.pojo.MetricDataset;
+import com.terracotta.nrplugin.pojo.MetricDatasetServerComponent;
 import com.terracotta.nrplugin.util.MetricUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +35,7 @@ public class NaNTest {
 //        fakeDataset.addValue(100);
 //        fakeDataset.addValue(50);
 //        fakeDataset.addValue(125);
-        Map.Entry<String, Map<String, Number>> json = metricUtil.metricAsJson(fakeDataset);
+        Map.Entry<String, Map<String, Number>> json = metricUtil.metricAsJson(fakeDataset, true);
 
         log.info("Printing keys...");
         for (Map.Entry<String, Number> entry : json.getValue().entrySet()) {
@@ -53,7 +53,7 @@ public class NaNTest {
                 setMaxWindowSize(100).
                 addReportingPath(Arrays.asList("Root", "Folder1")).
                 build();
-        return new MetricDataset(metric, "FakeMetricComponent");
+        return new MetricDataset(metric, new MetricDatasetServerComponent("FakeMetricServerName", "FakeMetricServerStripe"));
     }
 
 }

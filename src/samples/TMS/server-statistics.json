@@ -1,0 +1,130 @@
+[
+    {
+        "version": "4.1.5",
+        "agentId": "MyCluster",
+        "sourceId": "Server1",
+        "statistics": {
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 536870912,
+            "ReadOperationRate": 144,
+            "StorageStats": {
+                "OFFHEAP": {
+                    "max": 536870912,
+                    "reserved": 28200640,
+                    "used": 27050096
+                },
+                "DATA": {
+                    "max": 1073741824,
+                    "reserved": 4011318,
+                    "used": 4011318
+                },
+                "DISK": {
+                    "max": 4241881387,
+                    "reserved": 275540267,
+                    "used": 6891881
+                }
+            },
+            "LiveObjectCount": 1573,
+            "EvictionRate": 0,
+            "WriteOperationRate": 151,
+            "OffheapReservedSize": 28200640,
+            "OffheapUsedSize": 9424528
+        }
+    },
+    {
+        "version": "4.1.5",
+        "agentId": "MyCluster",
+        "sourceId": "Server2",
+        "statistics": {
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 536870912,
+            "ReadOperationRate": 0,
+            "StorageStats": {
+                "OFFHEAP": {
+                    "max": 536870912,
+                    "reserved": 28399392,
+                    "used": 27187680
+                },
+                "DATA": {
+                    "max": 1073741824,
+                    "reserved": 4081078,
+                    "used": 4081078
+                },
+                "DISK": {
+                    "max": 4219651652,
+                    "reserved": 253310532,
+                    "used": 118981352
+                }
+            },
+            "LiveObjectCount": 1573,
+            "EvictionRate": 0,
+            "WriteOperationRate": 152,
+            "OffheapReservedSize": 28399392,
+            "OffheapUsedSize": 9424512
+        }
+    },
+    {
+        "version": "4.1.5",
+        "agentId": "MyCluster",
+        "sourceId": "Server3",
+        "statistics": {
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 536870912,
+            "ReadOperationRate": 128,
+            "StorageStats": {
+                "OFFHEAP": {
+                    "max": 536870912,
+                    "reserved": 28129120,
+                    "used": 27020480
+                },
+                "DATA": {
+                    "max": 1073741824,
+                    "reserved": 3984450,
+                    "used": 3984450
+                },
+                "DISK": {
+                    "max": 4149145730,
+                    "reserved": 182804610,
+                    "used": 48469268
+                }
+            },
+            "LiveObjectCount": 1572,
+            "EvictionRate": 0,
+            "WriteOperationRate": 143,
+            "OffheapReservedSize": 28129120,
+            "OffheapUsedSize": 9410592
+        }
+    },
+    {
+        "version": "4.1.5",
+        "agentId": "MyCluster",
+        "sourceId": "Server4",
+        "statistics": {
+            "ExpirationRate": 0,
+            "OffheapMaxSize": 536870912,
+            "ReadOperationRate": 0,
+            "StorageStats": {
+                "OFFHEAP": {
+                    "max": 536870912,
+                    "reserved": 28270768,
+                    "used": 27162800
+                },
+                "DATA": {
+                    "max": 1073741824,
+                    "reserved": 4063330,
+                    "used": 4063330
+                },
+                "DISK": {
+                    "max": 4121583015,
+                    "reserved": 155241895,
+                    "used": 20914688
+                }
+            },
+            "LiveObjectCount": 1572,
+            "EvictionRate": 0,
+            "WriteOperationRate": 145,
+            "OffheapReservedSize": 28270768,
+            "OffheapUsedSize": 9411120
+        }
+    }
+]

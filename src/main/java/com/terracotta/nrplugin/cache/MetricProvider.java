@@ -13,6 +13,7 @@ public interface MetricProvider {
 
 //    public Map<String, Map<String, Object>> getAllMetrics();
 
-	public NewRelicPayload assemblePayload() throws Exception;
+    NewRelicPayload assemblePayload() throws Exception;
 
+    void clearAllMetricData();
 }

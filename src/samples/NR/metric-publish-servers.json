@@ -1,0 +1,216 @@
+{"agent": {
+    "host": "tcvm",
+    "pid": 3299,
+    "version": "2.0.4"
+}, "components": [
+    {
+        "name": "LOCALFABIEN_Server1",
+        "guid": "com.saggs.terracotta.Terracotta",
+        "duration": 10,
+        "metrics": {
+            "Component/Terracotta/Servers/absolute/NumConnectedClients[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/EvictionRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ExpirationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapUsedSize[bytes]": {
+                "total": 8.392816E7,
+                "sum_of_squares": 1.40878720819712E15,
+                "min": 1.6785632E7,
+                "max": 1.6785632E7,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/WriteOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Objects/absolute/LiveObjectCount[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ReadOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/absolute/State[count]": {
+                "total": 5.0,
+                "sum_of_squares": 5.0,
+                "min": 1.0,
+                "max": 1.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapMaxSize[bytes]": {
+                "total": 1.073741824E10,
+                "sum_of_squares": 2.305843009213694E19,
+                "min": 2.147483648E9,
+                "max": 2.147483648E9,
+                "count": 5
+            }
+        }
+    },
+    {
+        "name": "LOCALFABIEN_Server2",
+        "guid": "com.saggs.terracotta.Terracotta",
+        "duration": 10,
+        "metrics": {
+            "Component/Terracotta/Servers/absolute/NumConnectedClients[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/EvictionRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ExpirationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapUsedSize[bytes]": {
+                "total": 8.392896E7,
+                "sum_of_squares": 1.40881406533632E15,
+                "min": 1.6785792E7,
+                "max": 1.6785792E7,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/WriteOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ReadOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/Data/Objects/absolute/LiveObjectCount[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/absolute/State[count]": {
+                "total": 10.0,
+                "sum_of_squares": 20.0,
+                "min": 2.0,
+                "max": 2.0,
+                "count": 5
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapMaxSize[bytes]": {
+                "total": 1.073741824E10,
+                "sum_of_squares": 2.305843009213694E19,
+                "min": 2.147483648E9,
+                "max": 2.147483648E9,
+                "count": 5
+            }
+        }
+    },
+    {
+        "name": "LOCALFABIEN_Terracotta_Rollup",
+        "guid": "com.saggs.terracotta.Terracotta",
+        "duration": 10,
+        "metrics": {
+            "Component/Terracotta/Servers/absolute/NumConnectedClients[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/EvictionRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ExpirationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapUsedSize[bytes]": {
+                "total": 1.6785712E8,
+                "sum_of_squares": 2.81760127353344E15,
+                "min": 3.3571424E7,
+                "max": 3.3571424E7,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/WriteOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/Data/Objects/absolute/LiveObjectCount[count]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/Data/Rates/absolute/ReadOperationRate[value/sec]": {
+                "total": 0.0,
+                "sum_of_squares": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/absolute/State[count]": {
+                "total": 15.0,
+                "sum_of_squares": 25.0,
+                "min": 3.0,
+                "max": 3.0,
+                "count": 5.0
+            },
+            "Component/Terracotta/Servers/OffHeap/Bytes/absolute/OffheapMaxSize[bytes]": {
+                "total": 2.147483648E10,
+                "sum_of_squares": 4.611686018427388E19,
+                "min": 4.294967296E9,
+                "max": 4.294967296E9,
+                "count": 5.0
+            }
+        }
+    }
+]}

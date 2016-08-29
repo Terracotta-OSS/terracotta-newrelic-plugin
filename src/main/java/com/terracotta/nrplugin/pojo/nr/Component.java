@@ -1,6 +1,8 @@
 package com.terracotta.nrplugin.pojo.nr;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.terracotta.nrplugin.pojo.MetricDataset;
+import com.terracotta.nrplugin.util.MetricUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,62 +17,67 @@ import java.util.concurrent.ConcurrentHashMap;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Component {
 
-	String name;
-	String guid;
-	long duration;
-	Map<String, Object> metrics;
+    String name;
+    String guid;
+    long duration;
+    Map<String, Object> metrics;
 
-	public Component() {
-	}
+    public Component() {
+    }
 
-	public Component(String name, String guid, long duration) {
-		this();
-		this.name = name;
-		this.guid = guid;
-		this.duration = duration;
-	}
+    public Component(String name, String guid, long duration) {
+        this();
+        this.name = name;
+        this.guid = guid;
+        this.duration = duration;
+    }
 
-	public Component(String name, String guid, long duration, Map<String, Object> metrics) {
-		this(name, guid, duration);
-		this.metrics = metrics;
-	}
+    public Component(String name, String guid, long duration, Map<String, Object> metrics) {
+        this(name, guid, duration);
+        this.metrics = metrics;
+    }
 
-	public void putMetric(String key, Object value) {
-		if (metrics == null) {
-			metrics = new ConcurrentHashMap<String, Object>();
-		}
-		metrics.put(key, value);
-	}
+    public void putMetric(MetricDataset metricDataset, MetricUtil metricUtil, boolean full) {
+        Map.Entry<String, Map<String, Number>> metricJson = metricUtil.metricAsJson(metricDataset, full);
+        putMetric(metricJson.getKey(), metricJson.getValue());
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void putMetric(String key, Object value) {
+        if (metrics == null) {
+            metrics = new ConcurrentHashMap<String, Object>();
+        }
+        metrics.put(key, value);
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getGuid() {
-		return guid;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setGuid(String guid) {
-		this.guid = guid;
-	}
+    public String getGuid() {
+        return guid;
+    }
 
-	public long getDuration() {
-		return duration;
-	}
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
 
-	public void setDuration(long duration) {
-		this.duration = duration;
-	}
+    public long getDuration() {
+        return duration;
+    }
 
-	public Map<String, Object> getMetrics() {
-		return metrics;
-	}
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
 
-	public void setMetrics(Map<String, Object> metrics) {
-		this.metrics = metrics;
-	}
+    public Map<String, Object> getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(Map<String, Object> metrics) {
+        this.metrics = metrics;
+    }
 }
