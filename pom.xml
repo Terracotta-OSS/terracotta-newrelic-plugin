@@ -18,7 +18,7 @@
 		<springframework.version>4.0.2.RELEASE</springframework.version>
 		<ehcache-ee.version>2.7.6</ehcache-ee.version>
         <nr.environment.prefix>CHANGEME</nr.environment.prefix>
-        <terracotta.restapi.url>CHANGEME</terracotta.restapi.url>
+        <terracotta.restapi.url>http://CHANGEME</terracotta.restapi.url>
         <nr.agent.licenseKey>CHANGEME</nr.agent.licenseKey>
         <terracotta.restapi.authentication.enabled>false</terracotta.restapi.authentication.enabled>
         <terracotta.restapi.login.username></terracotta.restapi.login.username>
