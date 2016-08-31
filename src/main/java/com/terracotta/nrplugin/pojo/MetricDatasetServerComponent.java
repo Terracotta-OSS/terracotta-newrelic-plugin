@@ -91,4 +91,26 @@ public class MetricDatasetServerComponent extends MetricDatasetComponent impleme
     public MetricDatasetServerComponent clone() throws CloneNotSupportedException {
         return (MetricDatasetServerComponent) super.clone();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MetricDatasetServerComponent that = (MetricDatasetServerComponent) o;
+
+        if (serverName != null ? !serverName.equals(that.serverName) : that.serverName != null) return false;
+        if (state != that.state) return false;
+        if (stripeName != null ? !stripeName.equals(that.stripeName) : that.stripeName != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = serverName != null ? serverName.hashCode() : 0;
+        result = 31 * result + (stripeName != null ? stripeName.hashCode() : 0);
+        result = 31 * result + state.hashCode();
+        return result;
+    }
 }

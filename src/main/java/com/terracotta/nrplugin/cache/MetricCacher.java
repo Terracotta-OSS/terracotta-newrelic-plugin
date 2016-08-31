@@ -91,7 +91,7 @@ public class MetricCacher {
                     // Filter by cache name & metric
                     JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("name").is(cacheComponent.getCacheName())));
 
-                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, cacheComponent);
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, cacheComponent, true);
                     putValueInDataset(metricDataset, values);
                     putMetricDataSetInCache(metricDataset);
 
@@ -106,7 +106,11 @@ public class MetricCacher {
                     // Filter by server name & metric
                     JSONArray values = JsonPath.read(objects, metric.getDataPath(), Filter.filter(Criteria.where("sourceId").is(serverComponent.getServerName())));
 
-                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent, true);
+
+                    //set the component state as it may have changed since last iteration
+                    setStateInServerMetricDataSet(metricDataset, serverComponent.getState());
+
                     putValueInDataset(metricDataset, values);
                     putMetricDataSetInCache(metricDataset);
 
@@ -125,7 +129,7 @@ public class MetricCacher {
             if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
                 JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities[*]");
                 for (MetricDatasetServerComponent serverComponent : serverComponents) {
-                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent, true);
                     if (null != metricDataset.getComponentDetail() &&
                             metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent &&
                             ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).getState() == MetricDatasetServerComponent.State.ACTIVE) {
@@ -137,7 +141,7 @@ public class MetricCacher {
                 }
             } else if (MetricUtil.METRIC_SERVER_STATE.equals((metric.getReportingComponents().size() > 0) ? metric.getReportingComponents().get(metric.getReportingComponents().size() - 1) : "")) {
                 for (MetricDatasetServerComponent serverComponent : serverComponents) {
-                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent);
+                    MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent, true);
                     if (MetricDatasetServerComponent.State.parseString(metric.getName()) == serverComponent.getState()) {
                         putValueInDataset(metricDataset, 1);
                     } else {
@@ -151,35 +155,39 @@ public class MetricCacher {
         log.info("Starting to cache Ratio Metrics...");
         for (Metric metric : metricUtil.getRatioMetrics()) {
             RatioMetric ratioMetric = (RatioMetric) metric;
-            for (Object key : statsCache.getKeys()) {
-                Element element = statsCache.get((key));
-                if (element != null && element.getObjectValue() instanceof MetricDataset) {
-                    MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
-                    if (metricDataset.getKey().contains(ratioMetric.getNumeratorCount())) {
-                        String denominatorKey = ratioMetric.isHitRatio() ?
-                                metricDataset.getKey().replace("Hit", "Miss") :
-                                metricDataset.getKey().replace("Miss", "Hit");
-                        String ratioKey = metricDataset.getKey().replace("Count", "Ratio");
-                        Element denominatorElement = statsCache.get(denominatorKey);
-                        if (denominatorElement != null && denominatorElement.getObjectValue() instanceof MetricDataset) {
-                            MetricDataset denominatorDataset = (MetricDataset) denominatorElement.getObjectValue();
-                            Double numerator = getDiffSum(metricDataset);
-                            Double denominator = getDiffSum(denominatorDataset);
-                            if (numerator != null && denominator != null) {
-                                denominator += numerator;
-                                log.trace("Got Diff Sum for numerator '" + metricDataset.getMetric().getName() + "': " + numerator);
-                                log.trace("Got Diff Sum for denominator '" + denominatorDataset.getMetric().getName() + "': " + denominator);
-                                double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
-
-                                MetricDataset ratioDataset = getMetricDatasetFromCache(ratioMetric, denominatorDataset.getComponentDetail());
-                                putValueInDataset(ratioDataset, ratio);
-                                putMetricDataSetInCache(ratioDataset);
-                                log.trace(metricDataset.getKey() + " / " + denominatorKey + ": " + numerator + " / " + denominator + " = " + ratio);
-                            } else {
-                                log.warn("Could not calculate ratio for '" + metricDataset.getMetric().getName());
+            for (MetricDatasetCacheComponent cacheComponent : cacheComponents) {
+                MetricDataset numeratorDataset = null;
+                MetricDataset denominatorDataset = null;
+                for (Object key : statsCache.getKeys()) {
+                    Element element = statsCache.get((key));
+                    if (element != null && element.getObjectValue() instanceof MetricDataset) {
+                        MetricDataset metricDataset = (MetricDataset) element.getObjectValue();
+                        if (cacheComponent.equals(metricDataset.getComponentDetail())) {
+                            if (metricDataset.getMetric().getReportingPath().equals(ratioMetric.getNumerator().getReportingPath())) {
+                                numeratorDataset = metricDataset;
+                            } else if (metricDataset.getMetric().getReportingPath().equals(ratioMetric.getDenominator().getReportingPath())) {
+                                denominatorDataset = metricDataset;
                             }
                         }
                     }
+                    if (null != numeratorDataset && null != denominatorDataset)
+                        break;
+                }
+
+                Double numerator = getDiffSum(numeratorDataset);
+                Double denominator = getDiffSum(denominatorDataset);
+                if (numerator != null && denominator != null) {
+                    denominator += numerator;
+                    double ratio = denominator > 0 ? 100 * numerator / denominator : 0;
+
+                    if (log.isTraceEnabled())
+                        log.trace("Ratio = " + numeratorDataset.getKey() + " / " + denominatorDataset.getKey() + " = " + numerator + " / " + denominator + " = " + ratio);
+
+                    MetricDataset ratioDataset = getMetricDatasetFromCache(ratioMetric, denominatorDataset.getComponentDetail(), true);
+                    putValueInDataset(ratioDataset, ratio);
+                    putMetricDataSetInCache(ratioDataset);
+                } else {
+                    log.warn("Could not calculate ratio for '" + ratioMetric.getName() + " because numerator or denomitator was null");
                 }
             }
         }
@@ -205,10 +213,15 @@ public class MetricCacher {
     }
 
     private Double getDiffSum(MetricDataset metricDataset) {
-        Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
-        MetricDataset diffDataSet = getDiffDataSetFromCache(MetricDataset.getKey(diffMetric, metricDataset.getComponentDetail()));
-        if (null != diffDataSet) {
-            return diffDataSet.getStatistics().getSum();
+        if (null != metricDataset) {
+            Metric diffMetric = getDiffMetricForAbsoluteMetric(metricDataset.getMetric());
+            MetricDataset diffDataSet = getDiffDataSetFromCache(MetricDataset.getKey(diffMetric, metricDataset.getComponentDetail()));
+            if (null != diffDataSet) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Got Diff Sum for metric '" + metricDataset.getMetric().getName() + "': " + diffDataSet.getStatistics().getSum());
+                }
+                return diffDataSet.getStatistics().getSum();
+            }
         }
         return null;
     }
@@ -339,28 +352,24 @@ public class MetricCacher {
         metricDataset.addValue(value);
     }
 
-    public MetricDataset getMetricDatasetFromCache(Metric metric, MetricDatasetComponent componentDetail) {
+    public MetricDataset getMetricDatasetFromCache(Metric metric, MetricDatasetComponent componentDetail, boolean createEmptyIfNull) {
         Element element = statsCache.get(MetricDataset.getKey(metric, componentDetail));
         MetricDataset metricDataset = null;
         if (element != null) {
             metricDataset = (MetricDataset) element.getObjectValue();
-
-            //set the component state as it may have changed since last iteration
-            if (null != componentDetail && componentDetail instanceof MetricDatasetServerComponent
-                    && null != metricDataset.getComponentDetail() && metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent) {
-                ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).setState(((MetricDatasetServerComponent) componentDetail).getState());
-            }
-
             log.trace("Extracting metricDataset values for {} - {}", metricDataset.getKey(), metricUtil.metricAsJson(metricDataset, true).toString());
-        } else {
+        } else if (createEmptyIfNull) {
             log.trace("metricDataset not found in cache...creating a new one");
-
-//			return metricDatasetFactory.construct(metric, componentName);
-//			return (MetricDataset) beanFactory.getBean("metricDataset", metric, componentName, metric.getMaxWindowSize());
-
             metricDataset = new MetricDataset(metric, componentDetail);
         }
+
         return metricDataset;
+    }
+
+    public void setStateInServerMetricDataSet(MetricDataset metricDataset, MetricDatasetServerComponent.State state) {
+        if (null != metricDataset && null != metricDataset.getComponentDetail() && metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent) {
+            ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).setState(state);
+        }
     }
 
     public void putMetricDataSetInCache(MetricDataset metricDataset) {

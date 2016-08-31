@@ -88,4 +88,27 @@ public class MetricDatasetCacheComponent extends MetricDatasetComponent implemen
     public MetricDatasetCacheComponent clone() throws CloneNotSupportedException {
         return (MetricDatasetCacheComponent) super.clone();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MetricDatasetCacheComponent that = (MetricDatasetCacheComponent) o;
+
+        if (cacheManagerName != null ? !cacheManagerName.equals(that.cacheManagerName) : that.cacheManagerName != null)
+            return false;
+        if (cacheName != null ? !cacheName.equals(that.cacheName) : that.cacheName != null) return false;
+        if (state != that.state) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = cacheName != null ? cacheName.hashCode() : 0;
+        result = 31 * result + (cacheManagerName != null ? cacheManagerName.hashCode() : 0);
+        result = 31 * result + state.hashCode();
+        return result;
+    }
 }

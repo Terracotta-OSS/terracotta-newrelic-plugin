@@ -12,9 +12,8 @@ public class MetricBuilder {
     String displayName;
     String dataPath;
     String reportingPath;
-    String numeratorCount;
-    String denominatorCount;
-    RatioMetric pair;
+    Metric numeratorMetric;
+    Metric denominatorMetric;
     List<String> reportingComponents = new ArrayList<String>();
     Metric.Source source;
     Metric.Unit unit;
@@ -51,9 +50,8 @@ public class MetricBuilder {
         metric.setCreateDiff(createDiff);
 
         if (Metric.Type.ratio.equals(type)) {
-            ((RatioMetric) metric).setNumeratorCount(numeratorCount);
-            ((RatioMetric) metric).setDenominatorCount(denominatorCount);
-            ((RatioMetric) metric).setPair(pair);
+            ((RatioMetric) metric).setNumerator(numeratorMetric);
+            ((RatioMetric) metric).setDenominator(denominatorMetric);
         }
 
         return metric;
@@ -130,18 +128,13 @@ public class MetricBuilder {
         return this;
     }
 
-    public MetricBuilder setDenominatorCount(String denominatorCount) {
-        this.denominatorCount = denominatorCount;
+    public MetricBuilder setNumeratorMetric(Metric numeratorMetric) {
+        this.numeratorMetric = numeratorMetric;
         return this;
     }
 
-    public MetricBuilder setNumeratorCount(String numeratorCount) {
-        this.numeratorCount = numeratorCount;
-        return this;
-    }
-
-    public MetricBuilder setPair(RatioMetric pair) {
-        this.pair = pair;
+    public MetricBuilder setDenominatorMetric(Metric denominatorMetric) {
+        this.denominatorMetric = denominatorMetric;
         return this;
     }
 

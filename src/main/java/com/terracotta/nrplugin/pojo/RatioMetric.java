@@ -1,7 +1,5 @@
 package com.terracotta.nrplugin.pojo;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Jeff
@@ -11,45 +9,28 @@ import org.apache.commons.lang.StringUtils;
  */
 public class RatioMetric extends Metric {
 
-	private static final long serialVersionUID = -8738437849912104248L;
+    private static final long serialVersionUID = -8738437849912104248L;
 
-	RatioMetric pair;
-	String numeratorCount;
-	String denominatorCount;
+    Metric numerator;
+    Metric denominator;
 
-	public RatioMetric() {
-		super();
-	}
+    public RatioMetric() {
+        super();
+    }
 
-	public boolean isHitRatio() {
-		return StringUtils.containsIgnoreCase(numeratorCount, "hit");
-	}
+    public Metric getNumerator() {
+        return numerator;
+    }
 
-	public boolean isMissRatio() {
-		return StringUtils.containsIgnoreCase(numeratorCount, "miss");
-	}
+    public void setNumerator(Metric numerator) {
+        this.numerator = numerator;
+    }
 
-	public RatioMetric getPair() {
-		return pair;
-	}
+    public Metric getDenominator() {
+        return denominator;
+    }
 
-	public void setPair(RatioMetric pair) {
-		this.pair = pair;
-	}
-
-	public String getNumeratorCount() {
-		return numeratorCount;
-	}
-
-	public void setNumeratorCount(String numeratorCount) {
-		this.numeratorCount = numeratorCount;
-	}
-
-	public String getDenominatorCount() {
-		return denominatorCount;
-	}
-
-	public void setDenominatorCount(String denominatorCount) {
-		this.denominatorCount = denominatorCount;
-	}
+    public void setDenominator(Metric denominator) {
+        this.denominator = denominator;
+    }
 }
