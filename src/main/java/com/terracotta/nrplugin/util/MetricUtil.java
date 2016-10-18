@@ -18,16 +18,16 @@ import java.util.*;
 @Service
 public class MetricUtil {
 
-	final Logger log = LoggerFactory.getLogger(this.getClass());
+    final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	public static final String PARAMETER_SHOW = "show";
+    public static final String PARAMETER_SHOW = "show";
 
-	// Server metrics
-	public static final String METRIC_LIVE_OBJECT_COUNT = "LiveObjectCount";
-	public static final String METRIC_WRITE_OPERATION_RATE = "WriteOperationRate";
-	public static final String METRIC_READ_OPERATION_RATE = "ReadOperationRate";
-	public static final String METRIC_EVICTION_RATE = "EvictionRate";
-	public static final String METRIC_EXPIRATION_RATE = "ExpirationRate";
+    // Server metrics
+    public static final String METRIC_LIVE_OBJECT_COUNT = "LiveObjectCount";
+    public static final String METRIC_WRITE_OPERATION_RATE = "WriteOperationRate";
+    public static final String METRIC_READ_OPERATION_RATE = "ReadOperationRate";
+    public static final String METRIC_EVICTION_RATE = "EvictionRate";
+    public static final String METRIC_EXPIRATION_RATE = "ExpirationRate";
     public static final String METRIC_DATA_USED_SIZE = "StorageStats.DATA.used";
     public static final String METRIC_DATA_MAX_SIZE = "StorageStats.DATA.max";
     public static final String METRIC_OFFHEAP_USED_SIZE = "StorageStats.OFFHEAP.used";
@@ -39,94 +39,96 @@ public class MetricUtil {
     public static final String METRIC_DISPLAYNAME_OFFHEAP_MAX_SIZE = "Max";
 
 
-	// Client metrics
-	public static final String METRIC_READ_RATE = "ReadRate";
-	public static final String METRIC_WRITE_RATE = "WriteRate";
+    // Client metrics
+    public static final String METRIC_READ_RATE = "ReadRate";
+    public static final String METRIC_WRITE_RATE = "WriteRate";
 
-	// Cache metrics
-	public static final String METRIC_EVICTED_COUNT = "EvictedCount";
-	public static final String METRIC_EXPIRED_COUNT = "ExpiredCount";
-	public static final String METRIC_ON_DISK_HIT_COUNT = "OnDiskHitCount";
-	public static final String METRIC_IN_MEMORY_HIT_COUNT = "InMemoryHitCount";
-	public static final String METRIC_OFF_HEAP_HIT_COUNT = "OffHeapHitCount";
-	public static final String METRIC_CACHE_HIT_COUNT = "CacheHitCount";
-	public static final String METRIC_ON_DISK_MISS_COUNT = "OnDiskMissCount";
-	public static final String METRIC_IN_MEMORY_MISS_COUNT = "InMemoryMissCount";
-	public static final String METRIC_OFF_HEAP_MISS_COUNT = "OffHeapMissCount";
-	public static final String METRIC_CACHE_MISS_COUNT = "CacheMissCount";
-	public static final String METRIC_PUT_COUNT = "PutCount";
-	public static final String METRIC_REMOVED_COUNT = "RemovedCount";
-	
-	// Cache Rates
-	public static final String METRIC_CACHE_ON_DISK_HIT_RATE = "CacheOnDiskHitRate";
-	public static final String METRIC_CACHE_IN_MEMORY_HIT_RATE = "CacheInMemoryHitRate";
-	public static final String METRIC_CACHE_OFF_HEAP_HIT_RATE = "CacheOffHeapHitRate";
-	public static final String METRIC_CACHE_HIT_RATE = "CacheHitRate";
-	public static final String METRIC_CACHE_ON_DISK_MISS_RATE = "CacheOnDiskMissRate";
-	public static final String METRIC_CACHE_IN_MEMORY_MISS_RATE = "CacheInMemoryMissRate";
-	public static final String METRIC_CACHE_OFF_HEAP_MISS_RATE = "CacheOffHeapMissRate";
-	public static final String METRIC_CACHE_MISS_RATE = "CacheMissRate";
-	public static final String METRIC_CACHE_PUT_RATE = "CachePutRate";
-	public static final String METRIC_CACHE_REMOVE_RATE = "CacheRemoveRate";
-	public static final String METRIC_CACHE_EVICTION_RATE = "CacheEvictionRate";
-	public static final String METRIC_CACHE_EXPIRATION_RATE = "CacheExpirationRate";
+    // Cache metrics
+    public static final String METRIC_EVICTED_COUNT = "EvictedCount";
+    public static final String METRIC_EXPIRED_COUNT = "ExpiredCount";
+    public static final String METRIC_ON_DISK_HIT_COUNT = "OnDiskHitCount";
+    public static final String METRIC_IN_MEMORY_HIT_COUNT = "InMemoryHitCount";
+    public static final String METRIC_OFF_HEAP_HIT_COUNT = "OffHeapHitCount";
+    public static final String METRIC_CACHE_HIT_COUNT = "CacheHitCount";
+    public static final String METRIC_ON_DISK_MISS_COUNT = "OnDiskMissCount";
+    public static final String METRIC_IN_MEMORY_MISS_COUNT = "InMemoryMissCount";
+    public static final String METRIC_OFF_HEAP_MISS_COUNT = "OffHeapMissCount";
+    public static final String METRIC_CACHE_MISS_COUNT = "CacheMissCount";
+    public static final String METRIC_PUT_COUNT = "PutCount";
+    public static final String METRIC_REMOVED_COUNT = "RemovedCount";
+
+    // Cache Rates
+    public static final String METRIC_CACHE_ON_DISK_HIT_RATE = "CacheOnDiskHitRate";
+    public static final String METRIC_CACHE_IN_MEMORY_HIT_RATE = "CacheInMemoryHitRate";
+    public static final String METRIC_CACHE_OFF_HEAP_HIT_RATE = "CacheOffHeapHitRate";
+    public static final String METRIC_CACHE_HIT_RATE = "CacheHitRate";
+    public static final String METRIC_CACHE_ON_DISK_MISS_RATE = "CacheOnDiskMissRate";
+    public static final String METRIC_CACHE_IN_MEMORY_MISS_RATE = "CacheInMemoryMissRate";
+    public static final String METRIC_CACHE_OFF_HEAP_MISS_RATE = "CacheOffHeapMissRate";
+    public static final String METRIC_CACHE_MISS_RATE = "CacheMissRate";
+    public static final String METRIC_CACHE_PUT_RATE = "CachePutRate";
+    public static final String METRIC_CACHE_REMOVE_RATE = "CacheRemoveRate";
+    public static final String METRIC_CACHE_EVICTION_RATE = "CacheEvictionRate";
+    public static final String METRIC_CACHE_EXPIRATION_RATE = "CacheExpirationRate";
 
 
-	// these are the actual ehcache settings for local values
-	public static final String METRIC_MAX_LOCAL_HEAP_SIZE_BYTES = "MaxBytesLocalHeap";
-	public static final String METRIC_MAX_LOCAL_HEAP_SIZE_COUNT = "MaxEntriesLocalHeap";
-	public static final String METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES = "MaxBytesLocalOffHeap";
-	public static final String METRIC_MAX_LOCAL_DISK_SIZE_COUNT = "MaxEntriesLocalDisk";
-	public static final String METRIC_MAX_LOCAL_DISK_SIZE_BYTES = "MaxBytesLocalDisk";
-	public static final String METRIC_MAX_TOTAL_SIZE_COUNT = "MaxEntriesInCache";
+    // these are the actual ehcache settings for local values
+    public static final String METRIC_MAX_LOCAL_HEAP_SIZE_BYTES = "MaxBytesLocalHeap";
+    public static final String METRIC_MAX_LOCAL_HEAP_SIZE_COUNT = "MaxEntriesLocalHeap";
+    public static final String METRIC_MAX_LOCAL_OFFHEAP_SIZE_BYTES = "MaxBytesLocalOffHeap";
+    public static final String METRIC_MAX_LOCAL_DISK_SIZE_COUNT = "MaxEntriesLocalDisk";
+    public static final String METRIC_MAX_LOCAL_DISK_SIZE_BYTES = "MaxBytesLocalDisk";
+    public static final String METRIC_MAX_TOTAL_SIZE_COUNT = "MaxEntriesInCache";
 
-	// used counts
-	public static final String METRIC_USED_LOCAL_HEAP_SIZE_COUNT = "LocalHeapSize";
-	public static final String METRIC_USED_LOCAL_HEAP_SIZE_BYTES = "LocalHeapSizeInBytes";
-	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT = "LocalOffHeapSize";
-	public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES = "LocalOffHeapSizeInBytes";
-	public static final String METRIC_USED_LOCAL_DISK_SIZE_COUNT = "LocalDiskSize";
-	public static final String METRIC_USED_LOCAL_DISK_SIZE_BYTES = "LocalDiskSizeInBytes";
-	public static final String METRIC_USED_TOTAL_SIZE_COUNT = "Size";
-	public static final String METRIC_ENABLED = "Enabled";
+    // used counts
+    public static final String METRIC_USED_LOCAL_HEAP_SIZE_COUNT = "LocalHeapSize";
+    public static final String METRIC_USED_LOCAL_HEAP_SIZE_BYTES = "LocalHeapSizeInBytes";
+    public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_COUNT = "LocalOffHeapSize";
+    public static final String METRIC_USED_LOCAL_OFFHEAP_SIZE_BYTES = "LocalOffHeapSizeInBytes";
+    public static final String METRIC_USED_LOCAL_DISK_SIZE_COUNT = "LocalDiskSize";
+    public static final String METRIC_USED_LOCAL_DISK_SIZE_BYTES = "LocalDiskSizeInBytes";
+    public static final String METRIC_USED_TOTAL_SIZE_COUNT = "Size";
+    public static final String METRIC_ENABLED = "Enabled";
 
-	// Cache ratio metrics
-	public static final String METRIC_CACHE_HIT_RATIO = "CacheHitRatio";
-	public static final String METRIC_ON_DISK_HIT_RATIO = "OnDiskHitRatio";
-	public static final String METRIC_IN_MEMORY_HIT_RATIO = "InMemoryHitRatio";
-	public static final String METRIC_OFF_HEAP_HIT_RATIO = "OffHeapHitRatio";
-	public static final String METRIC_CACHE_MISS_RATIO = "CacheMissRatio";
-	public static final String METRIC_ON_DISK_MISS_RATIO = "OnDiskMissRatio";
-	public static final String METRIC_IN_MEMORY_MISS_RATIO = "InMemoryMissRatio";
-	public static final String METRIC_OFF_HEAP_MISS_RATIO = "OffHeapMissRatio";
+    // Cache ratio metrics
+    public static final String METRIC_CACHE_HIT_RATIO = "CacheHitRatio";
+    public static final String METRIC_ON_DISK_HIT_RATIO = "OnDiskHitRatio";
+    public static final String METRIC_IN_MEMORY_HIT_RATIO = "InMemoryHitRatio";
+    public static final String METRIC_OFF_HEAP_HIT_RATIO = "OffHeapHitRatio";
+    public static final String METRIC_CACHE_MISS_RATIO = "CacheMissRatio";
+    public static final String METRIC_ON_DISK_MISS_RATIO = "OnDiskMissRatio";
+    public static final String METRIC_IN_MEMORY_MISS_RATIO = "InMemoryMissRatio";
+    public static final String METRIC_OFF_HEAP_MISS_RATIO = "OffHeapMissRatio";
 
-	// Topologies
-	public static final String METRIC_NUM_CONNECTED_CLIENTS = "NumConnectedClients";
-	public static final String METRIC_SERVER_STATE = "State";
+    // Topologies
+    public static final String METRIC_CONNECTED_CLIENTS_GROUP = "ConnectedClients";
+    public static final String METRIC_CONNECTED_CLIENTS_TOTAL = "ConnectedClientsTotal";
+    public static final String METRIC_CONNECTED_CLIENTS_UNIQUE_HOSTS = "ConnectedClientsUniqueHosts";
+    public static final String METRIC_SERVER_STATE = "State";
 
-	// NewRelic constants
-	public static final String NEW_RELIC_MIN = "min";
-	public static final String NEW_RELIC_MAX = "max";
-	public static final String NEW_RELIC_TOTAL = "total";
-	public static final String NEW_RELIC_COUNT = "count";
-	public static final String NEW_RELIC_SUM_OF_SQUARES = "sum_of_squares";
-	public static final String NEW_RELIC_PATH_SEPARATOR = "/";
+    // NewRelic constants
+    public static final String NEW_RELIC_MIN = "min";
+    public static final String NEW_RELIC_MAX = "max";
+    public static final String NEW_RELIC_TOTAL = "total";
+    public static final String NEW_RELIC_COUNT = "count";
+    public static final String NEW_RELIC_SUM_OF_SQUARES = "sum_of_squares";
+    public static final String NEW_RELIC_PATH_SEPARATOR = "/";
 
-	final List<String> cacheStatsNames = new ArrayList<String>();
-	final List<Metric> metrics = new ArrayList<Metric>();
+    final List<String> cacheStatsNames = new ArrayList<String>();
+    final List<Metric> metrics = new ArrayList<Metric>();
 
-	// Base paths
-	final String cm = "Component";
-	final String tc = "Terracotta";
-	final String srv = "Servers";
-	final String clnt = "Clients";
-	final String eh = "Ehcache";
-	final String data = "Data";
+    // Base paths
+    final String cm = "Component";
+    final String tc = "Terracotta";
+    final String srv = "Servers";
+    final String clnt = "Clients";
+    final String eh = "Ehcache";
+    final String data = "Data";
     final String storage = "Storage";
     final String usage = "Usage";
     final String ratio = "Ratio";
     final String off = "OffHeap";
-	final String obj = "Objects";
+    final String obj = "Objects";
     //	final String rates = "Rates";
     final String bytes = "Bytes";
     final String reads = "Reads";
@@ -137,9 +139,9 @@ public class MetricUtil {
     final String max = "Max";
     final String used = "Used";
 
-	@PostConstruct
-	private void init() {
-		// Server metrics
+    @PostConstruct
+    private void init() {
+        // Server metrics
         addServerMetric(METRIC_WRITE_OPERATION_RATE, null, Metric.Unit.Rate, Arrays.asList(usage, "ReadWrites", total));
         addServerMetric(METRIC_READ_OPERATION_RATE, null, Metric.Unit.Rate, Arrays.asList(usage, "ReadWrites", total));
         addServerMetric(METRIC_EVICTION_RATE, null, Metric.Unit.Rate, Arrays.asList(usage, "Evictions", total));
@@ -197,7 +199,7 @@ public class MetricUtil {
         addCacheMetric(METRIC_MAX_TOTAL_SIZE_COUNT, max, Metric.Unit.Count, Arrays.asList(storage, total, "Entries"), false);
         addCacheMetric(METRIC_USED_TOTAL_SIZE_COUNT, used, Metric.Unit.Count, Arrays.asList(storage, total, "Entries"), false);
 
-		// Cache Ratio metrics
+        // Cache Ratio metrics
         RatioMetric cacheHitRatio = addCacheRatioMetric(METRIC_CACHE_HIT_RATIO, hits, Arrays.asList(usage, ratio, total), cacheHitCount, cacheMissCount, Metric.RollupType.sum);
         RatioMetric onDiskHitRatio = addCacheRatioMetric(METRIC_ON_DISK_HIT_RATIO, hits, Arrays.asList(usage, ratio, "LocalDisk"), cacheOnDiskHitCount, cacheOnDiskMissCount, Metric.RollupType.sum);
         RatioMetric inMemoryHitRatio = addCacheRatioMetric(METRIC_IN_MEMORY_HIT_RATIO, hits, Arrays.asList(usage, ratio, "LocalHeap"), cacheInMemoryHitCount, cacheInMemoryMissCount, Metric.RollupType.sum);
@@ -207,9 +209,11 @@ public class MetricUtil {
         RatioMetric inMemoryMissRatio = addCacheRatioMetric(METRIC_IN_MEMORY_MISS_RATIO, miss, Arrays.asList(usage, ratio, "LocalHeap"), cacheInMemoryMissCount, cacheInMemoryHitCount, Metric.RollupType.sum);
         RatioMetric offHeapMissRatio = addCacheRatioMetric(METRIC_OFF_HEAP_MISS_RATIO, miss, Arrays.asList(usage, ratio, "LocalOffHeap"), cacheOffheapMissCount, cacheOffheapHitCount, Metric.RollupType.sum);
 
-		// Special Metrics
-        addMetric(METRIC_NUM_CONNECTED_CLIENTS, null, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
-                false, Arrays.asList(cm, tc, srv), null, 1, Metric.RollupType.none);
+        // Special Metrics
+        addMetric(METRIC_CONNECTED_CLIENTS_TOTAL, total, null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+                false, Arrays.asList(cm, tc, srv, METRIC_CONNECTED_CLIENTS_GROUP), null, 1, Metric.RollupType.none);
+        addMetric(METRIC_CONNECTED_CLIENTS_UNIQUE_HOSTS, "UniqueHosts", null, Metric.Type.special, Metric.Source.topologies, Metric.Unit.Count,
+                false, Arrays.asList(cm, tc, srv, METRIC_CONNECTED_CLIENTS_GROUP), null, 1, Metric.RollupType.none);
 
         //add each server state in its own metric
         for (MetricDatasetServerComponent.State state : MetricDatasetServerComponent.State.values()) {
@@ -219,13 +223,13 @@ public class MetricUtil {
             }
         }
 
-		// Populate cache stat names list
-		for (Metric metric : metrics) {
-			if (Metric.Source.cache.equals(metric.getSource())) {
-				cacheStatsNames.add(metric.getName());
-			}
-		}
-	}
+        // Populate cache stat names list
+        for (Metric metric : metrics) {
+            if (Metric.Source.cache.equals(metric.getSource())) {
+                cacheStatsNames.add(metric.getName());
+            }
+        }
+    }
 
     private Metric addServerMetric(String name, String displayName, Metric.Unit unit, List<String> suffix) {
         List<String> reportingPathComponents = new ArrayList<String>(Arrays.asList(cm, tc, srv));
@@ -257,21 +261,21 @@ public class MetricUtil {
     }
 
     private Metric addMetric(String name, String displayName, String dataPath, Metric.Type type, Metric.Source source, Metric.Unit unit,
-                           boolean createDiff, List<String> reportingPathComponents, Metric.RatioType ratioType,
-                           Integer maxWindowSize, Metric.RollupType rollupType) {
+                             boolean createDiff, List<String> reportingPathComponents, Metric.RatioType ratioType,
+                             Integer maxWindowSize, Metric.RollupType rollupType) {
         Metric metric = MetricBuilder.create(name).
-				setDisplayName(displayName).
-				setSource(source).
+                setDisplayName(displayName).
+                setSource(source).
                 setDataPath(dataPath).
                 setUnit(unit).
-				setCreateDiff(createDiff).
-				setType(type).
-				setRatioType(ratioType).
+                setCreateDiff(createDiff).
+                setType(type).
+                setRatioType(ratioType).
                 setRollupType(rollupType).
                 setMaxWindowSize(maxWindowSize).
-				addReportingPath(reportingPathComponents).
-				build();
-		metrics.add(metric);
+                addReportingPath(reportingPathComponents).
+                build();
+        metrics.add(metric);
 
         return metric;
     }
@@ -286,45 +290,45 @@ public class MetricUtil {
                 setType(Metric.Type.ratio).
                 setRollupType(rollupType).
                 setSource(Metric.Source.cache).
-				setUnit(Metric.Unit.Percent).
+                setUnit(Metric.Unit.Percent).
                 setNumeratorMetric(numeratorMetric).
                 setDenominatorMetric(denominatorMetric).
                 addReportingPath(reportingPathComponents).
                 build();
-		metrics.add(metric);
+        metrics.add(metric);
 
         return metric;
-	}
+    }
 
-	public List<Metric> getMetrics() {
-		return metrics;
-	}
+    public List<Metric> getMetrics() {
+        return metrics;
+    }
 
-	public List<Metric> getRatioMetrics() {
-		return doFilterMetrics(Metric.Type.ratio);
-	}
+    public List<Metric> getRatioMetrics() {
+        return doFilterMetrics(Metric.Type.ratio);
+    }
 
-	public List<Metric> getRegularMetrics() {
-		return doFilterMetrics(Metric.Type.regular);
-	}
+    public List<Metric> getRegularMetrics() {
+        return doFilterMetrics(Metric.Type.regular);
+    }
 
-	public List<Metric> getSpecialMetrics() {
-		return doFilterMetrics(Metric.Type.special);
-	}
+    public List<Metric> getSpecialMetrics() {
+        return doFilterMetrics(Metric.Type.special);
+    }
 
-	private List<Metric> doFilterMetrics(Metric.Type type) {
-		List<Metric> includedMetrics = new ArrayList<Metric>();
-		for (Metric metric : metrics) {
-			if (metric.getType().equals(type)) {
-				includedMetrics.add(metric);
-			}
-		}
-		return includedMetrics;
-	}
+    private List<Metric> doFilterMetrics(Metric.Type type) {
+        List<Metric> includedMetrics = new ArrayList<Metric>();
+        for (Metric metric : metrics) {
+            if (metric.getType().equals(type)) {
+                includedMetrics.add(metric);
+            }
+        }
+        return includedMetrics;
+    }
 
-	public List<String> getCacheStatsNames() {
-		return cacheStatsNames;
-	}
+    public List<String> getCacheStatsNames() {
+        return cacheStatsNames;
+    }
 
 //	public Map<String, Object> metricsAsJson(Collection<MetricDataset> metrics) {
 //		Map<String, Object> map = new HashMap<String, Object>();
@@ -345,35 +349,35 @@ public class MetricUtil {
         if (full)
             return metricAsJson(metricDataset.getMetric().getReportingPath(), metricDataset.getStatistics().getMin(),
                     metricDataset.getStatistics().getMax(), metricDataset.getStatistics().getSum(),
-				metricDataset.getStatistics().getN(), metricDataset.getStatistics().getSumsq());
+                    metricDataset.getStatistics().getN(), metricDataset.getStatistics().getSumsq());
         else
             return metricAsJson(metricDataset.getMetric().getReportingPath(),
                     metricDataset.getStatistics().getSum(),
                     metricDataset.getStatistics().getN());
     }
 
-	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double min, Double max, Double sum,
-	                                                           Long count, Double sumsq) {
-		Map<String, Number> values = new HashMap<String, Number>();
-		values.put(NEW_RELIC_MIN, min.isNaN() ? 0 : min);
-		values.put(NEW_RELIC_MAX, max.isNaN() ? 0 : max);
-		values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
-		values.put(NEW_RELIC_COUNT, count);
-		values.put(NEW_RELIC_SUM_OF_SQUARES, sumsq.isNaN() ? 0 : sumsq);
-		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
-	}
+    public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double min, Double max, Double sum,
+                                                               Long count, Double sumsq) {
+        Map<String, Number> values = new HashMap<String, Number>();
+        values.put(NEW_RELIC_MIN, min.isNaN() ? 0 : min);
+        values.put(NEW_RELIC_MAX, max.isNaN() ? 0 : max);
+        values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
+        values.put(NEW_RELIC_COUNT, count);
+        values.put(NEW_RELIC_SUM_OF_SQUARES, sumsq.isNaN() ? 0 : sumsq);
+        return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
+    }
 
-	public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double sum, Long count) {
-		Map<String, Number> values = new HashMap<String, Number>();
-		values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
-		values.put(NEW_RELIC_COUNT, count);
-		return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
-	}
+    public Map.Entry<String, Map<String, Number>> metricAsJson(String path, Double sum, Long count) {
+        Map<String, Number> values = new HashMap<String, Number>();
+        values.put(NEW_RELIC_TOTAL, sum.isNaN() ? 0 : sum);
+        values.put(NEW_RELIC_COUNT, count);
+        return new AbstractMap.SimpleEntry<String, Map<String, Number>>(path, values);
+    }
 
-	public int toStateCode(String stateString) {
-		if (stateString.startsWith("ACTIVE")) return 1;
-		else if (stateString.startsWith("PASSIVE")) return 2;
-		else if (stateString.startsWith("INITIALIZING")) return 4;
-		else return 8;
-	}
+    public int toStateCode(String stateString) {
+        if (stateString.startsWith("ACTIVE")) return 1;
+        else if (stateString.startsWith("PASSIVE")) return 2;
+        else if (stateString.startsWith("INITIALIZING")) return 4;
+        else return 8;
+    }
 }

@@ -81,6 +81,9 @@ public class MetricCacher {
         // Get all server names and their mapped stripe name
         Set<MetricDatasetServerComponent> serverComponents = getServerComponents(jsonObjects);
 
+        // get all the connected clients in the form "hosts:port"
+        Set<String> connectedClientsFull = getConnectedClientHosts(jsonObjects);
+
         log.info("Parsed metrics into JSONArrays...");
         for (Metric metric : metricUtil.getRegularMetrics()) {
             // Get all JSON data for this source
@@ -126,14 +129,24 @@ public class MetricCacher {
         // Handle special metrics
         for (Metric metric : metricUtil.getSpecialMetrics()) {
             JSONArray objects = jsonObjects.get(metric.getSource());
-            if (MetricUtil.METRIC_NUM_CONNECTED_CLIENTS.equals(metric.getName())) {
-                JSONArray clientEntities = JsonPath.read(objects, "$[*].clientEntities[*]");
+            if (MetricUtil.METRIC_CONNECTED_CLIENTS_TOTAL.equals(metric.getName()) || MetricUtil.METRIC_CONNECTED_CLIENTS_UNIQUE_HOSTS.equals(metric.getName())) {
+                int clientsCount;
+                if (MetricUtil.METRIC_CONNECTED_CLIENTS_UNIQUE_HOSTS.equals(metric.getName())) {
+                    HashSet<String> clientsUniqueHost = new HashSet<String>();
+                    for (String client : connectedClientsFull) {
+                        clientsUniqueHost.add(client.substring(0, client.indexOf(':'))); //add the host portion to the hashset to remove any duplicate
+                    }
+                    clientsCount = clientsUniqueHost.size();
+                } else {
+                    clientsCount = connectedClientsFull.size();
+                }
+
                 for (MetricDatasetServerComponent serverComponent : serverComponents) {
                     MetricDataset metricDataset = getMetricDatasetFromCache(metric, serverComponent, true);
                     if (null != metricDataset.getComponentDetail() &&
                             metricDataset.getComponentDetail() instanceof MetricDatasetServerComponent &&
                             ((MetricDatasetServerComponent) metricDataset.getComponentDetail()).getState() == MetricDatasetServerComponent.State.ACTIVE) {
-                        putValueInDataset(metricDataset, clientEntities.size());
+                        putValueInDataset(metricDataset, clientsCount);
                     } else {
                         putValueInDataset(metricDataset, 0);
                     }
@@ -271,6 +284,12 @@ public class MetricCacher {
         JSONArray topologies = jsonObjects.get(Metric.Source.topologies);
         JSONArray stripes = JsonPath.read(topologies, "$[*].serverGroupEntities[*]");
         return getSet(stripes, "name");
+    }
+
+    private Set<String> getConnectedClientHosts(Map<Metric.Source, JSONArray> jsonObjects) {
+        JSONArray topologies = jsonObjects.get(Metric.Source.topologies);
+        JSONArray clients = JsonPath.read(topologies, "$[*].clientEntities[*].attributes");
+        return getSet(clients, "RemoteAddress");
     }
 
     private Map<String, String> getServersToStripesMap(Map<Metric.Source, JSONArray> jsonObjects) {
