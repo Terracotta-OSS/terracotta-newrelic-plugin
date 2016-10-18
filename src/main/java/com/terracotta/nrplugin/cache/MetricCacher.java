@@ -71,7 +71,7 @@ public class MetricCacher {
     }
 
     private void doCacheStats() throws Exception {
-        log.info("Starting to cache all stats...");
+        log.info("Gathering and aggregating all stats data...");
         Map<Metric.Source, String> metricData = metricFetcher.getAllMetricData();
         Map<Metric.Source, JSONArray> jsonObjects = toJsonArray(metricData);
 
@@ -84,7 +84,6 @@ public class MetricCacher {
         // get all the connected clients in the form "hosts:port"
         Set<String> connectedClientsFull = getConnectedClientHosts(jsonObjects);
 
-        log.info("Parsed metrics into JSONArrays...");
         for (Metric metric : metricUtil.getRegularMetrics()) {
             // Get all JSON data for this source
             JSONArray objects = jsonObjects.get(metric.getSource());
@@ -165,7 +164,6 @@ public class MetricCacher {
             }
         }
 
-        log.info("Starting to cache Ratio Metrics...");
         for (Metric metric : metricUtil.getRatioMetrics()) {
             RatioMetric ratioMetric = (RatioMetric) metric;
             for (MetricDatasetCacheComponent cacheComponent : cacheComponents) {
@@ -204,7 +202,7 @@ public class MetricCacher {
                 }
             }
         }
-        log.info("Done caching stats.");
+        log.info("Done Gathering and Aggregating all stats data...");
     }
 
     private MetricDatasetServerComponent.State getServerState(Map<Metric.Source, JSONArray> jsonObjects, String serverName) {

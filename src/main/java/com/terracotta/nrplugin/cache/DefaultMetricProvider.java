@@ -206,7 +206,7 @@ public class DefaultMetricProvider implements MetricProvider {
 
         payload.setAgent(new Agent(hostname, pid, version));
         payload.setComponents(new ArrayList<Component>(componentMap.values()));
-        log.info("Returning " + numMetrics + " metric(s) from cache.");
+        log.info("Returning complete stats payload with " + numMetrics + " aggregated metric(s) gathered from cache.");
         return payload;
     }
 
