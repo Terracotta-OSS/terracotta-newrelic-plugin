@@ -35,7 +35,6 @@ import java.util.Map;
  */
 @Service
 public class MetricFetcher extends BaseTmcClient {
-
     final Logger tmcResponseLog = LoggerFactory.getLogger("tmcResponseLog");
 
     List<NameValuePair> cacheNames = new ArrayList<NameValuePair>();
@@ -77,27 +76,27 @@ public class MetricFetcher extends BaseTmcClient {
         Object payload = null;
         try {
             if (log.isDebugEnabled())
-                log.debug("Executing HTTP GET to '" + url + "'");
+                log.debug("Executing HTTP GET to '{}'", url);
 
             if (tmcResponseLog.isDebugEnabled())
-                tmcResponseLog.debug("Executing HTTP GET to '" + url + "'");
+                tmcResponseLog.debug("Executing HTTP GET to '{}'", url);
 
             payload = getRestTemplate().getForObject(url, clazz);
-//			log.debug("TMC Payload: " + payload);
 
             if (tmcResponseLog.isDebugEnabled())
                 tmcResponseLog.debug("" + payload);
 
             stateManager.setTmcState(StateManager.TmcState.available);
         } catch (HttpClientErrorException e) {
+            log.error("Received error HTTP response code {} for url '{}'", e.getStatusCode(), url);
             stateManager.setTmcState(StateManager.TmcState.unavailable);
             if (org.springframework.http.HttpStatus.FORBIDDEN == e.getStatusCode()) {
-                log.info("Received response code " + e.getStatusCode() + " for url '" + url + "'.");
+                log.error("Login error - Will try to re-login {} more times", maxRelogAttempts - numRelogAttempts);
                 resetRestTemplate();
                 numRelogAttempts++;
                 if (maxRelogAttempts <= numRelogAttempts) {
                     numRelogAttempts = 0;
-                    throw new Exception("Exceeded maximum relog attempts.");
+                    throw new Exception("Exceeded maximum re-login attempts.");
                 } else {
                     return doGet(url, clazz, requestParams);
                 }
