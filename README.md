@@ -1,4 +1,4 @@
-Terracotta New Relic Plugin
+Terracotta BigMemory Max 4.x New Relic Plugin
 ========================================
 
 This plug-in pulls metrics from a running Terracotta Server Array (TSA) at scheduled intervals, 
